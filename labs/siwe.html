@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark"><title>第 21 课 · 登录凭证：钱包显示 B，后台认的是谁？ · 链上开发手册</title>
+<link rel="stylesheet" href="../assets/site.css?v=2786ad38e29d"><script src="../assets/site.js?v=6dc390471c89" defer></script></head>
+<body><a class="skip" href="#main">跳至正文</a><header class="mast"><div class="mast-inner">
+<a class="brand" href="../index.html"><span class="mark" aria-hidden="true"></span>链上开发手册</a>
+<nav aria-label="全站导航"><a href="../plan.html">课程计划</a><a href="../index.html#labs">实验台</a><button type="button" id="theme" hidden>切换主题</button></nav>
+</div></header><main id="main" class="reading"><div class="crumb"><a href="../index.html">手册首页</a> / <a href="../plan.html#m06">M06 · 钱包接入、代币与 DeFi</a> / 第 21 课</div>
+<header class="lesson-opening"><h1 id="page-title">第 21 课 · 登录凭证：钱包显示 B，后台认的是谁？</h1><figure class="specimen"><figcaption>L-21 · 等待签名时换账户</figcaption><dl>
+<div><dt>挑战里的账户</dt><dd>A</dd></div>
+<div><dt>钱包现在显示</dt><dd>B</dd></div></dl>
+<span class="specimen-relation" aria-hidden="true">≠</span><p>链号仍是 31337；A 的登录证明不能给 B 建会话，须重新申请挑战</p></figure><p>联调单 L-21：操作员用测试账户 A 登录，签名框还开着就切到了 B。收货台若把页头改成 B，却继续用 A 的会话查订单，展示的就不是 B 的数据。这次交付只允许链号 <strong>31337</strong>：一个挑战默认有效 <strong>120 秒</strong>，最多成功消费 <strong>1 次</strong>；拒签产生 <strong>0 次登录</strong>。请交能证明这几件事的服务端答复，而不是一张「钱包已连接」截图。</p></header><div class="reading-grid"><article aria-labelledby="page-title"><details class="mobile-toc"><summary>本页目录</summary><ol><li><a href="#先分开三件看起来像同意的事">先分开三件看起来像「同意」的事</a></li><li><a href="#核对签名器显示的那张原件">核对签名器显示的那张原件</a></li><li><a href="#从两个回环进程启动不带上日常钱包">从两个回环进程启动，不带上日常钱包</a></li><li><a href="#正常记录谁才是服务端认定的-a">正常记录：谁才是服务端认定的 A？</a></li><li><a href="#换一个输入哪些等待结果必须丢掉">换一个输入：哪些等待结果必须丢掉？</a></li><li><a href="#独立作业交一份b-从何时起才算登录的交班表">独立作业：交一份「B 从何时起才算登录」的交班表</a></li><li><a href="#查证原文">查证原文</a></li></ol></details><p>先修：<a href="crypto.html">02 · 签的是哪些字节</a>、<a href="networks.html">04 · 核对网络</a>、<a href="accounts.html">09 · 账户与执行</a>。这里的 EOA 是由私钥控制、可用签名恢复出公钥来验明地址的外部账户。Java 登录服务不收私钥、助记词或钱包文件。<strong>读这篇静态课文不会请求连接钱包</strong>；需要动手时才启动独立的回环登录台。</p>
+<h2 id="先分开三件看起来像同意的事">先分开三件看起来像「同意」的事</h2>
+<table class="stackable">
+<thead>
+<tr>
+<th>操作</th>
+<th>谁答复、答复什么</th>
+<th>不能据此做什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="操作">连接</td>
+<td data-label="谁答复、答复什么">用户允许钱包通过 Provider 向这个站点展示账户；<code>eth_requestAccounts</code> 返回地址列表</td>
+<td data-label="不能据此做什么">地址是公开标识；知道地址，甚至界面能读到地址，都不是服务端已验身份</td>
+</tr>
+<tr>
+<td data-label="操作">登录</td>
+<td data-label="谁答复、答复什么">用户读完一份专属挑战，钱包用 EOA 的密钥对登录消息签名；Java 验证后把短会话绑定到该地址</td>
+<td data-label="不能据此做什么">签名没有隐藏内容，不是转账、代币额度或委托后台代签的许可</td>
+</tr>
+<tr>
+<td data-label="操作">提交交易</td>
+<td data-label="谁答复、答复什么">交易有自己的编码、序号和费用语义，要广播、被执行才可能改变链上状态</td>
+<td data-label="不能据此做什么">本课没有这一步，所以不该寻找交易哈希、块号、gas 回执或余额变化</td>
+</tr>
+</tbody>
+</table>
+<p>Provider 是页面与钱包之间的请求、事件接口，不是私钥，也不一定是一个 HTTP 节点。EIP-1193 的 <code>request({method, params})</code> 成功给方法结果，失败拒绝 Promise；常见 <code>4001</code> 表示用户拒绝，<strong>不是 HTTP 状态码</strong>。<code>eth_accounts</code> 只读当前对站点可见的账户，可能是空列表。<code>eth_chainId</code> 给十六进制 quantity：<code>0x7a69</code> 是十进制 <code>31337</code>，<code>0x7a6a</code> 才是 <code>31338</code>。账户列表和网络都可能在页面不刷新时改变；链号也不是独一无二的节点指纹。</p>
+<figure class="lesson-figure"><a href="../assets/figures/m06/siwe.svg"><img src="../assets/figures/m06/siwe.svg" alt="沿时间从上到下：登录服务签发 120 秒挑战，浏览器向签名器要 65 字节签名，服务端为账户 A 一次消费；拒签及第二次验证不创建会话。"></a><figcaption>左侧 Java 只发一次性问题、收原文与证明；右侧签名器只有用户确认才签。中间浏览器能传递结果，不能自己宣布已登录。</figcaption></figure>
+
+<h2 id="核对签名器显示的那张原件">核对签名器显示的那张原件</h2>
+<p>SIWE（Sign-In with Ethereum，ERC-4361）给站点登录约定了可读消息格式。这是一张<strong>格式示例</strong>，地址和时间只为读图，不是要粘贴给钱包的输入。真实实验应看到当次随机地址、nonce 和 UTC 时间。</p>
+<pre><code class="language-text">http://127.0.0.1:18121 wants you to sign in with your Ethereum account:
+0x52908400098527886E0F7030069857D2E4169EE7
+
+Sign in to the local course desk. No transaction.
+
+URI: http://127.0.0.1:18121/
+Version: 1
+Chain ID: 31337
+Nonce: 88d0287435be44878a65df499fb3c631
+Issued At: 2026-01-01T10:00:00Z
+Expiration Time: 2026-01-01T10:02:00Z
+</code></pre>
+<p>第一行是<strong>发起签名的页面 origin</strong>：含显式 <code>http</code>、主机、端口；这里不能填签名器自己的 <code>localhost:18221</code>。<code>URI</code> 是登录的资源，本例固定在该站的 <code>/</code>；地址使用 EIP-55 校验大小写。<code>Chain ID</code> 在消息内写十进制，不从签名字节的最后一位猜网络。<code>Nonce</code> 来自服务端 16 个随机字节，编码为 <strong>32 个十六进制字符</strong>；它区别两次登录挑战，不是<a href="nonce.html">第 10 课的交易序号</a>。签名包含这些值而且验证方核对它们，值才有约束力。</p>
+<p>以示例时刻计算：<code>10:01:59Z</code> 仍在 <code>[签发, 截止)</code> 内；<strong>恰好 <code>10:02:00Z</code> 就不再接受</strong>，以 Java 的时钟为准。即使还剩 119 秒，只要已成功消费过这份挑战，也不能再换一次会话。反过来，随机 nonce 并不自带过期能力，过期与消费是两项独立检查。本例的短会话也最迟在这张凭证的截止时间失效，不是从点击确认起另加 120 秒。</p>
+<h2 id="从两个回环进程启动不带上日常钱包">从两个回环进程启动，不带上日常钱包</h2>
+<p>环境：<strong>JDK 21</strong>，初次准备依赖用 <strong>Maven 3.9.x</strong>；复用<a href="rpc.html">第 17 课</a>的 Maven classpath 和 <strong>web3j 4.12.3</strong>，浏览器用支持 ES 模块、BigInt 和 <code>window.open</code> 的桌面 Chromium/Chrome。以下命令都从<strong>仓库根目录</strong>执行。无需 Anvil、账号充值、钱包扩展或公网 RPC。<code>18121</code>、<code>18221</code> 须空闲；若地址被占用，请停止自己的旧实验，不要连接未知服务。</p>
+<pre><code class="language-bash">java -version
+mvn -version
+bash labs/m05/build.sh
+# 若本机已缓存完整依赖，可以改用：bash labs/m05/build.sh -o
+</code></pre>
+<p>确保终端使用的都是 JDK 21（macOS 可在每个终端执行 <code>export JAVA_HOME="$(/usr/libexec/java_home -v 21)"; export PATH="$JAVA_HOME/bin:$PATH"</code>）。第一次构建需要下载依赖；<code>labs/m05/target/classpath.txt</code> 就绪后，下面两个服务可离线启动。<a href="m06/login/run.sh">启动脚本</a>用 JDK 的源码启动器，Java 工作目录是源码旁，勿直接在仓库根目录执行 <code>java SiweLab.java</code>。</p>
+<pre><code class="language-bash"># 终端 A：验证方，不生成或持有用户密钥
+bash labs/m06/login/run.sh login
+</code></pre>
+<pre><code class="language-bash"># 终端 B：你自己控制的一次性教学签名器
+bash labs/m06/login/run.sh signer
+</code></pre>
+<p>等到两个终端分别打印 <code>login http://127.0.0.1:18121/</code>、<code>signer http://localhost:18221/</code>。两者只监听 IPv4 回环，<strong>地址栏不要把 <code>localhost</code> 与 <code>127.0.0.1</code> 互换</strong>。浏览器另起临时用户资料，关闭同步和常用扩展；不是在已有钱包会话中新开普通标签。可任选与你系统匹配的一条启动方式：</p>
+<pre><code class="language-bash"># macOS：在新终端，用空资料目录启动一个新实例
+PROFILE=$(mktemp -d)
+open -na 'Google Chrome' --args --user-data-dir=&quot;$PROFILE&quot; --disable-extensions --disable-sync --no-first-run http://127.0.0.1:18121/
+</code></pre>
+<pre><code class="language-bash"># Linux（已安装 chromium）：同样新建目录，不复用默认配置
+PROFILE=$(mktemp -d)
+chromium --user-data-dir=&quot;$PROFILE&quot; --disable-extensions --disable-sync --no-first-run http://127.0.0.1:18121/
+</code></pre>
+<p>默认路线点 <strong>「连接教学签名器」</strong>。这是主动打开的<strong>独立窗口、不同 origin 和不同 JVM</strong>，不是登录台假造的 <code>window.ethereum</code>。签名器启动时在内存创建两个无资金的 secp256k1 测试账户；不会持久化、导入或导出密钥。它只支持本课少数方法，<code>31337/31338</code> 是可切换的<strong>教学网络上下文</strong>，不宣称查过任何区块。浏览器核对窗口来源和 origin，签名器只对固定登录格式签名。它没有硬件隔离和生产钱包的安全能力，不要部署、共享或存币；整个演练假定本机、课程代码和这份空浏览器资料可信。</p>
+<p>可选的产品接口路线：只在<strong>另一个全新的专用测试资料</strong>中安装你已核验的 EIP-1193 钱包，创建没有资金的测试 EOA，连接你自己的本地链 31337；用登录台的「连接独立测试钱包」。这条路线只运行终端 A，通过 <code>window.ethereum.request</code> 调扩展而非终端 B；若扩展要求在线的自建节点，可按<a href="networks.html">第 04 课</a>准备并核对回环 RPC。没有合适测试扩展就用默认路线，<strong>不去探测、解锁或连接已有钱包</strong>。本课不要求添加主网，也不在错误网络自动发起切链。</p>
+<h2 id="正常记录谁才是服务端认定的-a">正常记录：谁才是服务端认定的 A？</h2>
+<ol>
+<li>教学签名器的首个请求只展示将披露的地址。点「确认请求」，回登录台：钱包地址有了，链号为 <code>31337</code>，但页头仍是「未登录」。点「检查服务端会话」应读到 <strong><code>200 ANONYMOUS</code></strong>。这一刻没有签过消息。</li>
+<li>点「请求登录签名」。在独立窗口完整读出待签原文；和登录台的原文比对第一行 origin、地址、链号、nonce、时间。不要只看两端地址的前后四位再决定。使用自己刚启动的空签名器，且所有字段相符，才点「确认请求」。</li>
+<li>回登录台点「检查服务端会话」：预期 <strong><code>200 AUTHENTICATED</code></strong>、本次 A 的完整地址和 <code>31337</code>。对照钱包地址时忽略展示大小写差异，不要忽略字节差异。浏览器再开<strong>另一份空资料</strong>只访问同一登录台并点「检查服务端会话」，应为 <code>200 ANONYMOUS</code>。第二个普通标签会共享 Cookie，不是独立浏览器会话的证据。</li>
+<li>在原资料<strong>截止时间之前</strong>点「复核一次性消费」：页面把刚才的同一原文和签名再交一次验证；预期 <strong><code>409 NO_CHALLENGE</code></strong>。再查状态仍是上次的 A，不会变成两个会话。这个按钮仅用于本机复核；不会再次弹签名框，也不会延长截止时间。</li>
+</ol>
+<p>打开<a href="m06/login/app.js">浏览器端</a>和<a href="m06/login/SiweLab.java">Java 验证服务 / 独立签名器源码</a>，按这四行因果关系读：</p>
+<ul>
+<li><strong>选地址不等于认地址。</strong> <code>select()</code> 只在点击后调用 <code>eth_requestAccounts</code>；<code>snapshot()</code> 用 <code>eth_accounts</code> 和 <code>eth_chainId</code> 读出当前上下文。<code>/api/challenge</code> 以浏览器的匿名 Cookie 找到自己的待验证槽，Java 校验链号、规范化地址，从服务端配置而非客户端 URL 拼 <code>Challenge.text()</code>。两个浏览器同报 A，有两个槽和两个随机 nonce。</li>
+<li><strong>传的是原文字节，不是它的十六进制外观。</strong> 页面按 <code>TextEncoder</code> 得到 UTF-8，再编码成 <code>0x…</code>，作为 <code>personal_sign</code> 的第一个参数，第二个是选定地址。签名器还原原文给人读；实际签名输入按 EIP-191 是 <code>0x19</code> 开头的 <code>Ethereum Signed Message:\n</code> 前缀、原文字节数的十进制 ASCII、原文字节，再做 Keccak-256 和 secp256k1 ECDSA。不要手工预加前缀再调用 <code>personal_sign</code>（会多包一次），不要对 <code>0x…</code> 的字符签名。原文换行用 LF，末行无多余换行。</li>
+<li><strong>真实验签，而不是比较两个页面传来的地址。</strong> <code>/api/verify</code> 从同一 Cookie 的槽里重建唯一允许的原文，逐字相同才接着查时间。这样域、URI、链、地址、nonce 与时刻全部绑定；这是只接受本课程固定 SIWE 模板的验法，不是通用 ERC-4361 解析器。<code>signedBy()</code> 拆本课 65 字节 <code>r || s || v</code>，检查标量和恢复位，<code>Sign.signedPrefixedMessageToKey()</code> 据 EIP-191 恢复公钥；取其以太坊地址，与挑战内的地址比较。不需要把私钥发给 Java 来「核验」。</li>
+<li><strong>发会话与消费是一个状态变更。</strong> 同一个 <code>synchronized</code> 临界区覆盖读取待用挑战、验签、置 <code>pending = null</code>、登记 <code>login</code>。同一份证明再来，不论上一次响应是否顺利抵达浏览器，都不能再消费。已认证的服务端状态以 <code>HttpOnly; SameSite=Strict</code> 的不透明随机 Cookie 关联，业务身份来自槽内的 <code>address</code>，不是钱包页头的昵称。本机 API 还校验 <code>Host</code>、写请求的 <code>Origin</code>；单进程内存锁及 HTTP 回环不是多实例生产部署方案。</li>
+</ul>
+<h2 id="换一个输入哪些等待结果必须丢掉">换一个输入：哪些等待结果必须丢掉？</h2>
+<p>每行从连好的测试签名器开始，点「检查服务端会话」读取独立证据。默认只开<strong>一个登录台标签</strong>和它自己的签名器窗，避免同一资料下的其他标签改动共享会话。</p>
+<table class="stackable">
+<thead>
+<tr>
+<th>改变什么</th>
+<th>用户动作</th>
+<th>预期判据</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="改变什么">意愿</td>
+<td data-label="用户动作">申请新挑战，在签名器点「拒绝请求」</td>
+<td data-label="预期判据">登录台显示 <code>4001</code>，服务端 <code>200 ANONYMOUS</code>；不要在后台替用户再请求签名</td>
+</tr>
+<tr>
+<td data-label="改变什么">账户</td>
+<td data-label="用户动作">先以 A 正常登录，在签名器「切换测试账户」到 B；再申请 B 的签名，<strong>尚未确认</strong>时又切回 A</td>
+<td data-label="预期判据">两次切换均撤销；读到 <code>ANONYMOUS</code>；即使又看见熟悉的 A，也不是重新证明过的 A</td>
+</tr>
+<tr>
+<td data-label="改变什么">网络</td>
+<td data-label="用户动作">在 31337 申请签名，尚未确认就「切换测试网络」到 31338</td>
+<td data-label="预期判据">旧请求作废，页面显示错链，不能申请新挑战；切回 31337 只恢复申请资格，不自动登录</td>
+</tr>
+<tr>
+<td data-label="改变什么">时间</td>
+<td data-label="用户动作">开新挑战，在签名窗口保留它直到 <code>Expiration Time</code> 之后，再确认</td>
+<td data-label="预期判据">教学签名器可以对旧原文算出真签名，但 Java 必须给 <strong><code>410 EXPIRED</code></strong>，读会话仍为 <code>ANONYMOUS</code></td>
+</tr>
+</tbody>
+</table>
+<p>若想快些核对时间边界，可只停终端 A，<code>SIWE_TTL_SECONDS=8 bash labs/m06/login/run.sh login</code> 后<strong>刷新登录台、重新连接</strong>（关闭上一次签名器窗口）。允许值是 5–120 秒；八秒是服务端签发到截止的间隔，不是弹窗渲染完成后倒数八秒。若提示 <code>NO_BROWSER</code>，说明服务端已重启或浏览器匿名槽已失效；清除登录后申请新挑战，别提交旧签名。若连签名器都打不开，检查两个进程的启动行和浏览器对本站的弹窗设置，不要改用陌生 RPC 或粘贴签名来凑过关结果。</p>
+<p>等待最容易出现的错误写法是：<code>await sign()</code> 回来后，直接用<strong>此刻</strong>钱包显示的地址设置「已登录」。这里有两层闸：页面收到 <code>accountsChanged</code>、<code>chainChanged</code> 或 <code>disconnect</code> 时，立即递增代数 <code>epoch</code>、清除展示与待用证明，并通知服务端 <code>/api/reset</code>；提交验证前、验证返回后还要重读钱包快照。即使 A → B → A，旧请求的代数也对不上。页面把发往 Java 的请求串行：若切换发生在已提交 <code>/api/verify</code> 的途中，<strong>旧结果不得回填页面，后到的 reset 撤销旧会话</strong>。后端不能隔空知道用户刚刚点了哪个账户；网络断开、撤销尚未获服务端确认时，页面应保持未登录，不能声称远端状态已确认。</p>
+<h2 id="独立作业交一份b-从何时起才算登录的交班表">独立作业：交一份「B 从何时起才算登录」的交班表</h2>
+<p>改用 <strong>45 秒</strong>期限重启验证方。先让 A 登录；换 B，验证当前会话；故意拒签一次 B 的请求；然后给 B 申请<strong>新的</strong>挑战并确认，立刻复核一次性消费。最后用另一份空资料查询。留下六行：<code>动作 / Provider 账户标签 / 链号 / 服务端码与状态 / 是否能以 B 身份办事</code>。另写新旧两张 B 挑战的 nonce 是否相同、各自两条 UTC 时刻相差多少秒；只保存判据和临时地址缩写，不提交 Cookie、原始签名、全量请求捕获、钱包资料或任何密钥。</p>
+<p><strong>过关判据：</strong> 第一次出现 B 的地址时仍不能以 B 身份办事；拒签的挑战不能建立会话；B 的新挑战 nonce 不同，有效窗恰好 45 秒；只有确认并验签成功那行才首次绑定 B，复核为 <code>409</code> 而<strong>不撤掉仍有效的 B</strong>。另一份空资料读不到 B。用一句话说明：这套演练只证明特定时刻的 EOA 登录，不证明现实身份、余额、任何代币授权，也不支持合约钱包 ERC-1271 验签。完成后关闭两个浏览器窗口和临时实例；在 A、B 终端各按 <code>Ctrl-C</code>。签名器退出丢弃临时密钥，验证方退出丢弃挑战与会话；确认浏览器已退出后可删除自己刚创建的空资料目录。</p>
+<h2 id="查证原文">查证原文</h2>
+<ul>
+<li><a href="https://eips.ethereum.org/EIPS/eip-1193">EIP-1193：Provider 的 request、账户 / 链变化事件与错误码</a>；<a href="https://docs.metamask.io/metamask-connect/evm/guides/sign-data/#use-personal_sign">MetaMask：personal_sign 参数、消息和字节编码</a>。</li>
+<li><a href="https://eips.ethereum.org/EIPS/eip-4361">ERC-4361：消息 ABNF、验证 origin、EOA 与合约账户、会话绑定</a>；<a href="https://eips.ethereum.org/EIPS/eip-191">ERC-191：personal_sign 的 0x45 格式</a>；<a href="https://eips.ethereum.org/EIPS/eip-55">ERC-55：地址校验大小写</a>。</li>
+<li><a href="https://github.com/LFDT-web3j/web3j/blob/v4.12.3/crypto/src/main/java/org/web3j/crypto/Sign.java">web3j 4.12.3：Sign 中的前缀、字节长度和公钥恢复</a>；<a href="https://eips.ethereum.org/EIPS/eip-1271">ERC-1271：合约签名有效性接口</a>。</li>
+</ul>
+<nav class="end-links" aria-label="阅读导航"><a rel="prev" href="reconciliation.html">上一课 · 20</a><a rel="next" href="allowance.html">下一课 · 22</a></nav></article>
+<aside class="rail"><nav aria-label="本页目录"><b>本页目录</b><ol><li><a href="#先分开三件看起来像同意的事">先分开三件看起来像「同意」的事</a></li><li><a href="#核对签名器显示的那张原件">核对签名器显示的那张原件</a></li><li><a href="#从两个回环进程启动不带上日常钱包">从两个回环进程启动，不带上日常钱包</a></li><li><a href="#正常记录谁才是服务端认定的-a">正常记录：谁才是服务端认定的 A？</a></li><li><a href="#换一个输入哪些等待结果必须丢掉">换一个输入：哪些等待结果必须丢掉？</a></li><li><a href="#独立作业交一份b-从何时起才算登录的交班表">独立作业：交一份「B 从何时起才算登录」的交班表</a></li><li><a href="#查证原文">查证原文</a></li></ol></nav></aside></div><dialog class="figure-zoom" aria-label="配图放大视图">
+<form method="dialog"><a>打开 SVG 原图</a><button autofocus>收起大图</button></form>
+<div class="zoom-scroll" tabindex="0" role="region" aria-label="放大的配图，可滚动"><img alt=""></div></dialog></main><footer><span>链上开发手册</span><a href="../index.html">课程首页</a><a href="siwe.md">Markdown 原稿</a></footer></body></html>

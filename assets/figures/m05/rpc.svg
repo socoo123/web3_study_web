@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="518" height="506" viewBox="0 0 518 506" role="img" aria-labelledby="title desc" xml:lang="zh-CN">
+  <title id="title">回执读端：哪一层能证明锁入了多少 wei？</title>
+  <desc id="desc">读端以交易哈希 T 查询本机节点。连接失败没有链上结论；成功应答中的 null 仅表示此时查不到收据；收据 status 0 是有收录但执行回滚。只有成功且由发布地址发出的 Locked 日志才解出此笔锁款 9007199254740993 wei，折合 0.009007199254740993 ETH。</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10Z" fill="#756352"/></marker></defs>
+  <rect width="518" height="506" fill="#fffaf2"/>
+  <g font-family="system-ui,sans-serif" fill="#262321">
+    <text x="20" y="37" font-size="24" font-weight="700">查一张凭证，不猜订单状态</text>
+    <text x="20" y="65" font-size="16">输入 T 为一个完整交易哈希；下列是不同查款场景。</text>
+    <g stroke="#756352" fill="none" stroke-width="2" marker-end="url(#arrow)"><path d="M134 155v23"/><path d="M134 244v23"/><path d="M134 334v23"/><path d="M250 123h24"/><path d="M250 213h24"/><path d="M250 303h24"/></g>
+    <g fill="#f5eadb" stroke="#846c55"><rect x="20" y="92" width="230" height="62" rx="7"/><rect x="20" y="182" width="230" height="62" rx="7"/><rect x="20" y="272" width="230" height="62" rx="7"/></g>
+    <g fill="#ffeddb" stroke="#915b36"><rect x="278" y="92" width="220" height="62" rx="7"/><rect x="278" y="182" width="220" height="62" rx="7"/><rect x="278" y="272" width="220" height="62" rx="7"/></g>
+    <g font-size="18"><text x="32" y="118" font-weight="700">① 读端 → 本机节点</text><text x="32" y="141">能收到有效应答吗？</text><text x="289" y="118" font-weight="700">连接拒绝 · HTTP 503</text><text x="289" y="141">未观察，不记失败</text>
+    <text x="32" y="208" font-weight="700">② result 有收据吗？</text><text x="32" y="231">区分 null 与对象</text><text x="289" y="208" font-weight="700">null · HTTP 404</text><text x="289" y="231">此时无凭证，不记零款</text>
+    <text x="32" y="298" font-weight="700">③ 执行成功吗？</text><text x="32" y="321">看收据内的 status</text><text x="289" y="298" font-weight="700">0x0 · HTTP 200</text><text x="289" y="321">有块、有耗气，已回滚</text></g>
+    <rect x="20" y="362" width="478" height="122" rx="8" fill="#e2f1eb" stroke="#286657"/>
+    <text x="34" y="388" font-weight="700" font-size="19">0x1 且匹配发布地址、Locked 签名、付款人</text>
+    <text x="34" y="418" font-size="18">事件 data → uint256 → 9007199254740993 wei</text>
+    <text x="34" y="446" font-size="18">展示 ÷ 10¹⁸ = 0.009007199254740993 ETH</text>
+    <text x="34" y="470" font-size="15">这是一次锁入，不是订单已结算，也不是 gas 费用。</text>
+  </g>
+</svg>

@@ -1,0 +1,7 @@
+{
+  "network": "anvil-cancun",
+  "chainId": 31337,
+  "rpc": "http://127.0.0.1:18626",
+  "contract": "src/MilestoneEscrow.sol:MilestoneEscrow",
+  "mode": "fresh-loopback-deployment"
+}

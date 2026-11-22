@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 432 422" width="432" height="422" role="img" aria-labelledby="title desc" xml:lang="zh-CN">
+  <title id="title">一个发送账户的零号位置，被谁占用？</title>
+  <desc id="desc">P-10 和 Q-10 分别要付商户七千和九千 wei，两者都读到零号。P 先进入本节点的池，同费的 Q 被拒。重播 P 的原件，只能得到一笔付款；若改签一号，两笔都能入块，商户多收七千 wei。</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#486258"/></marker></defs>
+  <rect width="432" height="422" rx="14" fill="#faf7ef"/>
+  <g font-family="system-ui,sans-serif" text-anchor="middle" fill="#24372e">
+    <text x="216" y="31" font-size="20" font-weight="650">两张订单，读到同一个序号</text>
+    <rect x="14" y="46" width="193" height="68" rx="8" fill="#e0eee6" stroke="#4f7767"/>
+    <rect x="225" y="46" width="193" height="68" rx="8" fill="#eee7d9" stroke="#867452"/>
+    <text x="111" y="73" font-size="18" font-weight="620">P-10 · 7,000 wei</text>
+    <text x="322" y="73" font-size="18" font-weight="620">Q-10 · 9,000 wei</text>
+    <text x="111" y="99" font-size="16">读 pending → 0</text><text x="322" y="99" font-size="16">读 pending → 0</text>
+    <g fill="none" stroke="#486258" stroke-width="2" marker-end="url(#arrow)"><path d="M111 115v31"/><path d="M322 115v31"/></g>
+    <rect x="14" y="151" width="404" height="83" rx="8" fill="#fff" stroke="#78877b"/>
+    <text x="216" y="179" font-size="18" font-weight="650">本节点交易池 · 同一发送方</text>
+    <text x="216" y="203" font-size="16">P 先到，占 0 号；Q 同费争 0 号，被拒</text>
+    <text x="216" y="224" font-size="15">此刻：latest = 0　pending = 1</text>
+    <text x="216" y="261" font-size="17" font-weight="650">若付款任务重试 P-10</text>
+    <g fill="none" stroke="#486258" stroke-width="2" marker-end="url(#arrow)"><path d="M213 271H111v20"/><path d="M219 271h103v20"/></g>
+    <rect x="14" y="296" width="193" height="91" rx="8" fill="#e0eee6" stroke="#4f7767"/>
+    <rect x="225" y="296" width="193" height="91" rx="8" fill="#f5e2d8" stroke="#986345"/>
+    <text x="111" y="322" font-size="18" font-weight="650">重播原件</text><text x="322" y="322" font-size="18" font-weight="650">改签 1 号</text>
+    <text x="111" y="347" font-size="16">块内：仅 P 的 0 号</text><text x="322" y="347" font-size="16">块内：P 的 0、1 号</text>
+    <text x="111" y="374" font-size="17" font-weight="620">商户 +7,000 wei</text><text x="322" y="374" font-size="17" font-weight="620">商户 +14,000 wei</text>
+    <text x="216" y="410" font-size="15">两端为不同实验轮次；Q 在两轮均未入块</text>
+  </g>
+</svg>

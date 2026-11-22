@@ -1,0 +1,6 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>本地登录台 · 21</title><link rel="stylesheet" href="/desk.css">
+<main><h1>本地登录台</h1><p>只签登录文本，不提交交易。使用全新测试资料；不要连接日常钱包。</p>
+<section><h2>选择签名来源</h2><div class="actions"><button id="lab">连接教学签名器</button><button id="injected">连接独立测试钱包</button></div><p id="context">尚未连接账户。</p></section>
+<section><h2>登录凭证</h2><p id="identity" role="status">未登录</p><div class="actions"><button id="login" disabled>请求登录签名</button><button id="reset">清除登录</button></div><p id="note" role="status">选择一个签名来源后，可申请一次性挑战。</p><pre id="message" aria-label="完整待签原文">尚无待签原文。</pre></section>
+<section><h2>核对服务端</h2><div class="actions"><button id="status">检查服务端会话</button><button id="replay" disabled>复核一次性消费</button></div><p id="result" role="status">尚未检查。</p></section></main><script type="module" src="/app.js"></script></html>

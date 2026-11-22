@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="540" height="502" viewBox="0 0 540 502" role="img" aria-labelledby="title desc" xml:lang="zh-CN">
+  <title id="title">从块 1 的游标一次补齐 2 至 4，再重读同一页</title>
+  <desc id="desc">节点先保留部署块 1。没有订阅者时，付款方在块 2 锁 125 wei、块 3 为收款方结算 125 wei，第 4 块没有交易。SQL 事务保留三块、两条日志，游标从 1/H1 移到 4/H4。重读同一批命中两条但新增零条，游标不动。</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#65584c"/></marker></defs>
+  <rect width="540" height="502" fill="#fffaf2"/>
+  <g font-family="system-ui,sans-serif" fill="#28221f">
+    <text x="22" y="38" font-size="24" font-weight="700">没有收到通知，仍然有一张完整的账页</text>
+    <text x="22" y="67" font-size="17">一份本地托管 · A 付款，B 收款 · 金额单位 wei</text>
+    <rect x="22" y="84" width="496" height="43" rx="6" fill="#f5eadb" stroke="#846c55"/>
+    <text x="38" y="112" font-size="18">停扫时 · 数据库游标为 1 / H1（创建块）</text>
+    <path d="M270 128v20" fill="none" stroke="#65584c" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="22" y="152" width="496" height="153" rx="6" fill="#fff" stroke="#947e69"/>
+    <g font-size="17" font-weight="700"><text x="36" y="179">节点区块</text><text x="145" y="179">托管日志</text><text x="298" y="179">发生的事</text></g>
+    <g fill="none" stroke="#d2c4b4"><path d="M22 190h496M22 228h496M22 266h496"/></g>
+    <g font-size="17"><text x="36" y="215">2 / H2</text><text x="145" y="215">Locked</text><text x="298" y="215">A → 托管：125</text>
+      <text x="36" y="253">3 / H3</text><text x="145" y="253">Settled</text><text x="298" y="253">B 应领 125，尚未提取</text>
+      <text x="36" y="291">4 / H4</text><text x="145" y="291">无</text><text x="298" y="291">此块没有交易</text></g>
+    <path d="M270 306v20" fill="none" stroke="#65584c" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="22" y="330" width="496" height="73" rx="6" fill="#e2f1eb" stroke="#286657"/>
+    <text x="38" y="357" font-size="18" font-weight="700">首次扫描 [2, 4] · 同一数据库事务</text>
+    <text x="38" y="386" font-size="17">存 3 个块、2 条日志 → 游标改为 4 / H4</text>
+    <rect x="22" y="415" width="496" height="43" rx="6" fill="#f5eadb" stroke="#846c55"/>
+    <text x="38" y="443" font-size="17">重读 [2, 4]：仍命中 2 条，新增 0；游标仍为 4 / H4</text>
+    <text x="22" y="486" font-size="16">H1–H4 是各块哈希的代号；数据库存整串，不存缩写。</text>
+  </g>
+</svg>

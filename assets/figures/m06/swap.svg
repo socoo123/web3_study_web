@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="540" height="482" viewBox="0 0 540 482" role="img" aria-labelledby="title desc" xml:lang="zh-CN">
+  <title id="title">同一储备的两张报价单，只有成交才改账</title>
+  <desc id="desc">池有 1000 A18、2000 B6。输入 10 A18 报 19.743160 B6，输入 100 A18 报 181.322178 B6。两次询价均不动账。先把小单下限设为 19.743161，交易回滚，代币不变。重报后把下限改为 19.644445，小单成交，池收到 10 A18，钱包收到 19.743160 B6。</desc>
+  <rect width="540" height="482" fill="#fffaf2"/>
+  <g font-family="system-ui,sans-serif" fill="#262321">
+    <text x="20" y="35" font-size="24" font-weight="700">先比报价，再看钱去了哪里</text>
+    <text x="20" y="66" font-size="18">同一块的池：1,000 A18 ｜ 2,000 B6</text>
+    <rect x="20" y="84" width="242" height="93" rx="7" fill="#f5eadb" stroke="#846c55"/>
+    <rect x="278" y="84" width="242" height="93" rx="7" fill="#f5eadb" stroke="#846c55"/>
+    <g font-size="17">
+      <text x="32" y="111" font-weight="700">询小单 · 输入 10 A18</text>
+      <text x="32" y="140">报出 19.743160 B6</text><text x="32" y="163">均价 1.974316 B6/A18</text>
+      <text x="290" y="111" font-weight="700">询大单 · 输入 100 A18</text>
+      <text x="290" y="140">报出 181.322178 B6</text><text x="290" y="163">均价 1.81322178 B6/A18</text>
+    </g>
+    <text x="20" y="209" font-size="17">两次只读；以下只发送小单，大单没有成交。</text>
+    <rect x="20" y="227" width="500" height="88" rx="7" fill="#ffeddb" stroke="#915b36"/>
+    <text x="34" y="257" font-size="19" font-weight="700">① 下限 19.743161 B6 ｜ 差 1 个最小单位</text>
+    <text x="34" y="288" font-size="18">回执 0x0：池、钱包的代币余额和额度全不变。</text>
+    <text x="20" y="346" font-size="17">↓ 在失败块重新报价，10 A18 仍报 19.743160 B6</text>
+    <rect x="20" y="362" width="500" height="100" rx="7" fill="#e2f1eb" stroke="#286657"/>
+    <text x="34" y="393" font-size="19" font-weight="700">② 下限 19.644445 B6 ｜ 成交回执 0x1</text>
+    <text x="34" y="423" font-size="18">钱包 → 池：10 A18；池 → 钱包：19.743160 B6。</text>
+    <text x="34" y="448" font-size="16">下限是拒绝条件，两笔 Transfer 才是代币流向。</text>
+  </g>
+</svg>

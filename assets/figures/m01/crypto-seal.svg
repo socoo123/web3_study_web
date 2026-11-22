@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="448" height="528" viewBox="0 0 448 528" role="img" aria-labelledby="title desc" lang="zh-CN">
+  <title id="title">GCM 信封：密钥不在包里，改一位也不交出明文</title>
+  <desc id="desc">发件端和财务各持相同的 256 位 AES 密钥 K，也都知道 AAD 为 intent-lab:v1。没有密钥的存储方收到 12 字节 IV 及 sealed 内的 51 字节密文和 16 字节标签。放大密文的第零字节，以 10110100 变为 10110101 示意最低位被翻转；沿用原标签时，财务可以打开原包，却拒绝改包。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" markerWidth="7" markerHeight="7" refX="9" refY="5" orient="auto"><path d="M0 0 10 5 0 10Z" fill="#514740"/></marker>
+    <g id="key" fill="none" stroke="#12615d" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="6.5"/><path d="M15.5 9H37M29 9v6m5-6v5"/></g>
+    <style>
+      text {font-family:system-ui,sans-serif;fill:#28221f;font-size:19px}
+      .mono {font-family:ui-monospace,monospace;font-size:20px}
+      .strong {font-weight:700}
+      .flow {fill:none;stroke:#514740;stroke-width:2;stroke-linejoin:round}
+    </style>
+  </defs>
+  <rect width="448" height="528" fill="#fffaf2"/>
+  <text x="23" y="33" class="strong" style="font-size:23px">同一把 AES 密钥 K（256 位）</text>
+  <text x="23" y="63">公开约定：AAD = intent-lab:v1</text>
+  <use href="#key" x="28" y="84"/><text x="76" y="100" class="strong">发件端</text>
+  <use href="#key" x="276" y="84"/><text x="324" y="100" class="strong">财务</text>
+  <path d="M98 113V149" class="flow" marker-end="url(#arrow)"/><text x="111" y="138">存</text>
+  <path d="M340 150V113" class="flow" marker-end="url(#arrow)"/><text x="353" y="138">取</text>
+
+  <path d="M23 157H406L425 176V331H23Z" fill="#fffefa" stroke="#514740" stroke-width="2"/>
+  <path d="M406 158V176H424" class="flow"/>
+  <text x="40" y="188" class="strong" style="font-size:22px">外部存储 · 没有 K</text>
+  <text x="40" y="219">随包另附：IV（12 字节）</text>
+  <text x="40" y="252">sealed：共 67 字节，不含 IV</text>
+  <rect x="40" y="265" width="368" height="42" fill="#e1eeea" stroke="#514740" stroke-width="1.5"/>
+  <rect x="320" y="265" width="88" height="42" fill="#f2ddc9" stroke="#514740" stroke-width="1.5"/>
+  <rect x="40" y="265" width="5.5" height="42" fill="#12615d"/>
+  <text x="180" y="293" text-anchor="middle" class="strong">密文 51 B</text>
+  <text x="364" y="292" text-anchor="middle" style="font-size:17px">标签 16 B</text>
+
+  <path d="M43 309V344H59" class="flow" marker-end="url(#arrow)"/>
+  <text x="70" y="351" class="strong">放大第 0 字节（数值为示意）</text>
+  <rect x="138" y="379" width="21" height="30" rx="3" fill="#d9e9e6" stroke="#12615d"/>
+  <rect x="385" y="379" width="21" height="30" rx="3" fill="#f5d5c4" stroke="#9a391c"/>
+  <g class="mono" style="font-size:23px">
+    <text x="137" y="401" text-anchor="end">1011010</text><text x="148.5" y="401" text-anchor="middle">0</text>
+    <text x="384" y="401" text-anchor="end">1011010</text><text x="395.5" y="401" text-anchor="middle">1</text>
+  </g>
+  <path d="M177 394H267" class="flow" marker-end="url(#arrow)"/>
+  <text x="221" y="382" class="mono" text-anchor="middle">^ 1</text>
+
+  <text x="224" y="444" text-anchor="middle">财务用原 IV、原 AAD 和原标签开包</text>
+  <path d="M99 455V475" class="flow" marker-end="url(#arrow)"/>
+  <path d="M345 455V475" class="flow" marker-end="url(#arrow)"/>
+  <g class="strong" text-anchor="middle">
+    <text x="100" y="502" style="fill:#12615d">原包：取回原文</text>
+    <text x="345" y="502" style="fill:#9a391c">改包：认证失败</text>
+  </g>
+</svg>

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="432" height="330" viewBox="0 0 432 330" role="img" aria-labelledby="title desc" xml:lang="zh-CN">
+  <title id="title">检查脚本和 Anvil 之间的两次 RPC 往返</title>
+  <desc id="desc">时间从上往下。脚本用请求号 1 询问软件版本，Anvil 回答 anvil/v1.7.1；脚本用请求号 2 询问链号，Anvil 回答 0x7a69。实线向右是请求，虚线向左是应答。</desc>
+  <defs>
+    <marker id="ask" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0 10 5 0 10Z" fill="#285c60"/></marker>
+    <marker id="reply" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0 10 5 0 10Z" fill="#9b421d"/></marker>
+  </defs>
+  <rect width="432" height="330" rx="14" fill="#fffaf2"/>
+  <g text-anchor="middle" font-family="system-ui, sans-serif" fill="#28221f">
+    <rect x="12" y="14" width="118" height="39" rx="8" fill="#e1efea" stroke="#285c60" stroke-width="1.5"/>
+    <rect x="302" y="14" width="118" height="39" rx="8" fill="#fbe8da" stroke="#9b421d" stroke-width="1.5"/>
+    <text x="71" y="41" font-size="20" font-weight="650">检查脚本</text>
+    <text x="361" y="41" font-size="20" font-weight="650">Anvil 节点</text>
+    <path d="M71 54V300 M361 54V300" fill="none" stroke="#b8ada1" stroke-width="2"/>
+    <g font-size="19">
+      <text x="216" y="87">id 1 · web3_clientVersion</text>
+      <path d="M72 100H359" fill="none" stroke="#285c60" stroke-width="3" marker-end="url(#ask)"/>
+      <text x="216" y="141">id 1 · anvil/v1.7.1</text>
+      <path d="M360 154H73" fill="none" stroke="#9b421d" stroke-width="3" stroke-dasharray="7 4" marker-end="url(#reply)"/>
+      <text x="216" y="202">id 2 · eth_chainId</text>
+      <path d="M72 215H359" fill="none" stroke="#285c60" stroke-width="3" marker-end="url(#ask)"/>
+      <text x="216" y="256">id 2 · 0x7a69</text>
+      <path d="M360 269H73" fill="none" stroke="#9b421d" stroke-width="3" stroke-dasharray="7 4" marker-end="url(#reply)"/>
+    </g>
+    <circle cx="71" cy="301" r="4" fill="#285c60"/><circle cx="361" cy="301" r="4" fill="#9b421d"/>
+    <text x="216" y="310" font-size="18">端点 127.0.0.1:18546</text>
+  </g>
+</svg>

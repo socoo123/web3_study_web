@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="448" height="504" viewBox="0 0 448 504" role="img" aria-labelledby="title desc" lang="zh-CN">
+  <title id="title">一份原签名，两种验签结果</title>
+  <desc id="desc">审批人用私钥签订单 17，交出 51 字节原文与 64 字节签名 S。存储方看得见 Bob 和 125 sat。财务取出登记的审批公钥，用同一个 S 验金额 125 的原文得 true；验仅把 125 改成 126 的文本得 false。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" markerWidth="7" markerHeight="7" refX="9" refY="5" orient="auto"><path d="M0 0 10 5 0 10Z" fill="#514740"/></marker>
+    <style>
+      text {font-family:system-ui,sans-serif;fill:#28221f;font-size:19px}
+      .mono {font-family:ui-monospace,monospace;font-size:20px}
+      .strong {font-weight:700}
+      .flow {fill:none;stroke:#514740;stroke-width:2;stroke-linejoin:round}
+    </style>
+  </defs>
+  <rect width="448" height="504" fill="#fffaf2"/>
+  <text x="23" y="35" class="strong" style="font-size:24px">审批人</text>
+  <text x="116" y="34">用私钥签，私钥不出门</text>
+  <path d="M59 47V69" class="flow" marker-end="url(#arrow)"/>
+
+  <path d="M23 77H410L425 92V211H23Z" fill="#fffefa" stroke="#514740" stroke-width="2"/>
+  <path d="M410 78V92H424" class="flow"/>
+  <path d="M272 78V210" stroke="#9a8f81" stroke-width="2" stroke-dasharray="4 5"/>
+  <text x="40" y="106" class="strong">原文 · 51 字节（节选）</text>
+  <g class="mono">
+    <text x="40" y="140" class="mono">order=17</text>
+    <text x="40" y="166" class="mono">recipient=Bob</text>
+    <text x="40" y="192" class="mono">amount=125</text>
+  </g>
+  <text x="293" y="110" class="strong">原签名 S</text>
+  <text x="293" y="150">Ed25519</text>
+  <text x="293" y="180">64 字节</text>
+
+  <path d="M224 212V230H326V254" class="flow" marker-end="url(#arrow)"/>
+  <path d="M224 230H112V254" class="flow" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+  <circle cx="224" cy="230" r="3.4" fill="#514740"/>
+  <path d="M24 273C24 257 200 257 200 273V316C200 335 24 335 24 316Z" fill="#f4eadb" stroke="#796859" stroke-width="1.8"/>
+  <path d="M24 273C24 286 200 286 200 273" fill="none" stroke="#b5a390" stroke-width="1.4"/>
+  <text x="112" y="308" text-anchor="middle" class="strong">存储方读到 125 sat</text>
+  <text x="326" y="279" text-anchor="middle" class="strong" style="font-size:22px">财务</text>
+  <text x="326" y="308" text-anchor="middle">从名册取审批公钥</text>
+
+  <path d="M326 320V349H112V373" class="flow" marker-end="url(#arrow)"/>
+  <path d="M326 349V373" class="flow" marker-end="url(#arrow)"/>
+  <circle cx="326" cy="349" r="3.4" fill="#514740"/>
+  <g text-anchor="middle">
+    <text x="112" y="399" class="strong">原文 + S</text>
+    <text x="326" y="399" class="strong">改文 + S</text>
+    <text x="112" y="428" class="mono">amount=125</text>
+    <text x="326" y="428" class="mono">amount=12<tspan fill="#9a391c" font-weight="bold">6</tspan></text>
+  </g>
+  <path d="M42 445H182M256 445H396" stroke="#baab9a" stroke-width="1.2"/>
+  <g fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="75" cy="471" r="12" stroke="#12615d"/><path d="m69 471 4 4 8-9" stroke="#12615d"/>
+    <path d="m279 459 14 0 7 7v10l-7 7h-14l-7-7v-10Z M281 466l10 10m0-10-10 10" stroke="#9a391c"/>
+  </g>
+  <text x="97" y="478" class="mono strong" style="fill:#12615d">true</text>
+  <text x="309" y="478" class="mono strong" style="fill:#9a391c">false</text>
+</svg>

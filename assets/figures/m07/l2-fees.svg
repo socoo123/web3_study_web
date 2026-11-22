@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="568" height="548" viewBox="0 0 568 548" role="img" xml:lang="zh-CN" aria-labelledby="title desc">
+  <title id="title">Base Sepolia 第 22,000,000 块的一张收费凭条</title>
+  <desc id="desc">普通用户交易，执行费 116,808,693,467 wei，另有数据费 6,327,662,798 wei。区块早于 Isthmus，没有运营费这一项。两项合计 123,136,356,265 wei。若读端丢失 l1Fee，停止给总额。</desc>
+  <rect width="568" height="548" rx="8" fill="#fbf7ee"/>
+  <g font-family="system-ui,sans-serif" fill="#21332f">
+    <text x="24" y="40" font-size="25" font-weight="700">从发送者账上扣了多少？</text>
+    <text x="24" y="72" font-size="18">Base Sepolia · 块 22,000,000 · type 2</text>
+    <rect x="24" y="96" width="520" height="96" rx="6" fill="#e5efe9" stroke="#5d897a"/>
+    <text x="42" y="128" font-weight="700" font-size="20">① 发送者 → L2 执行费</text>
+    <text x="42" y="158" font-size="18">120,349 gas × 970,583 wei/gas</text>
+    <text x="42" y="181" font-size="17">= 116,808,693,467 wei</text>
+    <rect x="24" y="204" width="520" height="82" rx="6" fill="#e5efe9" stroke="#5d897a"/>
+    <text x="42" y="236" font-weight="700" font-size="20">② 发送者 → L1 数据费金库（在 L2 收取）</text>
+    <text x="42" y="266" font-size="18">回执 l1Fee = 6,327,662,798 wei</text>
+    <rect x="24" y="298" width="520" height="78" rx="6" fill="#f4e9d9" stroke="#8c7452"/>
+    <text x="42" y="329" font-weight="700" font-size="20">③ 运营费：不是漏了一栏</text>
+    <text x="42" y="356" font-size="17">此块在 Isthmus 启用前，此项不适用。</text>
+    <path d="M284 377v26m-7-7 7 7 7-7" stroke="#536b60" stroke-width="2.5" fill="none"/>
+    <rect x="24" y="410" width="520" height="65" rx="6" fill="#20594c"/>
+    <text x="42" y="450" font-size="23" font-weight="700" fill="#fffdf4">① + ② = 123,136,356,265 wei</text>
+    <text x="24" y="512" font-size="18" fill="#784525">拒绝路径：读端若漏掉 ② → 总额未知，不补 0。</text>
+  </g>
+</svg>

@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark"><title>第 26 课 · 同一份合约搬到 L2，费用单为什么多了一行？ · 链上开发手册</title>
+<link rel="stylesheet" href="../assets/site.css?v=2786ad38e29d"><script src="../assets/site.js?v=6dc390471c89" defer></script></head>
+<body><a class="skip" href="#main">跳至正文</a><header class="mast"><div class="mast-inner">
+<a class="brand" href="../index.html"><span class="mark" aria-hidden="true"></span>链上开发手册</a>
+<nav aria-label="全站导航"><a href="../plan.html">课程计划</a><a href="../index.html#labs">实验台</a><button type="button" id="theme" hidden>切换主题</button></nav>
+</div></header><main id="main" class="reading"><div class="crumb"><a href="../index.html">手册首页</a> / <a href="../plan.html#m07">M07 · L2、智能账户与跨层状态〔选修〕</a> / 第 26 课</div>
+<header class="lesson-opening"><h1 id="page-title">第 26 课 · 同一份合约搬到 L2，费用单为什么多了一行？</h1><figure class="specimen"><figcaption>Base Sepolia · 块 22,000,000</figcaption><dl>
+<div><dt>L2 执行 / gwei</dt><dd>116.809</dd></div>
+<div><dt>L1 数据 / gwei</dt><dd>6.328</dd></div></dl>
+<span class="specimen-relation" aria-hidden="true">+</span><p>分项四舍五入到 0.001 gwei；入账时按回执的整数 wei 相加</p></figure><p>工单 F-26：迁移托管合约前，财务先递来一张 <strong>Base Sepolia 第 22,000,000 块</strong>的旧凭条。后台按 <code>gasUsed × effectiveGasPrice</code> 记了 <strong>116,808,693,467 wei</strong>，浏览器却列 <strong>123,136,356,265 wei</strong>。少的 <strong>6,327,662,798 wei</strong> 从哪里来？把这笔差额找对，再交付合约的本地部署凭证；若有人要求拿这张旧凭条给新部署报价，要能说明为什么不能签字。</p></header><div class="reading-grid"><article aria-labelledby="page-title"><details class="mobile-toc"><summary>本页目录</summary><ol><li><a href="#先辨认哪一列是预算哪一列是实付">先辨认哪一列是预算，哪一列是实付</a></li><li><a href="#用-2025-年-2-月的回执核销差额">用 2025 年 2 月的回执核销差额</a></li><li><a href="#在隔离节点真的部署一次用两种读数算同一笔钱">在隔离节点真的部署一次，用两种读数算同一笔钱</a></li><li><a href="#停止实验一张清单用错链一张回执少字段">停止实验：一张清单用错链，一张回执少字段</a></li><li><a href="#可选交接对方说已经在-base-sepolia-部署了同一份合约">可选交接：对方说已经在 Base Sepolia 部署了同一份合约</a></li><li><a href="#独立作业-f-26b上限翻高就该多付吗">独立作业 F-26B：上限翻高，就该多付吗？</a></li><li><a href="#查证原文">查证原文</a></li></ol></details><p>先修：<a href="evm.html">11 · Gas 与收支平衡</a>、<a href="deployment.html">16 · 部署交接</a>、<a href="swap.html">23 · 报价与实收</a>、<a href="rollup.html">25 · Rollup 的三处证据</a>。这里有<strong>两笔不同的交易</strong>：旧凭条来自别人已经发过的一次普通合约调用；你要做的是在回环节点上真正创建第 16 课的 <code>MilestoneEscrow</code>。前者用来核对 L2 收费项目，绝不是后者的公测网部署或同一业务的成本对照实验。</p>
+<h2 id="先辨认哪一列是预算哪一列是实付">先辨认哪一列是预算，哪一列是实付</h2>
+<p>在 EIP-1559 的普通交易中，发送者指定 <code>gas</code>（执行 gas 上限）、<code>maxFeePerGas</code> 和 <code>maxPriorityFeePerGas</code>。节点执行完才知道本笔用了多少 gas，回执的 <code>gasUsed</code> 是<strong>本笔</strong>用量，<code>effectiveGasPrice</code> 是本笔实际单价，已经包含适用的优先费。不能改用 <code>cumulativeGasUsed</code>（块内累计），也不能在乘积外再加一次小费。代码退回也可能有 <code>status=0x0</code> 的已入块回执，执行失败不等于没收费；若只收到 <code>null</code>，则还没有这张回执，不结账。</p>
+<table class="stackable">
+<thead>
+<tr>
+<th>费用栏</th>
+<th>在这张单上回答什么</th>
+<th>不能拿什么代替</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="费用栏">执行费，wei</td>
+<td data-label="在这张单上回答什么"><code>gasUsed [gas] × effectiveGasPrice [wei/gas]</code></td>
+<td data-label="不能拿什么代替"><code>eth_estimateGas</code> 是在给定状态模拟，不是总价；<code>gasLimit × maxFeePerGas</code> 是本笔执行费的预算上界，不是实付</td>
+</tr>
+<tr>
+<td data-label="费用栏">L1 数据费，wei</td>
+<td data-label="在这张单上回答什么">L2 为向 L1 发布数据而向<strong>这笔用户交易</strong>收取的金额，读同一回执的 <code>l1Fee</code></td>
+<td data-label="不能拿什么代替">不能把整笔 L1 批次交易的费用算在一个人头上；也不能拿该笔 L2 调用的 ABI 参数长度直接乘 L1 现价</td>
+</tr>
+<tr>
+<td data-label="费用栏">其他协议收费，wei</td>
+<td data-label="在这张单上回答什么">先用<strong>这条链、这个块的时间、交易类型</strong>定规则；若有运营费（operator fee），再取适用参数</td>
+<td data-label="不能拿什么代替">Anvil 的空字段、另一条链的默认值、今天的费率或浏览器只显示两栏，都不能证明当时运营费是 0</td>
+</tr>
+</tbody>
+</table>
+<p>为什么明明按 EVM 跑同一份字节码，还是不能随手比价？执行成本与当时状态、有效单价、硬分叉有关。Rollup 还为数据可用性付费：例如 Fjord 的规则估计<strong>序列化、有签名的整笔交易</strong>压缩后的大小，把 L1 基础费、blob 基础费及各自的缩放系数纳入计算。它是协议向用户<strong>已收</strong>的一个分摊金额，不承诺等于批次发布者后来在 L1 的边际支出。<code>value</code> 是随交易转移的原生资产，不是 gas；桥页面的跨层总报价可能还列有另外一步交易的预估费用或服务费，不能把报价、源链实付、目标链实付记在同一栏。Arbitrum 等其他网络要另查规则，不能看到相同 ABI 就套本表。</p>
+<figure class="lesson-figure"><a href="../assets/figures/m07/l2-fees.svg"><img src="../assets/figures/m07/l2-fees.svg" alt="Base Sepolia 历史调用的执行费为 116,808,693,467 wei，另收数据费 6,327,662,798 wei；该块在 Isthmus 前，运营费不适用。若数据费缺失，总额未知。"></a><figcaption>这是按一笔历史 type 2 调用的实际回执记的账。数据费在 L2 向发送者收取，不表示发送者又亲自签了一笔 L1 交易。</figcaption></figure>
+
+<h2 id="用-2025-年-2-月的回执核销差额">用 2025 年 2 月的回执核销差额</h2>
+<p><a href="m07/fees/receipt-22000000.json">离线凭条</a>是四次只读 RPC 的<strong>相关字段节选</strong>：<code>eth_chainId</code>、<code>eth_getBlockByNumber</code>、<code>eth_getTransactionByHash</code>、<code>eth_getTransactionReceipt</code>；不是把全量日志、签名或整块交易复制进仓库。历史 RPC 来源为 <code>https://base-sepolia.drpc.org</code>；可与<a href="https://base-sepolia.blockscout.com/tx/0xb4b14cab5151ac7335eb4d6aeb5675fe415ede7ba912bbd55c8a1789cd925a15">该交易的区块浏览器记录</a>和<a href="https://base-sepolia.blockscout.com/api/v2/blocks/22000000">该块的独立索引</a>对照。这笔 <code>type=0x2</code>、<code>status=0x1</code> 的调用不是 L1 注入的存款交易（<code>0x7e</code>），也不是创建合约。</p>
+<ol>
+<li>对锚点：链 <code>0x14a34 = 84532</code>，块 <code>0x14fb180 = 22000000</code>，交易在块内索引 <code>0x2a = 42</code>；交易哈希与回执的 <code>transactionHash</code> 相同，交易和回执都指向这一个块哈希。</li>
+<li>执行栏：<code>gasUsed=0x1d61d = 120349</code>、<code>effectiveGasPrice=0xecf57 = 970583 wei/gas</code>。乘起来 <strong>116,808,693,467 wei</strong>。交易声明的 <code>gas=127440</code>、<code>maxFeePerGas=971758 wei/gas</code> 不进这个乘积。</li>
+<li>数据栏：直接取 <code>l1Fee=0x1792878ce = 6,327,662,798 wei</code>。反算陷阱：旧的 <code>l1GasUsed=1600</code> 直接乘 <code>l1GasPrice=3591997464</code> 会算出 <strong>5,747,195,942,400 wei</strong>，与实收不符；Fjord 的计算还涉及压缩估计和价格系数，不可退回该简式。</li>
+<li>第三栏：块时间 <code>1739768288</code>，即 <strong>2025-02-17 04:58:08 UTC</strong>。按<a href="https://github.com/ethereum-optimism/superchain-registry/blob/720185c32b0599fa31b14f101cbc990ec39c0a36/superchain/configs/sepolia/base.toml">当时的 Base Sepolia 升级清单，固定版本 <code>720185c</code></a>，它已经进入 Holocene，尚未到 Isthmus 的 <code>1744905600</code>（2025-04-17 16:00:00 UTC）。那个块的普通交易<strong>没有运营费这个收费项目</strong>；不是因为 JSON 恰好没有 <code>operatorFee</code> 字段才决定补零。</li>
+<li>所以这笔的费用总额是 <strong>123,136,356,265 wei</strong>，不是总 gas，用 <code>10¹⁸ wei = 1 ETH</code> 换算得 <strong>0.000000123136356265 测试 ETH</strong>。不据此推算真实法币成本、业务资产收入或 L1 最终化。Java 入账时用 <code>BigInteger</code> 做十六进制解码和乘加；字段缺失保留“未知”，格式化才用十进制刻度。</li>
+</ol>
+<p>在<strong>仓库根目录</strong>用 Python 3.11 标准库即可离线复算：</p>
+<pre><code class="language-bash">python3 labs/m07/fees/fee_book.py history
+</code></pre>
+<p>期待 <code>ARCHIVE</code> 打印上述块与交易的<strong>完整哈希</strong>，<code>EXEC</code> 和 <code>DATA</code> 打印两个整数；<code>RULE ... operator=not-applicable reason=before-Isthmus</code> 后才有 <code>RESULT totalFeeWei=123136356265</code>。这重放的是留存字段，不是实时查询或独立验证区块头。需重新采集时，使用下文版本的 <code>cast</code>，在根目录执行以下<strong>可选只读</strong>步骤；根据原始回复的 <code>transactions[42]</code>、<code>blockHash</code> 和回执重新对齐。归档节点限流、已裁剪、返回 <code>null</code> 就标“未能在线复核”，不要换 <code>latest</code> 顶替。</p>
+<pre><code class="language-bash">READ_RPC=https://base-sepolia.drpc.org
+TX=0xb4b14cab5151ac7335eb4d6aeb5675fe415ede7ba912bbd55c8a1789cd925a15
+cast rpc --rpc-url &quot;$READ_RPC&quot; eth_chainId
+cast rpc --rpc-url &quot;$READ_RPC&quot; eth_getBlockByNumber 0x14fb180 false
+cast rpc --rpc-url &quot;$READ_RPC&quot; eth_getTransactionByHash &quot;$TX&quot;
+cast rpc --rpc-url &quot;$READ_RPC&quot; eth_getTransactionReceipt &quot;$TX&quot;
+</code></pre>
+<p><strong>如果是在升级后呢？</strong> 不能沿用第 4 步。在适用 <a href="https://docs.base.org/upgrades/isthmus/exec-engine#operator-fee">Isthmus 规则</a>的普通用户交易，按 <code>constant + floor(gasUsed × scalar / 10⁶)</code> 算；<a href="https://docs.base.org/upgrades/jovian/exec-engine#operator-fee">Jovian 版本</a>改用 <code>constant + gasUsed × scalar × 100</code>。纯手算示意：<code>gasUsed=50000, scalar=20, constant=7</code>，按前一条得 <strong>8 wei</strong>，按后一条得 <strong>100,000,007 wei</strong>。不是说 Base 曾采用这组参数。对新记录，应取得覆盖<strong>该块</strong>的协议版本、完整回执，在同一块查 <code>L1Block</code> 的 <code>operatorFeeScalar()</code>、<code>operatorFeeConstant()</code> 或按该版本读取 <code>GasPriceOracle.getOperatorFee(实际 gasUsed)</code>。Isthmus 的回执规则只在至少一个参数非零时添加这两个字段；不知 RPC 是否保留扩展字段时，不能把“都没返回”直接翻译成“都为零”。有块锚点与规则依据的零、分叉前的不适用、缺证据的未知，是三种不同状态。</p>
+<h2 id="在隔离节点真的部署一次用两种读数算同一笔钱">在隔离节点真的部署一次，用两种读数算同一笔钱</h2>
+<p>本课不维护第二份托管源码。<a href="m07/fees/anvil.json">本地网络清单</a>与<a href="m07/fees/base-sepolia.json">只读 Base Sepolia 网络清单</a>共用的制品标识都是 <a href="m04/src/MilestoneEscrow.sol"><code>src/MilestoneEscrow.sol:MilestoneEscrow</code></a>。只有前者能启动一个新节点并发送交易：回环端口 <code>18626</code> 须空闲，普通 Anvil 1.7.1、Cancun、链号 31337，<strong>不是 OP 节点</strong>，不运行排序器、batcher 或 L1。后者的 84532、创世哈希和只读 RPC 都单列，<strong>不预填部署地址</strong>。单有网络配置没有部署证明。</p>
+<p>依赖：Bash、Python 3.11、<code>lsof</code>、<a href="abi.html#m04-tools">第 13 课的 Foundry 1.7.1、solc 0.8.28 安装器</a>。若尚未准备工具，在仓库根目录运行一次 <code>bash labs/m04/setup.sh</code>（下载工具需要联网）；随后数据采集只连本机，<code>forge build --offline</code>。以下在<strong>同一 Bash、仓库根目录</strong>运行：</p>
+<pre><code class="language-bash">export PATH=&quot;${XDG_CACHE_HOME:-$HOME/.cache}/chain-course/m04/bin:$PATH&quot;
+export FOUNDRY_SOLC=&quot;$(command -v solc)&quot;
+unset ANVIL
+WORK=$(mktemp -d)
+BOOK=labs/m07/fees/fee_book.py
+python3 &quot;$BOOK&quot; local --out &quot;$WORK/anvil&quot; &gt; &quot;$WORK/deploy.txt&quot; &amp;&amp; cat &quot;$WORK/deploy.txt&quot;
+python3 -m json.tool &quot;$WORK/anvil/deployment.json&quot;
+</code></pre>
+<p>顺着<a href="m07/fees/fee_book.py">读账程序</a>核四处，不必相信一行 <code>success</code>：</p>
+<ul>
+<li><code>local()</code> 先确认连接的是<strong>自己新开</strong>的节点、链号与所选清单一致。<code>build_contract()</code> 复用 <a href="m04/deployment.py">M04 的干净构建</a>：相同 source unit、优化器 200 runs、Cancun、固定 solc。创建交易的 <code>input</code> 是创建字节码接两个 ABI 字：<code>payee</code> 和未来的 <code>deadline</code>；<code>to=null</code>、<code>value=0</code>。把同一份 <code>.sol</code> 复制到另一目录、改优化设置或部署参数，都可能改变交易字节和费用。</li>
+<li><code>BUDGET</code> 来自入块前的 <code>eth_estimateGas</code> 和本次选择的上限。签名交易的 <code>gasLimit=3000000</code>、<code>maxFeePerGas=2000000000 wei/gas</code> 将执行费预算上界放在 <strong>6,000,000,000,000,000 wei</strong>，绝不表示已扣这个数。只用回环节点的临时解锁测试账户，无助记词或私钥进档。</li>
+<li><code>check_release()</code> 按部署块高重取块，核对块哈希、交易成员关系、成功回执、创建地址和部署者；对读链上真实 <code>input</code> 与本地创建字节码加参数；按块哈希读 <code>eth_getCode</code>，比对实际 runtime 的 SHA-256。<code>DEPLOY ... rebuiltInputMatch=true runtimeMatch=true</code> 说明与<strong>本次</strong>清单吻合，不等于字节码经过安全审计，亦不证明 L1 最终化。<code>immutable</code> 包含部署者、收款人和期限，另一条链上即便源码完全相同，也不应照抄 runtime 摘要。</li>
+<li><code>EXEC</code> 据<strong>本次回执</strong>算实收；普通 Anvil 上这笔 type 2 创建不产生 L2 数据发布费、运营费，所以这两项记“不适用”。<code>RESULT totalFeeWei=… payerDebitWei=… balanceMatch=true</code> 还用一个独立量核对：只有这笔零 <code>value</code> 创建进入第一个块，构造函数不给部署者转账，部署者不是费用接收者，因此创世状态余额减创建块状态余额应等于执行费。两次 <code>eth_getBalance</code> 都按各自块哈希读。公网同一块可能有其他资金进出；不能把块间余额差无条件当成一笔交易费用。</li>
+</ul>
+<p><code>deployment.json</code> 留存本链身份、交易/块哈希、地址、参数、源码/创建码/运行码摘要；<code>receipt.json</code> 是节点的回执；<code>balances.json</code> 是余额与块锚点及预算输入。三份证据加 <code>deploy.txt</code> 一起交接。每轮节点结束即销毁；地址、创建数据里的非零字节、实际 gas、绝对时间与哈希不固定，只核<strong>同一轮内的整数等式</strong>。清单和归档目录不能覆盖上次结果。</p>
+<h2 id="停止实验一张清单用错链一张回执少字段">停止实验：一张清单用错链，一张回执少字段</h2>
+<p>猜测正确输出后，沿用上面的 <code>WORK</code> 和 <code>BOOK</code>。第一轮只把<strong>预期清单</strong>换成 Base Sepolia，发送端始终是自己的 Anvil，不会切向公网：</p>
+<pre><code class="language-bash">rc=0; python3 &quot;$BOOK&quot; local --expect base-sepolia --out &quot;$WORK/wrong&quot; &gt; &quot;$WORK/wrong.txt&quot; 2&gt;&amp;1 || rc=$?
+cat &quot;$WORK/wrong.txt&quot;; test &quot;$rc&quot; -eq 3 &amp;&amp; test ! -e &quot;$WORK/wrong&quot;
+</code></pre>
+<p>要看到 <code>HOLD wrong_chain expected=84532 actual=31337 before_send=true</code>，无创建交易。若见的是端口占用或编译错误，不算通过了这道闸。第二轮模拟 SDK 把链专用字段丢了，只改<strong>副本</strong>，不更改原始节点记录：</p>
+<pre><code class="language-bash">python3 - &quot;$WORK/incomplete.json&quot; &lt;&lt;'PY'
+import json, pathlib, sys
+sample = json.loads(pathlib.Path('labs/m07/fees/receipt-22000000.json').read_text())
+del sample['receipt']['l1Fee']
+pathlib.Path(sys.argv[1]).write_text(json.dumps(sample))
+PY
+rc=0; python3 &quot;$BOOK&quot; history &quot;$WORK/incomplete.json&quot; &gt; &quot;$WORK/incomplete.txt&quot; 2&gt;&amp;1 || rc=$?
+cat &quot;$WORK/incomplete.txt&quot;; test &quot;$rc&quot; -eq 3
+</code></pre>
+<p>应保留已知执行分项 <code>116808693467</code>，并得到 <code>HOLD missing_or_invalid=l1Fee totalFeeWei=unavailable</code>；不得出现给出数字总额的 <code>RESULT</code>。这不是“收费为零”，也不是交易失败，而是<strong>账单采集不完整</strong>。回到支持扩展字段的节点按原哈希只读补证；不要重发原交易。</p>
+<h2 id="可选交接对方说已经在-base-sepolia-部署了同一份合约">可选交接：对方说已经在 Base Sepolia 部署了同一份合约</h2>
+<p>此练习<strong>不要求创建钱包、领取测试币或向公网发送</strong>。没有对方已发布的独立清单，就记录“Base 部署未提供”，本地交付与历史费用练习仍可各自完成。不能挪用前面的 <code>claim()</code> 哈希或把本地 <code>chainId</code> 改成 84532。若有被授权用于教学的<strong>既有</strong>直接部署，按以下清单交接：</p>
+<ol>
+<li>提交人与接手人分别保留 <code>anvil/deployment.json</code>、<code>base-sepolia/deployment.json</code>。后者取与本地相同的字段名和 JSON 类型：<code>chainId</code>、<code>deploymentBlockNumber</code>、<code>deadline</code> 为十进制整数；<code>genesisHash</code>、<code>deployer</code>、<code>payee</code>、<code>contractAddress</code>、<code>deploymentTransactionHash</code>、<code>deploymentBlockHash</code> 为各自的 <code>0x…</code> 标识；三个 <code>…Sha256</code> 为无 <code>0x</code> 的小写十六进制（<code>sourceSha256</code>、<code>creationCodeSha256</code>、<code>runtimeSha256</code>）。从<strong>该链</strong>的发布记录取值；同时交编译器与设置、ABI、构造输入和原回执。没有直接创建时不要借一个工厂调用硬套这套校验。</li>
+<li>接手人从独立途径取得可信源码、网络配置与上述清单。将收到的文件保存在 <code>$WORK/base-sepolia/deployment.json</code>，沿用已准备的工具环境和 <code>BOOK</code>，运行 <code>python3 "$BOOK" verify-base "$WORK/base-sepolia/deployment.json"</code>。这一入口固定只读 RPC；先问链 ID、创世块，再做块、交易和重建字节对读。供应商若不支持历史状态、扩展字段或按块哈希读 <code>eth_getCode</code>，停在缺口；不降级成读 <code>latest</code> 或相信相同地址。故意输入本地凭证 <code>python3 "$BOOK" verify-base "$WORK/anvil/deployment.json"</code> 应在联网前退出 3，<code>wrong_chain_in_release</code>。</li>
+<li><strong>分开签收“部署可核对”和“费用全额可核销”。</strong> 本读端内置的 Base 自动合计只覆盖本课核过的历史窗口 <code>[Holocene, Isthmus)</code> 的普通 type 2 交易。其他窗口即使已经打印 <code>DEPLOY ... runtimeMatch=true</code>、<code>EXEC</code>、<code>DATA</code>，仍会给 <code>fee_rules_not_covered_for_block</code> 而不给总额。接手人要按新块核对 Base 自己的升级规范与交易类型，用该块的实耗 gas、<code>l1Fee</code>、经证明适用的其他收费重开费用单；不能拿一份旧的 OP Stack 参数表充数。</li>
+</ol>
+<h2 id="独立作业-f-26b上限翻高就该多付吗">独立作业 F-26B：上限翻高，就该多付吗？</h2>
+<p>测试经理把另一单的 <code>gasLimit</code> 定为 <strong>4,000,000</strong>，单价上限仍为 <strong>2 gwei/gas</strong>。他还给了前面 Base 旧凭条里的两个上限，让你“把两张预算都当成本”。从干净部署和原始回执反驳他。在根目录接着运行：</p>
+<pre><code class="language-bash">python3 &quot;$BOOK&quot; local --gas-limit 4000000 --out &quot;$WORK/job-b&quot; &gt; &quot;$WORK/job-b.txt&quot; &amp;&amp; cat &quot;$WORK/job-b.txt&quot;
+python3 - &quot;$WORK/job-b&quot; &lt;&lt;'PY'
+import json, pathlib, sys
+p = pathlib.Path(sys.argv[1]); r = json.loads((p/'receipt.json').read_text()); b = json.loads((p/'balances.json').read_text())
+execution = int(r['gasUsed'], 16) * int(r['effectiveGasPrice'], 16)
+print('executionWei', execution, 'payerDeltaWei', int(b['beforeWei']) - int(b['afterWei']))
+assert r['blockHash'] == b['blockHash'] and execution == int(b['beforeWei']) - int(b['afterWei'])
+PY
+</code></pre>
+<p><strong>签收标准：</strong> 本地交新目录中三份 JSON 和日志，写出预算 <strong>8,000,000,000,000,000 wei</strong>、自己的实收及其两种取数路径；不要求两次独立部署的 <code>gasUsed</code> 一模一样。历史单交手算：<code>127440 × 971758 = 123,840,839,520 wei</code> 是当时执行费预算上界，不是 <code>116,808,693,467</code> 的实收，也不承诺覆盖全部 L2 收费；它碰巧高于该笔含数据费的总和并非定理。再挑一项必需字段（如 <code>effectiveGasPrice</code>）在另一份副本删去，保留退出 3 且没有数字总额的输出，说明要补取哪笔、哪块的数据。只交浏览器截图、以预算代替扣款、或把 31337 的部署写成 84532 已发布，都不能签收。</p>
+<h2 id="查证原文">查证原文</h2>
+<ul>
+<li><a href="https://docs.base.org/get-started/connect-to-base">Base 的网络与 RPC</a>、<a href="https://docs.base.org/base-chain/api-reference/ethereum-json-rpc-api/eth_getTransactionReceipt">Base 的回执字段</a>和<a href="https://docs.base.org/specifications/transactions/network-fees">网络费说明</a>：区分查询、估算与已入块的单价、<code>gasUsed</code> 和 <code>l1Fee</code>。</li>
+<li><a href="https://specs.optimism.io/protocol/fjord/exec-engine.html">OP Stack Fjord 执行规范</a>：FastLZ 的输入、估计尺寸下限、缩放因子、<code>l1GasUsed</code> 的局限；<a href="https://docs.base.org/upgrades/isthmus/overview">Base Isthmus 启用时刻</a>、<a href="https://docs.base.org/upgrades/overview">Base 的升级历史</a>：计算任何新单前重新核对网络、时代与适用规则。</li>
+<li><a href="https://eips.ethereum.org/EIPS/eip-1559">EIP-1559</a> 用于解释执行费上限与优先费；<a href="https://eips.ethereum.org/EIPS/eip-1898">EIP-1898</a> 用于固定余额、代码及只读调用的状态锚点。这些共同接口并不保证不同链有相同的费用或最终性语义。</li>
+</ul>
+<nav class="end-links" aria-label="阅读导航"><a rel="prev" href="rollup.html">上一课 · 25</a><a rel="next" href="userop.html">下一课 · 27</a></nav></article>
+<aside class="rail"><nav aria-label="本页目录"><b>本页目录</b><ol><li><a href="#先辨认哪一列是预算哪一列是实付">先辨认哪一列是预算，哪一列是实付</a></li><li><a href="#用-2025-年-2-月的回执核销差额">用 2025 年 2 月的回执核销差额</a></li><li><a href="#在隔离节点真的部署一次用两种读数算同一笔钱">在隔离节点真的部署一次，用两种读数算同一笔钱</a></li><li><a href="#停止实验一张清单用错链一张回执少字段">停止实验：一张清单用错链，一张回执少字段</a></li><li><a href="#可选交接对方说已经在-base-sepolia-部署了同一份合约">可选交接：对方说已经在 Base Sepolia 部署了同一份合约</a></li><li><a href="#独立作业-f-26b上限翻高就该多付吗">独立作业 F-26B：上限翻高，就该多付吗？</a></li><li><a href="#查证原文">查证原文</a></li></ol></nav></aside></div><dialog class="figure-zoom" aria-label="配图放大视图">
+<form method="dialog"><a>打开 SVG 原图</a><button autofocus>收起大图</button></form>
+<div class="zoom-scroll" tabindex="0" role="region" aria-label="放大的配图，可滚动"><img alt=""></div></dialog></main><footer><span>链上开发手册</span><a href="../index.html">课程首页</a><a href="l2-fees.md">Markdown 原稿</a></footer></body></html>

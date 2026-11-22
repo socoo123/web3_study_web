@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="448" height="306" viewBox="0 0 448 306" role="img" aria-labelledby="title desc" xml:lang="zh-CN">
+  <title id="title">从创世块到付款块，哪一个账户的序号增加？</title>
+  <desc id="desc">默认实验中，创世块后仅入块一笔 A 向 B 转 125 wei 的交易。A 减少支付额和四十二万亿 wei 费用，序号从零变一。B 增加 125 wei，序号仍然是零。</desc>
+  <rect width="448" height="306" rx="14" fill="#faf7ef"/>
+  <g font-family="system-ui,sans-serif" fill="#243b35">
+    <text x="17" y="32" font-size="21" font-weight="650">取同一对块，分别读 A 和 B</text>
+    <rect x="17" y="48" width="91" height="42" rx="6" fill="#e2eade"/>
+    <rect x="340" y="48" width="91" height="42" rx="6" fill="#e2eade"/>
+    <g text-anchor="middle" font-size="19"><text x="62" y="76">块 #0</text><text x="385" y="76">块 #1</text><text x="224" y="65">A 付 B 125 wei</text></g>
+    <path d="M118 78H327m-8-6 8 6-8 6" fill="none" stroke="#46735e" stroke-width="2.4" stroke-linejoin="round"/>
+    <rect x="17" y="106" width="414" height="38" rx="4" fill="#e8e4d8"/>
+    <g font-size="16"><text x="25" y="131">账户</text><text x="287" y="131" text-anchor="end">余额差（wei）</text><text x="423" y="131" text-anchor="end">nonce 前 → 后</text></g>
+    <g font-size="19"><text x="25" y="174">A 付款</text><text x="287" y="174" text-anchor="end">−42,000,000,000,125</text><text x="413" y="174" text-anchor="end">0 → 1</text>
+      <text x="25" y="214">B 收款</text><text x="287" y="214" text-anchor="end" font-weight="650">+125</text><text x="413" y="214" text-anchor="end" font-weight="650">0 → 0</text></g>
+    <path d="M17 186h414m-414 41h414" stroke="#c3ccbf"/>
+    <text x="22" y="255" font-size="17">执行费：21,000 gas × 2,000,000,000 wei/gas</text>
+    <text x="22" y="284" font-size="18" font-weight="650" fill="#395c4a">B 收到金额，并不消耗 B 的发送序号。</text>
+  </g>
+</svg>

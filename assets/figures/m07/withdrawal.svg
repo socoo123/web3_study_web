@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="568" height="602" viewBox="0 0 568 602" role="img" xml:lang="zh-CN" aria-labelledby="title desc">
+  <title id="title">0.3 测试 ETH：每到一站，工单能多说什么？</title>
+  <desc id="desc">OP Sepolia 的 46213706 号块只证实发起。Sepolia 的 11286906 号块接受了证明，但当时检查仍回退。11353458 号块的领取预检通过。到 11353459 号块，门户、信使与标准桥各自的事件齐备，才核销付给指定地址的 0.3 测试 ETH。</desc>
+  <rect width="568" height="602" fill="#fffaf2"/>
+  <g font-family="system-ui,sans-serif" fill="#252824">
+    <text x="20" y="37" font-size="24" font-weight="700">0.3 测试 ETH 的跨层工单</text>
+    <text x="20" y="66" font-size="17">W 连门户证明，M 连信使回执；两者都不是交易哈希。</text>
+    <path d="M41 114V499" fill="none" stroke="#8a7962" stroke-width="2"/>
+    <g fill="#826c51"><path d="m35 190 6 8 6-8z"/><path d="m35 307 6 8 6-8z"/><path d="m35 425 6 8 6-8z"/></g>
+    <g stroke="#927b5d" fill="#f5ede1"><rect x="64" y="85" width="483" height="96" rx="7"/><rect x="64" y="201" width="483" height="96" rx="7"/></g>
+    <rect x="64" y="318" width="483" height="97" rx="7" fill="#f5ead9" stroke="#927144"/>
+    <rect x="64" y="436" width="483" height="126" rx="7" fill="#e1efe8" stroke="#386b56"/>
+    <g fill="#345b4e"><circle cx="41" cy="114" r="15"/><circle cx="41" cy="230" r="15"/><circle cx="41" cy="347" r="15"/><circle cx="41" cy="465" r="15"/></g>
+    <g fill="white" font-size="16" font-weight="700" text-anchor="middle"><text x="41" y="120">1</text><text x="41" y="236">2</text><text x="41" y="353">3</text><text x="41" y="471">4</text></g>
+    <g font-size="19" font-weight="700"><text x="80" y="116">OP Sepolia · 46,213,706 ｜已发起</text><text x="80" y="232">Sepolia · 11,286,906 ｜已证明</text><text x="80" y="349">Sepolia · 11,353,458 ｜当块可领取</text><text x="80" y="467">Sepolia · 11,353,459 ｜已完成</text></g>
+    <g font-size="17"><text x="80" y="146">L2 标准桥 → MessagePasser：发出消息 W。</text><text x="80" y="170">金额 0.3，目标侧还没有付款凭条。</text>
+      <text x="80" y="261">Portal 接受 W 的证明；同块只读检查回退：</text><text x="80" y="285">ProofNotOldEnough，不报可领取。</text>
+      <text x="80" y="379">Portal 未暂停、W 未领取、检查和调用模拟通过。</text><text x="80" y="403">模拟不写账，不是目标交易回执。</text>
+      <text x="80" y="497">Portal(W) → 信使(M) → 标准桥付款事件。</text><text x="80" y="522">收款方 0x0acc…92ba，金额 0.3 测试 ETH。</text><text x="80" y="547">缺最后一联，只报处理中，不核销付款。</text>
+    </g>
+    <text x="20" y="587" font-size="16">同一笔提现的四次观察；箭头表示证据顺序，不按时间比例。</text>
+  </g>
+</svg>

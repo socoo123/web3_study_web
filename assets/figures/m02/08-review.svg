@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="432" height="276" viewBox="0 0 432 276" role="img" aria-labelledby="title desc" xml:lang="zh-CN">
+  <title id="title">同一笔十万聪输入，为什么差一聪要拒签？</title>
+  <desc id="desc">两个输入分别是七万与三万聪，总额十万聪。独立商户工单规定应收六万聪。正常草案付六万，找零三万九千五百八十，费用四百二十。少付草案付五万九千九百九十九，找零三万九千五百八十一，费用也为四百二十。两列各自对平，仅左列符合工单。</desc>
+  <rect width="432" height="276" rx="14" fill="#faf7ef"/>
+  <g font-family="system-ui,sans-serif" fill="#253530">
+    <text x="18" y="30" font-size="18" font-weight="650">资金核对单</text><text x="414" y="29" text-anchor="end" font-size="15">单位：sat（聪）</text>
+    <rect x="14" y="43" width="404" height="36" rx="6" fill="#e8e4d8"/>
+    <text x="216" y="67" text-anchor="middle" font-size="17">输入 70,000 + 30,000 = 100,000</text>
+    <g text-anchor="middle" font-size="17"><text x="216" y="104" font-weight="650">正常草案</text><text x="347" y="104" font-weight="650">少付草案</text></g>
+    <path d="M16 115h400m-400 36h400m-400 36h400m-400 36h400" fill="none" stroke="#c2c9bd"/>
+    <g font-size="17"><text x="21" y="141">商户收款</text><text x="21" y="177">内部找零</text><text x="21" y="213">差额费用</text></g>
+    <g text-anchor="middle" font-size="18"><text x="216" y="141">60,000</text><text x="347" y="141" fill="#883e24" font-weight="650">59,999</text><text x="216" y="177">39,580</text><text x="347" y="177">39,581</text><text x="216" y="213">420</text><text x="347" y="213">420</text></g>
+    <text x="216" y="255" text-anchor="middle" font-size="17" fill="#69402c">两列都守恒；右列少付 1 sat，不签。</text>
+  </g>
+</svg>

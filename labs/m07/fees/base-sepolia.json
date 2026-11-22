@@ -1,0 +1,13 @@
+{
+  "network": "base-sepolia",
+  "chainId": 84532,
+  "genesisHash": "0x0dcc9e089e30b90ddfc55be9a37dd15bc551aeee999d2e2b51414c54eaf934e4",
+  "rpc": "https://sepolia.base.org",
+  "contract": "src/MilestoneEscrow.sol:MilestoneEscrow",
+  "mode": "read-only-existing-deployment",
+  "historicalSchedule": {
+    "holocene": 1732633200,
+    "isthmus": 1744905600,
+    "source": "https://github.com/ethereum-optimism/superchain-registry/blob/720185c32b0599fa31b14f101cbc990ec39c0a36/superchain/configs/sepolia/base.toml"
+  }
+}

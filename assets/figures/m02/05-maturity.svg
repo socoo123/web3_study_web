@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="460" height="438" viewBox="0 0 460 438" role="img" aria-labelledby="title desc" xml:lang="zh-CN">
+  <title id="title">第 1 块的奖励：当前钱包和下一个候选块各看哪个高度？</title>
+  <desc id="desc">链尖 100 时，Alice 钱包的第 1 块奖励已有 100 次确认，仍显示未成熟；若在下一个候选块 101 花费，101 减 1 已达到共识门槛 100。实验没有在候选块 101 花费。链尖 101 时，钱包显示 101 次确认，选出 50 BTC；实际付款进入第 102 块。</desc>
+  <rect width="460" height="438" fill="#fffaf2"/>
+  <g fill="#28221f" font-family="system-ui, sans-serif">
+    <text x="18" y="36" font-size="24" font-weight="700">第 1 块奖励 · 两个读数</text>
+    <text x="18" y="67" font-size="18">左边读已出的块；右边检验下一块。</text>
+    <g font-size="19" font-weight="700">
+      <text x="20" y="112">Alice 的钱包</text>
+      <text x="253" y="112">候选块的共识检查</text>
+    </g>
+    <g stroke-width="2">
+      <rect x="16" y="129" width="183" height="117" rx="10" fill="#fff0dc" stroke="#93461f"/>
+      <rect x="246" y="129" width="198" height="117" rx="10" fill="#fffaf2" stroke="#51473e"/>
+      <rect x="16" y="270" width="183" height="117" rx="10" fill="#e0f1eb" stroke="#115c56"/>
+      <rect x="246" y="270" width="198" height="117" rx="10" fill="#e0f1eb" stroke="#115c56"/>
+    </g>
+    <g text-anchor="middle" font-size="18">
+      <text x="108" y="160" font-size="21" font-weight="700">链尖 100</text>
+      <text x="108" y="193">奖励有 100 次确认</text>
+      <text x="108" y="223">未成熟 · 不可选</text>
+      <text x="345" y="160" font-size="21" font-weight="700">候选高度 101</text>
+      <text x="345" y="193">101 − 1 = 100</text>
+      <text x="345" y="223">达标，本次未花费</text>
+      <text x="108" y="301" font-size="21" font-weight="700">链尖 101</text>
+      <text x="108" y="334">奖励有 101 次确认</text>
+      <text x="108" y="364">可选 50 BTC</text>
+      <text x="345" y="301" font-size="21" font-weight="700">候选高度 102</text>
+      <text x="345" y="334">102 − 1 = 101</text>
+      <text x="345" y="364">达标，本次付款入块</text>
+    </g>
+    <g fill="none" stroke="#51473e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M208 187h28m-8-7 8 7-8 7"/><path d="M208 328h28m-8-7 8 7-8 7"/>
+    </g>
+    <text x="230" y="423" text-anchor="middle" font-size="18" font-weight="700">共识比的是「花费块高 − 奖励块高 ≥ 100」。</text>
+  </g>
+</svg>

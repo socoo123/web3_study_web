@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="468" height="448" viewBox="0 0 468 448" role="img" aria-labelledby="title desc">
+  <title id="title">观察服务与离线签名器：什么能交，什么不能交</title>
+  <desc id="desc">右边签名器给左边观察服务一份只含公钥的描述符。退款时，观察服务把待签交易交给签名器。授权人核对后签名，交回签好的交易。私钥和恢复材料始终不过中间的虚线。</desc>
+  <defs>
+    <marker id="left" markerWidth="12" markerHeight="14" refX="10" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 12 7 0 14Z" fill="#216459"/></marker>
+    <marker id="right" markerWidth="12" markerHeight="14" refX="10" refY="7" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 12 7 0 14Z" fill="#93441e"/></marker>
+  </defs>
+  <rect width="468" height="448" fill="#fffaf2"/>
+  <path d="M234 15V381" stroke="#807364" stroke-width="2" stroke-dasharray="4 7"/>
+  <g stroke-width="2.2" fill="none" stroke-linejoin="round" stroke-linecap="round">
+    <g stroke="#216459">
+      <rect x="16" y="17" width="198" height="87" rx="8" fill="#e7f3ed"/>
+      <path d="M105 105V116H83M125 105V116H148M101 116H129"/>
+    </g>
+    <g stroke="#93441e">
+      <rect x="254" y="17" width="198" height="87" rx="8" fill="#f8e9db"/>
+      <path d="M343 105V116H321M363 105V116H386M339 116H367"/>
+    </g>
+    <path d="M60 104V373M408 104V373" stroke="#958777" stroke-width="1.8"/>
+  </g>
+  <g font-family="system-ui, sans-serif" text-anchor="middle" fill="#28221f">
+    <g font-weight="700" font-size="21">
+      <text x="115" y="51">观察服务</text><text x="353" y="51">离线签名器</text>
+    </g>
+    <g font-size="18">
+      <text x="115" y="82">读订单、查链上输出</text><text x="353" y="82">保管密钥、核准花费</text>
+    </g>
+    <g fill="#fffaf2">
+      <rect x="93" y="135" width="282" height="32"/>
+      <rect x="96" y="213" width="276" height="32"/>
+      <rect x="95" y="291" width="278" height="32"/>
+    </g>
+    <g font-size="19" font-weight="650">
+      <text x="234" y="158">开通观察：只含公钥的描述符</text>
+      <text x="234" y="236">申请退款：待签交易</text>
+      <text x="234" y="314">核对通过：签好的交易</text>
+    </g>
+    <g stroke-width="3" fill="none">
+      <path d="M408 181H64" stroke="#216459" marker-end="url(#left)"/>
+      <path d="M60 259H404" stroke="#93441e" marker-end="url(#right)"/>
+      <path d="M408 337H64" stroke="#216459" marker-end="url(#left)"/>
+    </g>
+    <circle cx="408" cy="181" r="4.5" fill="#216459"/>
+    <circle cx="60" cy="259" r="4.5" fill="#93441e"/>
+    <circle cx="408" cy="337" r="4.5" fill="#216459"/>
+    <text x="234" y="398" font-size="18" font-weight="700">权限边界</text>
+    <text x="234" y="429" font-size="19">私钥、助记词和派生口令不跨线。</text>
+  </g>
+</svg>

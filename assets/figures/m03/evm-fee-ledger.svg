@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="412" viewBox="0 0 480 412" role="img" aria-labelledby="title desc" xml:lang="zh-CN">
+  <title id="title">0.01 测试 ETH 的付款分给了谁？</title>
+  <desc id="desc">按默认输入推算，全部金额以 gwei 表示。Alice 扣 10,042,000；Bob 收 10,000,000；另付执行费 42,000，分成销毁 21,000 和给出块方费用地址的 21,000。90,000 的授权费用上限不是实扣。</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0 10 5 0 10Z" fill="#285c60"/></marker></defs>
+  <rect width="480" height="412" rx="14" fill="#fffaf2"/>
+  <g font-family="system-ui, sans-serif" fill="#28221f" text-anchor="middle">
+    <text x="240" y="32" font-size="20">默认订单 · 以下金额均为 gwei</text>
+    <rect x="86" y="48" width="308" height="70" rx="8" fill="#e1efea" stroke="#285c60" stroke-width="2"/>
+    <text x="240" y="77" font-size="20">Alice 实扣</text><text x="240" y="105" font-size="25" font-weight="700">10,042,000</text>
+    <g fill="none" stroke="#285c60" stroke-width="2.5" marker-end="url(#arrow)"><path d="M240 119V131H112V149"/><path d="M240 131H354V149"/></g>
+    <rect x="16" y="152" width="192" height="72" rx="8" fill="#e1efea" stroke="#285c60" stroke-width="2"/>
+    <rect x="256" y="152" width="196" height="72" rx="8" fill="#fff1dc" stroke="#8c542b" stroke-width="2"/>
+    <text x="112" y="181" font-size="20">Bob 收款</text><text x="112" y="210" font-size="24" font-weight="700">10,000,000</text>
+    <text x="354" y="181" font-size="20">实际执行费</text><text x="354" y="210" font-size="24" font-weight="700">42,000</text>
+    <g fill="none" stroke="#285c60" stroke-width="2.5" marker-end="url(#arrow)"><path d="M354 225V242H156V264"/><path d="M354 242H378V264"/></g>
+    <rect x="62" y="267" width="188" height="70" rx="8" fill="#f6e8df" stroke="#8c542b" stroke-width="2"/>
+    <rect x="282" y="267" width="182" height="70" rx="8" fill="#fff1dc" stroke="#8c542b" stroke-width="2"/>
+    <text x="156" y="295" font-size="20">协议销毁</text><text x="156" y="323" font-size="22" font-weight="650">21,000</text>
+    <text x="373" y="295" font-size="20">出块方小费</text><text x="373" y="323" font-size="22" font-weight="650">21,000</text>
+    <path d="M24 356H456" stroke="#ad9f92" stroke-dasharray="4 5"/>
+    <text x="240" y="389" font-size="20">费用预算 90,000，不是第四笔扣款。</text>
+  </g>
+</svg>

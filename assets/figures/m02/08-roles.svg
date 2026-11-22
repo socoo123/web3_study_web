@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="444" height="375" viewBox="0 0 444 375" role="img" aria-labelledby="title desc" xml:lang="zh-CN">
+  <title id="title">哪些信息能从签名钱包交给观察钱包？</title>
+  <desc id="desc">两端都在同一台临时节点。签名钱包只发公开收款和找零描述符，不发私钥。观察钱包回传附有前序信息的未签 PSBT。持钥端从商户订单和本地 UTXO 独立核对，决定停止或签名，签后再最终化并交节点广播。</desc>
+  <defs><marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#315c53"/></marker></defs>
+  <rect width="444" height="375" rx="14" fill="#faf7ef"/>
+  <g font-family="system-ui,sans-serif" fill="#253530" text-anchor="middle">
+    <rect x="13" y="15" width="160" height="54" rx="8" fill="#ddebe6"/>
+    <text x="93" y="39" font-size="19" font-weight="650">观察钱包</text><text x="93" y="60" font-size="15">禁用私钥</text>
+    <rect x="271" y="15" width="160" height="54" rx="8" fill="#eee2d5"/>
+    <text x="351" y="39" font-size="19" font-weight="650">签名钱包</text><text x="351" y="60" font-size="15">付款密钥留在这里</text>
+    <path d="M93 70V228M351 70V228" stroke="#8c998f" stroke-width="2" stroke-dasharray="4 5" fill="none"/>
+    <text x="222" y="103" font-size="17">两条公开描述符</text>
+    <path d="M351 115H95" stroke="#315c53" stroke-width="2.5" fill="none" marker-end="url(#head)"/>
+    <text x="222" y="156" font-size="17">PSBT：输入、输出、前序</text>
+    <path d="M93 169H349" stroke="#315c53" stroke-width="2.5" fill="none" marker-end="url(#head)"/>
+    <text x="94" y="199" font-size="15">仍无付款签名</text>
+    <rect x="196" y="184" width="235" height="48" rx="8" fill="#fff" stroke="#58695f"/>
+    <text x="313" y="205" font-size="17" font-weight="650">核对独立订单</text><text x="313" y="223" font-size="14">查前序、自己的找零、费用</text>
+    <g stroke="#315c53" stroke-width="2" fill="none" marker-end="url(#head)"><path d="M249 233V252H110V270"/><path d="M355 233V270"/></g>
+    <rect x="15" y="274" width="190" height="64" rx="9" fill="#f6e3d8" stroke="#95542e"/>
+    <text x="110" y="299" font-size="18" font-weight="650">不符 → 停止</text><text x="110" y="324" font-size="15">不请求付款签名</text>
+    <rect x="228" y="274" width="201" height="64" rx="9" fill="#e1eee7" stroke="#356254"/>
+    <text x="328" y="299" font-size="18" font-weight="650">符合 → 签名</text><text x="328" y="324" font-size="15">最终化、复核后才广播</text>
+    <text x="222" y="360" font-size="14" fill="#4c5e53">同一节点的角色分工，不是两台隔离设备</text>
+  </g>
+</svg>

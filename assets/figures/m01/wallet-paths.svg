@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="468" height="366" viewBox="0 0 468 366" role="img" aria-labelledby="title desc">
+  <title id="title">同一 Bitcoin 账户，两条分支，三个地址</title>
+  <desc id="desc">账户 m/84'/0'/0' 的收款分支 0 下有索引 0 和 1，分别是第一、第二张订单。找零分支 1 下的索引 0 是首个找零地址。地址仅展示前后缀。</desc>
+  <defs>
+    <marker id="tip" markerWidth="9" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 9 5 0 10Z" fill="#28221f"/></marker>
+  </defs>
+  <rect width="468" height="366" fill="#fffaf2"/>
+  <g fill="none" stroke="#28221f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M33 72V295H60" marker-end="url(#tip)"/>
+    <path d="M33 164H60" marker-end="url(#tip)"/>
+    <path d="M164 164H190V119H219" marker-end="url(#tip)"/>
+    <path d="M190 164V208H219" marker-end="url(#tip)"/>
+    <path d="M164 295H219" marker-end="url(#tip)"/>
+  </g>
+  <g fill="#28221f"><circle cx="33" cy="164" r="4"/><circle cx="190" cy="164" r="4"/></g>
+  <g font-family="system-ui, sans-serif" fill="#28221f">
+    <rect x="17" y="15" width="434" height="57" rx="10" fill="#f2e8d6" stroke="#28221f" stroke-width="2"/>
+    <text x="33" y="51" font-size="21" font-weight="700">账户 0</text>
+    <text x="148" y="51" font-family="monospace" font-size="22">m/84'/0'/0'</text>
+    <rect x="63" y="140" width="102" height="48" rx="22" fill="#dcefeb" stroke="#216459" stroke-width="2"/>
+    <text x="114" y="171" text-anchor="middle" font-size="19" font-weight="650">/0 收款</text>
+    <rect x="63" y="271" width="102" height="48" rx="22" fill="#f8e5d5" stroke="#93441e" stroke-width="2"/>
+    <text x="114" y="302" text-anchor="middle" font-size="19" font-weight="650">/1 找零</text>
+    <g fill="#fffefd" stroke-width="1.7">
+      <rect x="222" y="85" width="229" height="68" rx="8" stroke="#216459"/>
+      <rect x="222" y="174" width="229" height="68" rx="8" stroke="#216459"/>
+      <rect x="222" y="261" width="229" height="68" rx="8" stroke="#93441e"/>
+    </g>
+    <g font-size="19" font-weight="650">
+      <text x="236" y="111">/0/0 · 第一张收款单</text>
+      <text x="236" y="200">/0/1 · 第二张收款单</text>
+      <text x="236" y="287">/1/0 · 第一笔找零</text>
+    </g>
+    <g font-family="monospace" font-size="18">
+      <text x="236" y="139">bc1qcr8t…306fyu</text>
+      <text x="236" y="228">bc1qnjg0…erkf9g</text>
+      <text x="236" y="315">bc1q8c6f…pcp6el</text>
+    </g>
+    <text x="18" y="353" font-size="18">地址均为节选；核对订单请比完整字符串。</text>
+  </g>
+</svg>

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="464" height="393" viewBox="0 0 464 393" role="img" aria-labelledby="title desc" xml:lang="zh-CN">
+  <title id="title">Alice 的一项旧输出怎样付清 Bob 的订单</title>
+  <desc id="desc">沿箭头从上往下读。Alice 花掉旧输出全部 5,000,000,000 sat；新交易产生 Bob 的 125,000,000 sat 和 Alice 的 4,874,999,000 sat 两项输出。输入减去两项输出，差额 1,000 sat 是手续费，没有第三项输出。</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0 10 5 0 10Z" fill="#285c60"/></marker></defs>
+  <rect width="464" height="393" rx="14" fill="#fffaf2"/>
+  <g font-family="system-ui, sans-serif" text-anchor="middle" fill="#28221f">
+    <rect x="60" y="15" width="344" height="80" rx="10" fill="#e1efea" stroke="#285c60" stroke-width="2"/>
+    <text x="232" y="45" font-size="20">Alice 原有的一项输出</text>
+    <text x="232" y="77" font-size="25" font-weight="700">5,000,000,000 sat</text>
+    <path d="M232 96V110" stroke="#285c60" stroke-width="2"/>
+    <text x="232" y="133" font-size="19">输入按 txid:vout 引用，整项花掉</text>
+    <g fill="none" stroke="#285c60" stroke-width="2.5" marker-end="url(#arrow)"><path d="M232 142V151H119V173"/><path d="M232 151H345V173"/></g>
+    <rect x="13" y="176" width="211" height="84" rx="10" fill="#e1efea" stroke="#285c60" stroke-width="2"/>
+    <rect x="240" y="176" width="211" height="84" rx="10" fill="#fff1dc" stroke="#8c542b" stroke-width="2"/>
+    <text x="119" y="207" font-size="20">Bob · 订单收款</text>
+    <text x="345" y="207" font-size="20">Alice · 找零</text>
+    <text x="119" y="239" font-size="21" font-weight="650">125,000,000 sat</text>
+    <text x="345" y="239" font-size="21" font-weight="650">4,874,999,000 sat</text>
+    <path d="M119 266V276H345V266" fill="none" stroke="#81746b" stroke-width="2"/>
+    <text x="232" y="304" font-size="20">输出合计 4,999,999,000 sat</text>
+    <rect x="13" y="325" width="438" height="54" rx="8" fill="#f6e8df"/>
+    <text x="232" y="359" font-size="20" font-weight="600">差额 1,000 sat 是费用，不是第三项输出</text>
+  </g>
+</svg>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="448" height="363" viewBox="0 0 448 363" role="img" aria-labelledby="title desc">
+  <title id="title">怎样判断这笔 Taproot 花费用了哪条路</title>
+  <desc id="desc">先沿花费输入引用回查前序输出，确定它是原生版本一、32 字节。按规则剥离可选 annex 后，一项是密钥路径，由输出公钥验 Schnorr 签名；两项以上是脚本路径，需核验公开脚本和控制块。本实验只走左边。</desc>
+  <defs><marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0L9 4.5 0 9Z" fill="#50473e"/></marker></defs>
+  <rect width="448" height="363" fill="#fffaf2"/>
+  <g font-family="system-ui,sans-serif" fill="#28221f" text-anchor="middle">
+    <text x="224" y="33" font-size="22" font-weight="700">此输入花的是哪种输出？</text>
+    <text x="224" y="64" font-size="18">沿 txid:vout 找到 51 20 + 32 字节</text>
+    <path d="M224 77V101" stroke="#50473e" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="43" y="106" width="362" height="47" rx="7" fill="#f5eddf" stroke="#796c5e"/>
+    <text x="224" y="136" font-size="18">去掉可选 annex，再数见证项</text>
+    <path d="M224 153V169H111V192M224 169H337V192" stroke="#50473e" stroke-width="2" fill="none"/>
+    <path d="M111 188V198M337 188V198" stroke="#50473e" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="12" y="202" width="198" height="123" rx="9" fill="#e7f3ed" stroke="#216459" stroke-width="1.7"/>
+    <rect x="238" y="202" width="198" height="123" rx="9" fill="#faebde" stroke="#93441e" stroke-width="1.7"/>
+    <g font-size="18" font-weight="700"><text x="111" y="230">1 项：密钥路径</text><text x="337" y="230">至少 2 项：脚本路径</text></g>
+    <g font-size="17"><text x="111" y="264">输出公钥验签</text><text x="111" y="292">本例是 Schnorr</text><text x="337" y="264">检查脚本、控制块</text><text x="337" y="292">按叶子规则验证</text></g>
+    <text x="224" y="350" font-size="17">实验走左边；地址本身不预告将走哪边。</text>
+  </g>
+</svg>

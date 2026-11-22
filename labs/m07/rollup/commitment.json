@@ -1,0 +1,27 @@
+{
+  "source": "https://api.sepolia.blobscan.com/blobs/0x01898f661747fa1b38a62576f3d447613fe76822c54b6917c0ee61d99fde8e6d",
+  "observedUtc": "2026-11-22T07:06:16+00:00",
+  "result": {
+    "versionedHash": "0x01898f661747fa1b38a62576f3d447613fe76822c54b6917c0ee61d99fde8e6d",
+    "commitment": "0xa8d226dce44d6528709a61c32bce853220d048cf57693448578e6ae5fc2bff96933ba8acd19ff5cb0d8da619f17eb80e",
+    "proof": "0xb5de0633a9c08ddd617e081121998583017cccbd1c4410f9272f9d5063ab4f30ca2d3a15430af74e102a6398005a8844",
+    "usageSize": 21345,
+    "size": 131072,
+    "dataStorageReferences": [
+      {
+        "storage": "ipfs",
+        "url": "https://sepolia.blobscan.com/ipfs/bafkreig7spu6643avu5fj7glmpz76b2lolhqvoj5qx73qj47el4vlm6clm?filename=bafkreig7spu6643avu5fj7glmpz76b2lolhqvoj5qx73qj47el4vlm6clm.bin"
+      }
+    ],
+    "transactions": [
+      {
+        "blockHash": "0xb06422c294521aa3a53acf101915850e28e289116358e93c4e889886e5f8052d",
+        "blockNumber": 12187164,
+        "blockTimestamp": "2026-11-22T06:59:00.000Z",
+        "txHash": "0x80f565aa84d031928fa21d23ef5ed266d08c73fa40b69c3176e44911f952531d",
+        "txIndex": 131,
+        "index": 0
+      }
+    ]
+  }
+}

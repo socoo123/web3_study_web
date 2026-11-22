@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="460" height="502" viewBox="0 0 460 502" role="img" aria-labelledby="title desc" xml:lang="zh-CN">
+  <title id="title">纸上重组：同一笔付款 T 从两次确认退回一次</title>
+  <desc id="desc">在共同块 101 后，原分支 A102 收录 T，A103 未再次收录 T，此时 T 有两次确认。另一有效分支的 B102、B103 都没有 T，B104 才收录 T。假设各块贡献相同工作，B 分支多一块，节点切换后 T 在 B104 只获一次确认。箭头从父块指向子块，表示出块方向。</desc>
+  <defs><marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10Z" fill="#51473e"/></marker></defs>
+  <rect width="460" height="502" fill="#fffaf2"/>
+  <g fill="#28221f" font-family="system-ui, sans-serif">
+    <text x="18" y="36" font-size="24" font-weight="700">重新数确认 · 同一笔付款 T</text>
+    <text x="18" y="65" font-size="18">纸上推演：两支都有效，每块贡献相同工作。</text>
+    <g stroke-width="2" fill="none" stroke="#51473e" marker-end="url(#arr)">
+      <path d="M194 133 111 166"/><path d="M266 133 349 166"/>
+      <path d="M112 235v35"/><path d="M348 235v35"/><path d="M348 342v35"/>
+    </g>
+    <g stroke-width="2">
+      <rect x="150" y="88" width="160" height="45" rx="9" fill="#f5eadb" stroke="#51473e"/>
+      <g stroke="#93461f" fill="#fff0dc"><rect x="22" y="170" width="180" height="64" rx="9"/><rect x="22" y="275" width="180" height="66" rx="9"/></g>
+      <g stroke="#115c56" fill="#e0f1eb"><rect x="258" y="170" width="180" height="64" rx="9"/><rect x="258" y="275" width="180" height="66" rx="9"/><rect x="258" y="382" width="180" height="64" rx="9"/></g>
+    </g>
+    <g text-anchor="middle" font-size="19">
+      <text x="230" y="117" font-weight="700">共同块 101</text>
+      <text x="112" y="196" font-weight="700">A102 · 含 T</text><text x="112" y="222">1 次确认</text>
+      <text x="112" y="302" font-weight="700">A103</text><text x="112" y="330">2 次确认</text>
+      <text x="348" y="196" font-weight="700">B102</text><text x="348" y="222">不含 T</text>
+      <text x="348" y="302" font-weight="700">B103</text><text x="348" y="330">不含 T</text>
+      <text x="348" y="407" font-weight="700">B104 · 含 T</text><text x="348" y="435">1 次确认</text>
+      <text x="112" y="394" fill="#783a1c">原锚点 A102</text><text x="112" y="424" fill="#783a1c">已不在活动链</text>
+    </g>
+    <text x="230" y="482" text-anchor="middle" font-size="18" font-weight="700">节点改走 B 支；门槛为 2 的订单重新等待。</text>
+  </g>
+</svg>

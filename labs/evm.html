@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark"><title>第 11 课 · Gas 与收支平衡：用 Java 核对一笔 ETH 转账 · 链上开发手册</title>
+<link rel="stylesheet" href="../assets/site.css?v=2786ad38e29d"><script src="../assets/site.js?v=6dc390471c89" defer></script></head>
+<body><a class="skip" href="#main">跳至正文</a><header class="mast"><div class="mast-inner">
+<a class="brand" href="../index.html"><span class="mark" aria-hidden="true"></span>链上开发手册</a>
+<nav aria-label="全站导航"><a href="../plan.html">课程计划</a><a href="../index.html#labs">实验台</a><button type="button" id="theme" hidden>切换主题</button></nav>
+</div></header><main id="main" class="reading"><div class="crumb"><a href="../index.html">手册首页</a> / <a href="../plan.html#m03">M03 · 以太坊：账户、Gas 与回执</a> / 第 11 课</div>
+<header class="lesson-opening"><h1 id="page-title">第 11 课 · Gas 与收支平衡：用 Java 核对一笔 ETH 转账</h1><figure class="specimen"><figcaption>0.01 ETH 付款的费用单</figcaption><dl>
+<div><dt>费用上限 / gwei</dt><dd>90,000</dd></div>
+<div><dt>实付 / gwei</dt><dd>42,000</dd></div></dl>
+<span class="specimen-relation" aria-hidden="true">≠</span><p>两项都是总金额；Bob 应收的 0.01 测试 ETH 没有变</p></figure><p>财务收到两张费用单：钱包为一笔 <strong>0.01 测试 ETH</strong> 的付款预留了 <strong>90,000 gwei</strong> 手续费，结算同事却只报 <strong>42,000 gwei</strong>。Bob 没有少收。这 48,000 gwei 是漏记、退款，还是本来就不该入账？用 Java 取同一笔 Type 2 交易、它的回执和区块，再对两端余额；你要交的是能解释差额的付款凭证，而不是交易哈希截图。</p></header><div class="reading-grid"><article aria-labelledby="page-title"><details class="mobile-toc"><summary>本页目录</summary><ol><li><a href="#哪一张单上的数可以结账">哪一张单上的数可以结账？</a></li><li><a href="#从-alice-的扣款追到三处归属">从 Alice 的扣款追到三处归属</a></li><li><a href="#准备两个工具和一份源文件">准备两个工具和一份源文件</a></li><li><a href="#启动一次性账本">启动一次性账本</a></li><li><a href="#发出唯一一笔转账">发出唯一一笔转账</a></li><li><a href="#只降低总单价上限会变的是谁的收入">只降低总单价上限，会变的是谁的收入？</a></li><li><a href="#失败超时与未知结果">失败、超时与未知结果</a></li><li><a href="#什么时候不能用这张账页">什么时候不能用这张账页？</a></li><li><a href="#独立作业财务调高了预算应该追加报销吗">独立作业：财务调高了预算，应该追加报销吗？</a></li><li><a href="#关闭与延伸阅读">关闭与延伸阅读</a></li></ol></details><p>先修：<a href="networks.html">第 04 课：认出本地链</a>、<a href="accounts.html">第 09 课：账户状态</a>、<a href="nonce.html">第 10 课：发送序号</a>。付过 <a href="bitcoin.html">Bitcoin 的 UTXO 订单</a>更容易对照，但这次不选输入、不建找零输出。环境为 macOS 或常见的 glibc Linux（Windows 可用 WSL2），需要 Bash、curl、tar、OpenSSL、两个终端和完整 JDK。已有 JDK 17 或 21 即可；固定复现版本为 OpenJDK 21.0.2+13。首次下载工具需要联网，对账时不访问公网；不需要 Maven、Docker、钱包或 Solidity。</p>
+<p><strong>边界</strong>：只在自己刚启动的 Anvil 内存链上工作。不导入助记词，不连接浏览器钱包，不充值；交易程序的地址固定为 <code>127.0.0.1:18545</code>，只接受 Anvil、链 ID 31337、两个测试账户和创世块。关掉节点即丢弃账本。每轮只提交一次，不要把重新运行当作支付重试。</p>
+<p><a href="EvmTransfer.java">获取完整 Java 源码</a></p>
+<h2 id="哪一张单上的数可以结账">哪一张单上的数可以结账？</h2>
+<p>先统一单位：<strong>gas 是工作量单位，不是金额</strong>；wei 是 ETH 的最小金额单位。<code>1 gwei = 10⁹ wei</code>，<code>1 ETH = 10⁹ gwei = 10¹⁸ wei</code>。因此本单 <code>value = 0.01 ETH = 10,000,000 gwei</code>。报价写“3 gwei”时应追问：总共 3 gwei，还是每单位 gas 收 3 gwei？Java 用 <code>BigInteger</code> 存 wei：连 10 ETH 的 wei 数都放不进有符号 <code>long</code>，用 <code>double</code> 也无法逐 wei 核销。</p>
+<table class="stackable">
+<thead>
+<tr>
+<th>依据</th>
+<th>从哪里读</th>
+<th>回答的问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="依据">签过的交易</td>
+<td data-label="从哪里读"><code>eth_getTransactionByHash</code>：<code>value</code>、<code>gas</code>、<code>maxFeePerGas</code>、<code>maxPriorityFeePerGas</code></td>
+<td data-label="回答的问题"><code>gas</code> 是 gasLimit，限定本次最多可用多少 gas；<code>maxFeePerGas</code> 限制每 gas <strong>含小费</strong>的总价，<code>maxPriorityFeePerGas</code> 另限其中的小费，两项上限不相加</td>
+</tr>
+<tr>
+<td data-label="依据">纳入交易的区块</td>
+<td data-label="从哪里读">按回执的 <code>blockNumber</code> 取块，并核对 <code>blockHash</code> 与交易列表；看 <code>baseFeePerGas</code></td>
+<td data-label="回答的问题">本块每 gas 必付的基础费是多少？不是发送时读一次 <code>latest</code> 得到的报价。以太坊 L1 的基础费随父块的 gas 用量相对目标调整，超目标通常上调，低于目标通常下调</td>
+</tr>
+<tr>
+<td data-label="依据">已执行的回执</td>
+<td data-label="从哪里读"><code>eth_getTransactionReceipt</code>：<code>status</code>、<code>gasUsed</code>、<code>effectiveGasPrice</code></td>
+<td data-label="回答的问题">这次是否成功、<strong>本笔</strong>实际用了多少 gas、每 gas 最终付多少 wei？<code>cumulativeGasUsed</code> 是块内累计量，一般不能替代 <code>gasUsed</code></td>
+</tr>
+</tbody>
+</table>
+<p>本实验中，两方都是<strong>无代码的普通账户</strong>。Alice 向 Bob 转原生 ETH，不带调用数据或访问列表。在选定的 Cancun 规则下这笔交易本身需要 21,000 gas；钱包给 30,000 gas 的上限，不会让这笔交易多消耗 9,000 gas。上限若低于固有开销，交易连执行都进不去；已通过校验的合约调用也可能在执行中耗尽 gas 或主动回滚。后一类交易入块后有失败回执，并非“没有花费”。合约、代币和带数据的交易不能照抄本例的 21,000。</p>
+<p><strong>先问能不能进这个块，再问实际单价。</strong> 发送者须能覆盖 <code>value + gasLimit × maxFeePerGas</code>，且总单价上限不低于小费上限。如果总单价上限连本块的 base 都付不起，这笔交易不能在此块执行；不是把 base 打折。能够纳入时，留给小费的空间只剩 <code>maxFeePerGas − baseFeePerGas</code>：</p>
+<pre><code class="language-text">每 gas 小费 = min(maxPriorityFeePerGas, maxFeePerGas − baseFeePerGas)
+每 gas 实价 = baseFeePerGas + 每 gas 小费
+实际执行费 = gasUsed × 每 gas 实价
+</code></pre>
+<h2 id="从-alice-的扣款追到三处归属">从 Alice 的扣款追到三处归属</h2>
+<p>先做<strong>默认输入的预测</strong>：每 gas 总价上限 3 gwei，小费上限 1 gwei；我们在自有 Anvil 指定下一块的基础费为 1 gwei/gas，方便每次复算。小费取 <code>min(1, 3 − 1) = 1</code>，实际单价是 <strong>2 gwei/gas</strong>。执行费上限 <code>30,000 × 3 = 90,000 gwei</code>，但结算 <code>21,000 × 2 = 42,000 gwei</code>。差的 48,000 是预算还有余量，<strong>不是需要寻找的链上退款交易</strong>。</p>
+<figure class="lesson-figure"><a href="../assets/figures/m03/evm-fee-ledger.svg"><img src="../assets/figures/m03/evm-fee-ledger.svg" alt="默认订单的预计账页：Alice 扣一千零四万二千 gwei，Bob 收一千万，另四万二千执行费平分为销毁和出块方小费。"></a><figcaption>读图时先从 Alice 减去 Bob 的收款，再核右边两个去向。gwei 在这里是总金额，不是每 gas 的价格。图是按默认参数推算的，下面用自己的块和回执查证。</figcaption></figure>
+
+<p>这是一笔成功的普通 L1 Type 2 付款：其中 <code>gasUsed × baseFeePerGas</code> 由协议<strong>销毁</strong>（burn），不是转给某个销毁地址；<code>gasUsed × 每 gas 小费</code> 归本块费用接收地址（fee recipient，块的 RPC 字段沿用 <code>miner</code>）。<strong>Bob 并非本块的费用接收者</strong>，因此只增收 <code>value</code>。两端的余额净变化不为零，并不意味着少了一笔交易；差额既不全给出块方，也不全被销毁。图不涉及发行、提现或其他交易。</p>
+<h2 id="准备两个工具和一份源文件">准备两个工具和一份源文件</h2>
+<p>以下准备工作都在<strong>终端 A</strong>。在课程项目根目录操作。如果只有网页，先在空目录下建立 <code>labs</code> 子目录，右键保存<a href="EvmTransfer.java">程序源文件</a>为 <code>labs/EvmTransfer.java</code>，再从这个空目录开始。先单独输入 <code>bash</code> 回车进入子 shell；后续命令在这个 shell 里逐段执行。</p>
+<pre><code class="language-bash">set -eu
+set -o pipefail
+umask 077
+LAB=$(mktemp -d &quot;${TMPDIR:-/tmp}/evm-lab.XXXXXXXX&quot;)
+trap 'rm -rf -- &quot;$LAB&quot;' EXIT
+cp labs/EvmTransfer.java &quot;$LAB/EvmTransfer.java&quot;
+JAVA=java
+case &quot;$(uname -s)/$(uname -m)&quot; in
+  Darwin/arm64) platform=darwin-arm64; jdk_os=macos; jdk_arch=aarch64; digest='JNeu3+A3f/npXLn8SR8EahVcqE7BpO9VQZMcPvSIy27/RNc1GsoEBvSLR99aSvt8sGKWAgNg/EzrtjAPq6mxcA==' ;;
+  Darwin/x86_64) platform=darwin-amd64; jdk_os=macos; jdk_arch=x64; digest='OgwzwY+FsGrsPyDv4mmbhOwARO8s37YHrm2qaNzgSH4VlKnXgJCrnoT7bpgOhLyBPtxXjBT8L2E3b79deesXRg==' ;;
+  Linux/aarch64|Linux/arm64) platform=linux-arm64; jdk_os=linux; jdk_arch=aarch64; digest='ykHJmFOGdBR8+9smOKBm9ZZDCCCkLQctiHOAddLvmYx9mPeBDMfq6jP51hKYsO5MG8ClPLSlWe+JpiXPjoXgBQ==' ;;
+  Linux/x86_64) platform=linux-amd64; jdk_os=linux; jdk_arch=x64; digest='+XmShybEaxfCrr0OUUZwYEy2OnYZt5pHH9TzBtLv3+VrK0O/ANuNSVEahqNhKHlgX7GRJ59383ofNhxkRWIYTg==' ;;
+  *) echo '请在受支持的 macOS 或 Linux 环境操作' &gt;&amp;2; exit 1 ;;
+esac
+pkg=&quot;anvil-$platform&quot;
+curl -fLsS &quot;https://registry.npmjs.org/@foundry-rs/$pkg/-/$pkg-1.7.1.tgz&quot; -o &quot;$LAB/anvil.tgz&quot;
+[[ $(openssl dgst -sha512 -binary &quot;$LAB/anvil.tgz&quot; | openssl base64 -A) == &quot;$digest&quot; ]] || { echo 'Anvil 摘要不符' &gt;&amp;2; exit 1; }
+tar -xzf &quot;$LAB/anvil.tgz&quot; -C &quot;$LAB&quot; package/bin/anvil
+curl -fLsS 'https://repo.maven.apache.org/maven2/com/google/code/gson/gson/2.13.2/gson-2.13.2.jar' -o &quot;$LAB/gson.jar&quot;
+sha256() { openssl dgst -sha256 &lt; &quot;$1&quot; | awk '{print $NF}'; }
+[[ $(sha256 &quot;$LAB/gson.jar&quot;) == dd0ce1b55a3ed2080cb70f9c655850cda86c206862310009dcb5e5c95265a5e0 ]] || { echo 'Gson 摘要不符' &gt;&amp;2; exit 1; }
+</code></pre>
+<p>这两个下载分别是 Foundry 发布的 Anvil 1.7.1 平台二进制和 Maven Central 上的 <code>com.google.code.gson:gson:2.13.2</code>。只解包，不执行安装脚本、不写用户配置。如果已有完整的 <strong>JDK 17 或 21</strong>，跳过下面这段。否则可用 <a href="https://jdk.java.net/archive/">OpenJDK 官方归档</a>的固定教学版本 21.0.2+13，核对本平台 SHA-256 后才解包。归档版用于复现实验，不是线上服务的安全更新建议。</p>
+<pre><code class="language-bash">case &quot;$platform&quot; in
+  darwin-arm64) jdk_sha=b3d588e16ec1e0ef9805d8a696591bd518a5cea62567da8f53b5ce32d11d22e4 ;;
+  darwin-amd64) jdk_sha=8fd09e15dc406387a0aba70bf5d99692874e999bf9cd9208b452b5d76ac922d3 ;;
+  linux-arm64)  jdk_sha=08db1392a48d4eb5ea5315cf8f18b89dbaf36cda663ba882cf03c704c9257ec2 ;;
+  linux-amd64)  jdk_sha=a2def047a73941e01a73739f92755f86b895811afb1f91243db214cff5bdac3f ;;
+esac
+jdk_url=https://download.java.net/java/GA/jdk21.0.2/f2283984656d49d69e91c558476027ac/13/GPL
+curl -fLsS &quot;$jdk_url/openjdk-21.0.2_${jdk_os}-${jdk_arch}_bin.tar.gz&quot; -o &quot;$LAB/jdk.tgz&quot;
+[[ $(sha256 &quot;$LAB/jdk.tgz&quot;) == &quot;$jdk_sha&quot; ]] || { echo 'JDK 摘要不符' &gt;&amp;2; exit 1; }
+mkdir &quot;$LAB/jdk&quot;
+tar -xzf &quot;$LAB/jdk.tgz&quot; -C &quot;$LAB/jdk&quot; --strip-components 1
+case &quot;$jdk_os&quot; in macos) JAVA=&quot;$LAB/jdk/Contents/Home/bin/java&quot; ;; linux) JAVA=&quot;$LAB/jdk/bin/java&quot; ;; esac
+</code></pre>
+<h2 id="启动一次性账本">启动一次性账本</h2>
+<p>在 A 运行下面这段。第一行显示 JDK 版本；第二行打印一条包含实际路径的赋值命令，留给<strong>终端 B</strong>。<code>start_ledger</code> 在前台启动 Anvil，静默模式不会把私钥打印出来。只有在命令持续运行、没有报端口占用错误时，才前往 B；若启动失败，不要改连该端口上已有的服务。</p>
+<pre><code class="language-bash">&quot;$JAVA&quot; -version
+printf 'LAB=%q; JAVA=%q\n' &quot;$LAB&quot; &quot;$JAVA&quot;
+cd &quot;$LAB&quot;
+start_ledger() {
+  HOME=&quot;$LAB&quot; &quot;$LAB/package/bin/anvil&quot; --host 127.0.0.1 --port 18545 --chain-id 31337 \
+    --accounts 2 --balance 10 --mnemonic-random 12 --hardfork cancun \
+    --block-base-fee-per-gas 1000000000 --no-cors --quiet
+}
+start_ledger || echo '节点已停止；若是启动报错，不要继续发送。' &gt;&amp;2
+</code></pre>
+<p><code>--mnemonic-random</code> 每次生成新的本地测试账户，<code>--balance 10</code> 在创世时给每个账户 10 个测试 ETH。不指定远程分叉、不读写状态文件，不需要领水。没有设置出块间隔，节点收到一笔有效交易就自动出块；这是本地教学条件，不是公网时延保证。</p>
+<h2 id="发出唯一一笔转账">发出唯一一笔转账</h2>
+<p>在 <strong>终端 B</strong> 先输入 <code>bash</code>，再粘贴 A 打印的整行 <code>LAB=…; JAVA=…</code>。先做只读探测；响应的 <code>result</code> 应为 <code>"0x7a69"</code>。连不上或不一样就停下来检查 A。确认后，单独执行第二条命令；JDK 源文件启动器会直接运行刚才保存的程序。</p>
+<pre><code class="language-bash">curl --noproxy '*' -fsS --max-time 3 -H 'Content-Type: application/json' \
+  --data '{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;id&quot;:1,&quot;method&quot;:&quot;eth_chainId&quot;,&quot;params&quot;:[]}' http://127.0.0.1:18545/; echo
+</code></pre>
+<pre><code class="language-bash">&quot;$JAVA&quot; --class-path &quot;$LAB/gson.jar&quot; &quot;$LAB/EvmTransfer.java&quot;
+</code></pre>
+<p>跟着<a href="EvmTransfer.java">源代码</a>把这几条记录按<strong>同一笔付款</strong>串起来：</p>
+<ol>
+<li><code>before</code> 固定创世块号及哈希，按块号读双方 <code>eth_getBalance</code> 和 <code>eth_getTransactionCount</code>。同时查询付款账户的 <code>pending</code> nonce，要求与创世 nonce 都为 0。这是本地独占实验的起点，不把 <code>pending</code> 当锁，也不把后来会移动的 <code>latest</code> 当快照。</li>
+<li><code>submit once</code> 之前，用本地控制方法 <code>anvil_setNextBlockBaseFeePerGas</code> 将<strong>下一块</strong>的 base 设为 1 gwei/gas。它不替任何人付钱；公网上的钱包不能指定区块基础费。交易显式给出 <code>type=0x2</code>、两项单价上限、<code>gas</code>、<code>value</code> 和 <code>nonce</code>，不夹带旧式 <code>gasPrice</code>。<code>eth_sendTransaction</code> 让本机 Anvil 用解锁测试账户签名，只调用一次。</li>
+<li><code>txHash</code> 还不是回执。<code>awaitReceipt</code> 只读轮询同一 hash；RPC 响应的 <code>id</code> 是这一次调用的编号，不是交易号。出现非空回执后，程序把回执的块哈希与节点按该高度返回的块相对照。要求它是创世块的直接子块，<strong>块中只有这一笔</strong>；再从交易核对发送方、收款方、链、类型、nonce、金额及签过的上限。</li>
+<li><code>split</code> 用<strong>入块交易的</strong>两项上限和<strong>该块的</strong> <code>baseFeePerGas</code> 算实际小费，每 gas 实价须与回执的 <code>effectiveGasPrice</code> 相等。再以 <code>gasUsed</code> 同时算实付费及销毁、小费两部分。<code>burnWei</code> 和 <code>tipWei</code> 是由这三份证据推得的金额，不是回执里两个同名字段。</li>
+<li><code>after</code> 在回执指向的块号重读双方余额和 nonce。检查 <code>Alice 扣款 = Bob 收到的 value + 执行费</code>，发送者 nonce 递增 1，仅收款的 Bob 的 nonce 不变。只有这些条件及执行状态都正确才报 <code>PASS</code>。同一高度若还有别的付款、合约内部转账或费用接收者刚好是 Bob，余额差就不再仅代表这张单。</li>
+</ol>
+<p>下面是<strong>默认运行应得到的关键数值</strong>；不是预录日志。单价均为 wei/gas，金额均为 wei；区块号和状态保留 RPC 的十六进制表示，费用与余额按十进制打印：</p>
+<table>
+<thead>
+<tr>
+<th>记录</th>
+<th>自己要核对的字段和等式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>before → after</code></td>
+<td>双方余额起点各 <code>10¹⁹</code>。块号 <code>0x0 → 0x1</code>，Alice 的 <code>senderNonce</code> 为 <code>0 → 1</code>；Bob 的 <code>receiverNonce</code> 为 <code>0 → 0</code>。第二个端点的哈希与回执相等；每次新链的地址与哈希不要求相同</td>
+</tr>
+<tr>
+<td><code>submit once</code></td>
+<td><code>gasLimit=30000</code>，<code>maxFeePerGas=3000000000</code>，<code>maxPriorityFeePerGas=1000000000</code>；只算费用的 <code>feeBudgetWei=90000000000000</code></td>
+</tr>
+<tr>
+<td><code>receipt / split</code></td>
+<td><code>status=0x1 gasUsed=21000 effectiveGasPrice=2000000000</code>。<code>feeWei=42000000000000</code>，其中 <code>burnWei=21000000000000</code>、<code>tipWei=21000000000000</code></td>
+</tr>
+<tr>
+<td><code>senderDebitWei / receiverCreditWei</code></td>
+<td>Alice 减少 <code>10042000000000000</code>，Bob 增加 <code>10000000000000000</code>。把自己两行快照各自相减，再验两侧差正好等于 <code>feeWei</code></td>
+</tr>
+</tbody>
+</table>
+<p>想查看节点原本返回的十六进制字段？在 B 运行以下<strong>只读</strong>命令，按提示粘贴程序打印的 <code>0x</code> 开头的交易哈希。把返回的 <code>gasUsed</code> 和 <code>effectiveGasPrice</code> 分别转为整数，复核程序的 <code>feeWei</code>；哈希对应同一回执，不会再次支付。</p>
+<pre><code class="language-bash">read -r -p 'txHash: ' HASH
+curl --noproxy '*' -fsS --max-time 3 -H 'Content-Type: application/json' \
+  --data &quot;{\&quot;jsonrpc\&quot;:\&quot;2.0\&quot;,\&quot;id\&quot;:2,\&quot;method\&quot;:\&quot;eth_getTransactionReceipt\&quot;,\&quot;params\&quot;:[\&quot;$HASH\&quot;]}&quot; \
+  http://127.0.0.1:18545/; echo
+</code></pre>
+<h2 id="只降低总单价上限会变的是谁的收入">只降低总单价上限，会变的是谁的收入？</h2>
+<p>保留第一轮日志。<strong>A 按 Ctrl+C 停止自己的节点，不退出 Bash</strong>，重新运行下面的命令；若前台子 shell 已退出，则从准备步骤重新开始，在 B 更新 <code>LAB</code> 和 <code>JAVA</code>。只在新节点成功监听后继续。每次重新建链，与第一轮不是同一笔交易，不是付款重试。</p>
+<pre><code class="language-bash">start_ledger || echo '节点已停止；若是启动报错，不要继续发送。' &gt;&amp;2
+</code></pre>
+<p>B 先做前面的只读链 ID 探测，再执行这一条。<code>--max-fee-wei</code> 后面是<strong>十进制整数 wei/gas</strong>；未指定时为 3,000,000,000。现在只把它改为 1,500,000,000；订单、gas 上限、块基础费、小费上限均未变。</p>
+<pre><code class="language-bash">&quot;$JAVA&quot; --class-path &quot;$LAB/gson.jar&quot; &quot;$LAB/EvmTransfer.java&quot; --max-fee-wei 1500000000
+</code></pre>
+<p>先算 <code>min(1, 1.5 − 1) = 0.5 gwei/gas</code>。预期 <code>feeBudgetWei=45000000000000</code>、<code>effectiveGasPrice=1500000000</code>、<code>feeWei=31500000000000</code>；<code>burnWei</code> 仍是 21,000,000,000,000，但 <code>tipWei=10500000000000</code>。Bob 仍增加 0.01 ETH，Alice 实扣比默认轮少 <strong>10,500 gwei</strong>。这次小费并没有付满写在交易里的 1 gwei/gas；误用 <code>base + maxPriorityFeePerGas</code> 会高估实付。若把总上限降到小费上限以下，程序在发 RPC 前拒绝参数，没有失败回执可交。</p>
+<h2 id="失败超时与未知结果">失败、超时与未知结果</h2>
+<table class="stackable">
+<thead>
+<tr>
+<th>看到什么</th>
+<th>能下什么结论</th>
+<th>下一步</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="看到什么">启动探测 connection refused，或程序在 <code>submit once</code> 之前报链、账户、区块高度不符</td>
+<td data-label="能下什么结论">程序还没发交易；进程、链或起点不对。</td>
+<td data-label="下一步">检查 A 是否在前台运行，是否确实使用指定的启动参数。需要重做就关闭自己的节点，从新链开始。</td>
+</tr>
+<tr>
+<td data-label="看到什么">HTTP 200，但响应有 <code>error</code>，例如参数无效、余额不足</td>
+<td data-label="能下什么结论">RPC 报错，不是成功回执。参数校验明确拒绝与传输中断不是同一种故障。</td>
+<td data-label="下一步">读异常中的方法、错误码和消息；先查链、余额、nonce，不要让 HTTP 重试器包住发送方法。</td>
+</tr>
+<tr>
+<td data-label="看到什么">已有 hash，回执是 <code>null</code> 或读取超时</td>
+<td data-label="能下什么结论">未知：可能仍在等待入块、节点暂时不可达，或查错网络；不是执行失败。</td>
+<td data-label="下一步">保留 hash 和链 ID，在同一条链上用上面的只读命令再查。程序设置 2 秒连接超时、3 秒单次请求超时、约 15 秒的回执轮询窗口，不会因此重发。</td>
+</tr>
+<tr>
+<td data-label="看到什么">已打印 <code>submit once</code>，但连接中断，未拿到 hash</td>
+<td data-label="能下什么结论">节点可能已接受请求，只是回包丢了。</td>
+<td data-label="下一步">保持节点运行。在本实验唯一可能的新块，用下面的只读命令核对 <code>from / to / nonce / value</code> 并找 hash，再查回执。没有找到也不能在一般系统里断言从未广播。</td>
+</tr>
+<tr>
+<td data-label="看到什么">回执 <code>status=0x0</code></td>
+<td data-label="能下什么结论">已入块、已知执行失败，不是「没发过」。普通 L1 交易依然花掉 gas 和 nonce；执行转移的 value 回滚。</td>
+<td data-label="下一步">归档失败回执，复核余额与费用。不要按原业务意图无条件再付一次。</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-bash">curl --noproxy '*' -fsS --max-time 3 -H 'Content-Type: application/json' \
+  --data '{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;id&quot;:3,&quot;method&quot;:&quot;eth_getBlockByNumber&quot;,&quot;params&quot;:[&quot;0x1&quot;,true]}' \
+  http://127.0.0.1:18545/; echo
+</code></pre>
+<h2 id="什么时候不能用这张账页">什么时候不能用这张账页？</h2>
+<p><strong>先认网络，再定费目。</strong> 本课只核 Ethereum L1 规则下、单笔普通原生币 Type 2 付款的执行费。在 OP Mainnet 上，同一乘法只得到 <strong>L2 执行费</strong>；普通用户交易还可能有 L1 数据发布费，Isthmus 起还应按网络参数计入 operator fee。不要只凭 <code>gasUsed × effectiveGasPrice</code> 报总费用，也不要把 L1 的 burn 去向硬套在 L2。先记录链 ID、交易类型、块高对应的升级规则，再按该链规范查附加费与实际余额；缺字段就标“待核”，不是补零。此处没有连接或实跑 L2。</p>
+<p><strong>谁能授权是分界线。</strong> 本课的 <code>eth_sendTransaction</code> 能成功，是因为这个 Anvil <strong>持有并解锁</strong>了两个测试账户。普通 RPC 服务不持有用户私钥，知道 <code>from</code> 不能替用户签名。不要把此节点共享给局域网，也不要把这里的任何测试密钥导入真实钱包。</p>
+<p>生产接入应把<strong>读取、用户授权、广播、对账</strong>分开。由外部钱包展示并确认链、收款人、金额、费用，钱包自行签名并广播，或由指定广播方提交已签名交易（<code>eth_sendRawTransaction</code>）。服务端只接收必要的公开标识或已授权产物，不要求助记词、不记录私钥。换成 Spring 或 Web3j 不会改变这个授权边界。</p>
+<table>
+<thead>
+<tr>
+<th>在本课的角色</th>
+<th>迁移到 Java 服务的具体位置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>一个 <code>HttpClient</code> 和 Gson</td>
+<td>在 Spring 中将 Web3j 客户端注册为单例 Bean，端点从环境配置取得；启动时用 <code>ethChainId()</code> 匹配配置的链，关闭时调用 <code>shutdown()</code>。</td>
+</tr>
+<tr>
+<td><code>rpc</code> 读取 <code>result</code> 或 <code>error</code></td>
+<td>用 <code>web3j.ethGetBalance(...)</code>、<code>ethGetTransactionCount(...)</code> 取得 <code>BigInteger</code>。<code>ethGetTransactionReceipt(hash).send()</code> 先检查 <code>hasError()</code>，再检查 <code>getTransactionReceipt()</code> 的 <code>Optional</code>，不要把空值映射成失败。</td>
+</tr>
+<tr>
+<td>程序顺序打印 <code>hash → receipt → PASS</code></td>
+<td>以业务请求 ID 做幂等约束，持久化链、发送人、nonce、金额、hash 和区块哈希。后台任务只读轮询；同一签名账户的并发提交须协调 nonce，不能把一次 <code>pending</code> 查询当作锁。</td>
+</tr>
+<tr>
+<td>本机自动出块后立即对账</td>
+<td>公网上「已入块」还不是「最终确认」。按业务的确认/最终性要求复查回执及其区块是否还在规范链上，处理重组，再决定是否入账。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="独立作业财务调高了预算应该追加报销吗">独立作业：财务调高了预算，应该追加报销吗？</h2>
+<p>同事的新批单把总单价上限<strong>升到 4 gwei/gas</strong>，仍付 0.01 测试 ETH，小费上限不动。他要求把比默认预算多出的 30,000 gwei 也记入费用。先写下你的决定，再保存 B 的日志，在 A 停止节点并用 <code>start_ledger</code> 开一条新链，在 B 完成链 ID 探测并运行：</p>
+<pre><code class="language-bash">&quot;$JAVA&quot; --class-path &quot;$LAB/gson.jar&quot; &quot;$LAB/EvmTransfer.java&quot; --max-fee-wei 4000000000
+</code></pre>
+<p>交一张自己的凭证：保留本轮 <code>chainId/from/to</code>、两个区块端点及哈希、<code>txHash</code>、<code>status</code>、两项单价上限、<code>gasLimit/gasUsed</code>、base、实际单价、两端余额和 nonce。用其中的数字<strong>独立写出</strong>执行费上限、实付、销毁、小费及付款收款差。只交测试地址与必要摘要，不交节点目录、密钥或签名原文。</p>
+<p><strong>判据</strong>：预算是 <code>30,000 × 4 = 120,000 gwei</code>；实际小费仍只有 <code>min(1, 4 − 1) = 1 gwei/gas</code>，实价没有再升。两侧余额差仍为 42,000 gwei，即销毁 21,000 加小费 21,000；Bob 足额收 0.01 ETH，双方 nonce 分别变为 1 和 0。因此<strong>不追加报销</strong>。缺少回执时只能报告“未核实”，不能用刚批准的 120,000 代填实付。</p>
+<h2 id="关闭与延伸阅读">关闭与延伸阅读</h2>
+<p>先保存非敏感的对账输出。回到 A，按 <strong>Ctrl+C</strong> 停止你启动的 Anvil；如果仍在之前的实验 Bash 子 shell，输入 <code>exit</code> 触发清理临时目录。B 也可用 <code>exit</code> 退出子 shell。不要用 <code>killall anvil</code>，也不要为复盘而导出账户私钥。重新开始就是全新的一本账；即使 chain ID 相同，原交易也不在新链上。</p>
+<ul>
+<li><a href="https://eips.ethereum.org/EIPS/eip-1559#specification">EIP-1559 规范：Type 2 字段及扣费规则</a>：对照 <code>priority_fee_per_gas</code>、<code>effective_gas_price</code> 和用于销毁与小费的两部分。</li>
+<li><a href="https://docs.optimism.io/op-stack/transactions/fees">OP Mainnet 官方费用说明</a>：区分执行费、L1 数据费与升级后的 operator fee。</li>
+<li><a href="https://www.getfoundry.sh/anvil/custom-methods">Anvil 的本地控制方法</a>：核对用于固定下一块基础费的教学开关。</li>
+<li><a href="https://www.getfoundry.sh/reference/anvil/anvil">Foundry：Anvil 命令行参数</a>：查监听地址、随机助记词与自动出块的控制方式。</li>
+<li><a href="https://ethereum.org/zh/developers/docs/apis/json-rpc/">Ethereum：JSON-RPC 方法与数量编码</a>：对照账户余额、交易计数与回执字段。</li>
+<li><a href="https://docs.web3j.io/4.14.0/transactions/transactions_and_smart_contracts/">Web3j：交易与回执</a>：从原始 JSON 迁移到 Java 类型时对照 API。</li>
+<li><a href="bitcoin.html">对照阅读：用 Bitcoin UTXO 复算另一笔转账</a>：它没有这里按账户递增的 nonce，手续费也不是这套 gas 公式。</li>
+</ul>
+<nav class="end-links" aria-label="阅读导航"><a rel="prev" href="nonce.html">上一课 · 10</a><a rel="next" href="receipts.html">下一课 · 12</a></nav></article>
+<aside class="rail"><nav aria-label="本页目录"><b>本页目录</b><ol><li><a href="#哪一张单上的数可以结账">哪一张单上的数可以结账？</a></li><li><a href="#从-alice-的扣款追到三处归属">从 Alice 的扣款追到三处归属</a></li><li><a href="#准备两个工具和一份源文件">准备两个工具和一份源文件</a></li><li><a href="#启动一次性账本">启动一次性账本</a></li><li><a href="#发出唯一一笔转账">发出唯一一笔转账</a></li><li><a href="#只降低总单价上限会变的是谁的收入">只降低总单价上限，会变的是谁的收入？</a></li><li><a href="#失败超时与未知结果">失败、超时与未知结果</a></li><li><a href="#什么时候不能用这张账页">什么时候不能用这张账页？</a></li><li><a href="#独立作业财务调高了预算应该追加报销吗">独立作业：财务调高了预算，应该追加报销吗？</a></li><li><a href="#关闭与延伸阅读">关闭与延伸阅读</a></li></ol></nav></aside></div><dialog class="figure-zoom" aria-label="配图放大视图">
+<form method="dialog"><a>打开 SVG 原图</a><button autofocus>收起大图</button></form>
+<div class="zoom-scroll" tabindex="0" role="region" aria-label="放大的配图，可滚动"><img alt=""></div></dialog></main><footer><span>链上开发手册</span><a href="../index.html">课程首页</a><a href="evm.md">Markdown 原稿</a></footer></body></html>

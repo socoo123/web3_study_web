@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark"><title>第 17 课 · 查一张回执：多出来的 1 wei 到哪儿去了？ · 链上开发手册</title>
+<link rel="stylesheet" href="../assets/site.css?v=2786ad38e29d"><script src="../assets/site.js?v=6dc390471c89" defer></script></head>
+<body><a class="skip" href="#main">跳至正文</a><header class="mast"><div class="mast-inner">
+<a class="brand" href="../index.html"><span class="mark" aria-hidden="true"></span>链上开发手册</a>
+<nav aria-label="全站导航"><a href="../plan.html">课程计划</a><a href="../index.html#labs">实验台</a><button type="button" id="theme" hidden>切换主题</button></nav>
+</div></header><main id="main" class="reading"><div class="crumb"><a href="../index.html">手册首页</a> / <a href="../plan.html#m05">M05 · Java：把链上事实变成业务流水</a> / 第 17 课</div>
+<header class="lesson-opening"><h1 id="page-title">第 17 课 · 查一张回执：多出来的 1 wei 到哪儿去了？</h1><figure class="specimen"><figcaption>R-17 · 一笔锁款的两个读数</figcaption><dl>
+<div><dt>原始金额 / wei</dt><dd>2⁵³ + 1</dd></div>
+<div><dt>转为 double / wei</dt><dd>2⁵³</dd></div></dl>
+<span class="specimen-relation" aria-hidden="true">≠</span><p>同一份回执，若金额经过 double 就会少 1 wei</p></figure><p>客服单 R-17 写着：付款方锁了 <strong>9,007,199,254,740,993 wei</strong>，报表却少了 <strong>1 wei</strong>。同事递来交易哈希，说「接口返回 200，款肯定齐了」。你要交付的是一个只读接口：它能指出<strong>哪一块的哪条凭证</strong>给出了金额，也能明确回答「我现在没有凭证」。本机的这笔锁款应显示为 <strong>0.009007199254740993 ETH</strong>；交易执行成功、托管已锁款、收款人已提现，是三件不同的事。</p></header><div class="reading-grid"><article aria-labelledby="page-title"><details class="mobile-toc"><summary>本页目录</summary><ol><li><a href="#给客服的接口不能是一层透明代理">给客服的接口，不能是一层透明代理</a></li><li><a href="#从真实部署拿输入不把示例哈希当凭证">从真实部署拿输入，不把示例哈希当凭证</a></li><li><a href="#给读端三种相似的报障让它给出不同证据">给读端三种相似的报障，让它给出不同证据</a></li><li><a href="#读请求可以重试读数不保证永远一样">读请求可以重试，读数不保证永远一样</a></li><li><a href="#独立作业能否凭一张结算凭证补写锁款">独立作业：能否凭一张结算凭证补写锁款？</a></li><li><a href="#查证原文">查证原文</a></li></ol></details><p>先修：<a href="receipts.html">12 · 回执与块锚点</a>、<a href="abi.html">13 · ABI 字节</a>、<a href="escrow.html">14 · 托管状态机</a>、<a href="deployment.html">16 · 部署清单</a>。用<a href="m04/src/MilestoneEscrow.sol">同一份合约</a>，不新造事件。本课不用数据库、浏览器钱包或任何密钥；写入只发生在你自己启动的临时 Anvil 上，Java 服务只读。</p>
+<h2 id="给客服的接口不能是一层透明代理">给客服的接口，不能是一层透明代理</h2>
+<p>约定 <code>GET /receipts/{hash}</code>。哈希是 <code>0x</code> 加 64 个十六进制字符（32 字节），不是订单号。请求者既不能传节点 URL，也不能自选 RPC 方法或合约地址。受信的第 16 课清单给出链号、部署块指纹、合约和付款人；小服务每次先核对链号和部署块哈希，再读指定交易。<strong>返回的是此刻节点上的执行事实，不是放货决定。</strong> 并行链查询没有数据库事务的快照保证；因此连成功答复也带块哈希，不缓存为永远有效的支付结果。</p>
+<table class="stackable">
+<thead>
+<tr>
+<th>服务答复</th>
+<th>读到了什么</th>
+<th>可以怎样行动</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="服务答复"><code>200 EXECUTED</code></td>
+<td data-label="读到了什么">回执 <code>status=0x1</code>。只有本部署的 <code>Locked</code> 日志匹配，才附 <code>lockedWei</code></td>
+<td data-label="可以怎样行动">可核对锁款金额；没有该字段表示这不是锁款凭证，不能补成 <code>0</code></td>
+</tr>
+<tr>
+<td data-label="服务答复"><code>200 REVERTED</code></td>
+<td data-label="读到了什么">找到了块、交易和 <code>status=0x0</code> 回执，执行未正常完成</td>
+<td data-label="可以怎样行动">保存失败凭证；交易仍花 gas。不要因为 HTTP 200 就登记付款，也不要根据状态位猜具体异常</td>
+</tr>
+<tr>
+<td data-label="服务答复"><code>404 NO_RECEIPT</code></td>
+<td data-label="读到了什么">节点正常回答了 <strong><code>result: null</code></strong></td>
+<td data-label="可以怎样行动">仅表示现在没有收据；可能未打包，也可能此节点根本不知道这笔交易。别承诺一定还在排队</td>
+</tr>
+<tr>
+<td data-label="服务答复"><code>502 RPC_ERROR</code> / <code>503 RPC_UNAVAILABLE</code> / <code>504 RPC_TIMEOUT</code></td>
+<td data-label="读到了什么">节点返回 JSON-RPC <code>error</code>，或连不上，或等不及</td>
+<td data-label="可以怎样行动">无法判断交易；记录方法、请求 ID 或故障时间，别把异常转换成 <code>Optional.empty()</code></td>
+</tr>
+<tr>
+<td data-label="服务答复"><code>429 RATE_LIMITED</code></td>
+<td data-label="读到了什么">本服务的读取配额用完，请求还没发给节点</td>
+<td data-label="可以怎样行动">依 <code>Retry-After</code> 放慢；它不证明节点拥堵。节点自身返回 HTTP 429 则是 <code>503 RPC_THROTTLED</code></td>
+</tr>
+</tbody>
+</table>
+<figure class="lesson-figure"><a href="../assets/figures/m05/rpc.svg"><img src="../assets/figures/m05/rpc.svg" alt="读端依次检查节点可信答复、是否有回执及执行状态；即使成功，也要核对清单地址的 Locked 日志才能解出 9007199254740993 wei。"></a><figcaption>都是询问一笔交易。右边三种答复分别是「无法观察」「暂时无收据」「有失败收据」；三者都不提供锁款金额。</figcaption></figure>
+
+<h2 id="从真实部署拿输入不把示例哈希当凭证">从真实部署拿输入，不把示例哈希当凭证</h2>
+<p>从<strong>仓库根目录</strong>使用 Bash。环境：JDK 21、<code>PATH</code> 中的 Maven 3.9.x、Python 3.11、curl、lsof，以及<a href="abi.html#m04-tools">第 13 课安装的 Foundry 1.7.1 和 solc 0.8.28</a>。共享 Maven 工程固定 web3j <strong>4.12.3</strong>；首次编译需联网下载依赖，缓存齐备后可 <code>bash labs/m05/build.sh -o</code>。编译时联网与查链时联网不同：两个实验端口都只绑定回环。确保 <strong>18556</strong> 和 <strong>18117</strong> 空闲，有冲突就停，不要改指别人的服务。</p>
+<p>终端 A 新开一条内存链。<code>--settle-wei</code> 会在本次部署后实发 <code>lock</code> 和 <code>settle</code>，不提现。保留本轮打印的 <strong><code>ARCHIVE</code> 绝对路径</strong>；看到 <code>HANDOFF ... state=2</code> 和等待提示后，暂时别按回车。</p>
+<pre><code class="language-bash">export PATH=&quot;${XDG_CACHE_HOME:-$HOME/.cache}/chain-course/m04/bin:$PATH&quot;
+export FOUNDRY_SOLC=&quot;${XDG_CACHE_HOME:-$HOME/.cache}/chain-course/m04/bin/solc&quot;
+unset ANVIL
+WORK=$(mktemp -d)
+python3 labs/m04/deployment.py --out &quot;$WORK/release&quot; --hold --settle-wei 9007199254740993
+</code></pre>
+<p>终端 B 也在根目录。清单是受信发布方交来的原件；归档里的 <code>receipts.json</code> 用来定位交易，<strong>接下来读的是活节点，不是用归档冒充在线回答</strong>。</p>
+<pre><code class="language-bash">printf '粘贴终端 A 打印的 ARCHIVE 绝对路径：'; IFS= read -r R
+WORK=$(dirname &quot;$R&quot;)
+export M05_MANIFEST=&quot;$R/manifest.json&quot;
+bash labs/m05/build.sh
+LOCK=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))[&quot;lock&quot;][&quot;transactionHash&quot;])' &quot;$R/receipts.json&quot;)
+SETTLE=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))[&quot;settle&quot;][&quot;transactionHash&quot;])' &quot;$R/receipts.json&quot;)
+bash labs/m05/run.sh ReceiptApi raw &quot;$LOCK&quot; &gt; &quot;$WORK/lock-wire.json&quot;
+python3 -m json.tool &quot;$WORK/lock-wire.json&quot;
+</code></pre>
+<h3 id="第一次读保留-json-rpc-的信封">第一次读：保留 JSON-RPC 的信封</h3>
+<p>打开<a href="m05/src/main/java/course/m05/ReceiptApi.java">完整 Java 源码</a>，先读 <code>rpc()</code>，暂时不看 HTTP 路由。JDK <code>HttpClient</code> 向 <code>http://127.0.0.1:18556</code> 发 <strong>HTTP POST</strong>，请求体是 <code>{"jsonrpc":"2.0","id":1,"method":"eth_getTransactionReceipt","params":[T]}</code>，其中 <code>T</code> 表示带引号的实际哈希。这个 POST 是 RPC 传输方式，里面的<strong>方法</strong>是读；外层客服接口才是 GET。<code>raw</code> 模式打印节点应答的完整 JSON 字段，不把 web3j 类型转回 JSON 来充当原件。</p>
+<p>对照三处：<code>id</code> 应与本次请求相同，它不等于交易哈希；<code>result.transactionHash</code> 应等于 <code>$LOCK</code>；<code>result.status</code> 应为 <code>0x1</code>，<code>blockNumber</code> 为 <code>0x2</code>。JSON-RPC 层 <code>error</code> 与 <code>result</code> 互斥，<strong>HTTP 200 并不替它检查</strong>。再看 <code>logs</code>：本例一个元素，<code>address</code> 是清单中托管地址，<code>topics[0]</code> 是 <code>Locked(address,uint256)</code> 的签名哈希，<code>topics[1]</code> 是左侧补零的付款地址。<code>data</code> 是完整的 32 字节字，去掉左侧填充后的金额是 <code>0x20000000000001</code>。注意 <code>gasUsed</code> 的单位是 <strong>gas</strong>，不是 wei；交易的 <code>value</code> 也不是回执字段，不能去回执顶层找它。</p>
+<h3 id="第二次读把同一个回执变成有单位的-java-值">第二次读：把同一个回执变成有单位的 Java 值</h3>
+<p>在终端 B 启动服务。<code>run.sh</code> 最终 <code>exec java</code>，所以 <code>$!</code> 是稍后要停的那个进程。看到 <code>GET http://127.0.0.1:18117/receipts/{hash}</code> 再执行下一段；若报地址占用，不要向该端口发请求。</p>
+<pre><code class="language-bash">bash labs/m05/run.sh ReceiptApi &amp;
+API_PID=$!
+BASE=http://127.0.0.1:18117/receipts
+</code></pre>
+<pre><code class="language-bash">curl --noproxy '*' -fsS &quot;$BASE/$LOCK&quot; &gt; &quot;$WORK/lock-view.json&quot;
+python3 -m json.tool &quot;$WORK/lock-view.json&quot;
+python3 - &quot;$WORK/lock-wire.json&quot; &quot;$WORK/lock-view.json&quot; &lt;&lt;'PY'
+import json, sys
+wire, view = (json.load(open(p)) for p in sys.argv[1:])
+r = wire['result']; log, = r['logs']
+assert r['transactionHash'] == view['transactionHash'] and r['blockHash'] == view['blockHash']
+assert r['status'] == view['status'] == '0x1' and int(r['blockNumber'], 16) == int(view['blockNumber']) == 2
+assert int(log['data'], 16) == int(view['lockedWei']) == 9007199254740993
+assert view['lockedEth'] == '0.009007199254740993'
+print('same receipt:', view['blockHash'], 'lockedWei:', view['lockedWei'])
+PY
+curl --noproxy '*' -sS &quot;$BASE/$SETTLE&quot;; printf '\n'
+</code></pre>
+<p>最后一行应同样是 <code>EXECUTED</code>，但属于<strong>块 3</strong>，<strong>没有 <code>lockedWei</code></strong>。结算只是把已经锁入的款项登记为可领，不是又一次锁入。对同一个哈希重复 GET 也不应累加款项：这个接口根本不写业务表。</p>
+<p><code>lookup()</code> 的顺序值得照着数据读一遍：</p>
+<ol>
+<li>先检查 JSON-RPC 是否成功，再让 <code>result.isNull()</code> 单独走 <code>NO_RECEIPT</code>；只把真实对象交给 web3j 的 <code>TransactionReceipt</code>。<code>getBlockNumber()</code>、<code>getGasUsed()</code> 已从十六进制 quantity 变成 <code>BigInteger</code>，<code>getStatus()</code> 则保留字符串。对本卷 Cancun 链明确只接受 <code>0x0</code> 和 <code>0x1</code>，不把缺字段当成功。</li>
+<li><code>new TypeReference&lt;Address&gt;(true) {}</code> 标出 indexed 参数在 topic 里；<code>Uint256</code> 未 indexed，在 data 里。<code>EventEncoder.encode(LOCKED)</code> 算出 topic 0；这里只对指定发布地址、签名及付款人相符的一条锁款事件执行 <code>FunctionReturnDecoder.decode(...)</code>，不全链搜同名事件。合约直接部署、单笔锁定，因而不会返回两条可相加的 <code>Locked</code>。换 ABI 或换部署要重新核发布凭据，不能凭字段碰巧长成 32 字节沿用这个解释。</li>
+<li>解出的 <code>Uint256.getValue()</code> 是 <code>BigInteger wei</code>。<strong>先用最小单位算，再展示</strong>：<code>new BigDecimal(wei, 18).toPlainString()</code> 只是给整数加 18 位小数刻度，不做浮点除法。<code>2⁵³+1</code> 落在相邻两个可表示的 binary64 整数之间，转 <code>double</code> 会变成 <code>2⁵³</code>。因此 JSON 输出 <code>"lockedWei":"9007199254740993"</code>，而非要求浏览器用 <code>Number</code> 接住不安全的大整数。记录资金事实时保存 wei，不保存这个展示用 ETH 字符串。</li>
+</ol>
+<p>数据库边界也要对称：Solidity <code>uint256</code> 的最大值是 <code>2²⁵⁶−1</code>（78 位十进制），不适合 <code>BIGINT</code> 的有符号 64 位上限。下一课表列用 PostgreSQL <code>NUMERIC(78,0)</code>；落库之前已是合法无符号整数，用 JDBC <code>setBigDecimal(i, new BigDecimal(wei))</code>，取回 <code>getBigDecimal("amount_wei").toBigIntegerExact()</code>。这个列型能容纳所有 <code>uint256</code>，但它本身<strong>不</strong>等于 <code>uint256</code> 范围校验，也不替你拒绝入参小数。来自文本的 wei 要先按约定的整数字串解析、校验范围；别依赖列的 scale 自动舍入。本课接口不连库也不拿数据库补回执。</p>
+<h2 id="给读端三种相似的报障让它给出不同证据">给读端三种相似的报障，让它给出不同证据</h2>
+<p>先保持节点和服务都运行。下面的全零哈希只是查找对照，不代表提交过交易。紧接着从<a href="m05/reverted_receipt.py">单次提交脚本</a>取得<strong>另一笔</strong>真实哈希：脚本复用第 16 课验清单、状态和付款人，只在自己的 <code>Settled</code> 实例上再调一次 <code>settle()</code>（携带 <strong>0 wei</strong>）。显式给 gas 上限，临时关自动挖块、先入池再挖一块，最后恢复自动挖块；否则预估 gas 就可能拒绝，根本没有失败回执。这段写端是演练夹具，<strong>不是 Java API 的路由</strong>。使用单独实验链，期间别运行其他课程写端。</p>
+<pre><code class="language-bash">ABSENT=$(printf '0x%064d' 0)
+curl --noproxy '*' -sS -D &quot;$WORK/absent.headers&quot; -o &quot;$WORK/absent.json&quot; &quot;$BASE/$ABSENT&quot;
+cat &quot;$WORK/absent.headers&quot; &quot;$WORK/absent.json&quot;; printf '\n'
+BAD=$(python3 labs/m05/reverted_receipt.py) &amp;&amp; printf 'failed tx=%s\n' &quot;$BAD&quot;
+curl --noproxy '*' -sS -D &quot;$WORK/revert.headers&quot; -o &quot;$WORK/revert.json&quot; &quot;$BASE/$BAD&quot;
+cat &quot;$WORK/revert.headers&quot; &quot;$WORK/revert.json&quot;; printf '\n'
+</code></pre>
+<p>预期：第一张是 <strong>404 / <code>NO_RECEIPT</code></strong>；第二张是 <strong>200 / <code>REVERTED</code></strong>，带 <code>$BAD</code>、真实块哈希、<code>status=0x0</code> 和非零 <code>gasUsed</code>，没有锁款金额。这份源码先检查 <code>state != Locked</code>，所以在本次已结算实例上第二次结算会失败；不能只凭 <code>status</code> 位给任意陌生交易还原原因。若看到的是 <code>400 BAD_REQUEST</code>，检查是否把空字符串或短哈希当成 <code>$BAD</code>；格式错误没有查询过链，不是实验通过。</p>
+<p>再观察一种<strong>有应答的下游错误</strong>。直接询问自己的 <strong>18556</strong>，故意把回执方法的参数列表留空。它仍是只读方法，不用提交交易：</p>
+<pre><code class="language-bash">curl --noproxy '*' -sS -D &quot;$WORK/rpc-error.headers&quot; -o &quot;$WORK/rpc-error.json&quot; \
+  -H 'Content-Type: application/json' \
+  --data '{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;id&quot;:17,&quot;method&quot;:&quot;eth_getTransactionReceipt&quot;,&quot;params&quot;:[]}' \
+  http://127.0.0.1:18556
+cat &quot;$WORK/rpc-error.headers&quot; &quot;$WORK/rpc-error.json&quot;; printf '\n'
+</code></pre>
+<p>找 <code>id: 17</code> 和 <code>error.code</code>，而不是 <code>result:null</code>。这是绕开适配层、直接了解节点协议的对照；对外 GET 会先挡住坏参数，不能把它说成服务端收到了同一张错误回执。<code>rpc()</code> 遇这样的信封会记录 RPC 错误码，向业务侧返回 <code>502 RPC_ERROR</code>，不解析收据。</p>
+<p>最后回终端 A <strong>按回车</strong>关闭节点，<strong>不要关闭 Java 服务</strong>。回到终端 B，再用原先确定成功的 <code>$LOCK</code>：</p>
+<pre><code class="language-bash">sleep 1
+curl --noproxy '*' -sS -D &quot;$WORK/down.headers&quot; -o &quot;$WORK/down.json&quot; &quot;$BASE/$LOCK&quot;
+cat &quot;$WORK/down.headers&quot; &quot;$WORK/down.json&quot;; printf '\n'
+kill &quot;$API_PID&quot;; wait &quot;$API_PID&quot; || :
+</code></pre>
+<p>此时应收到 <strong>503 / <code>RPC_UNAVAILABLE</code></strong>，不是 404，更不是 <code>REVERTED</code>；这是 Java 服务对下游断线的回答。如果 curl 自己报连不上 <strong>18117</strong>，说明被停的是读端，没有测到该分支。归档和 <code>$WORK</code> 中的凭证仍可复核，不能据此声称临时链还在线。</p>
+<h2 id="读请求可以重试读数不保证永远一样">读请求可以重试，读数不保证永远一样</h2>
+<p><code>rpc()</code> 复用一个直连回环的 <code>HttpClient</code>，建连最多 1 秒；从发出单个 <code>sendAsync</code> 到收到完整响应体最多等 2 秒，超时取消这次等待。正常的一次 GET 顺序读链号、部署块、回执三次，下游等待预算相加约 6 秒，<strong>不是整个 GET 只有 2 秒</strong>。这一层不自动重试，避免 HTTP 客户端、网关、业务层各试三次，放大对同一节点的压力。本机服务每个一秒窗口最多放行 8 个合法 GET，超出回 <code>429</code> 并带 <code>Retry-After: 1</code>；这是单实例入口配额，不是全局精确 QPS。</p>
+<p>如果由上层排任务，可以给同一哈希<strong>最多两次额外只读尝试</strong>，遇临时断连/超时则按 1 秒、2 秒加少量随机抖动退避，并设总截止时间；遇 429 尊重 <code>Retry-After</code>。<code>result:null</code> 若属于刚提交的已知交易，安排稍后重新观察原哈希；格式错、错链或不兼容 ABI 要修配置，失败回执要保存，不进入这种重试。<code>GET</code> 的幂等指不改链上/业务状态，不保证下一次查到相同块或相同结果。<strong>不把只读策略套在发送交易上</strong>：提交响应丢失不能证明交易没进池。</p>
+<p>查单笔只需要一个哈希；若需求改成「从块 10 到块 210 找全部锁款」，别给每笔或每块触发一轮 HTTP 扇出。按地址与 topic 分段调用 <code>eth_getLogs</code>：如闭区间 <code>[10,109]</code>、<code>[110,209]</code>、<code>[210,210]</code>。超出节点范围/结果限制就缩小<strong>同一段</strong>，只有这段完整取回并持久化才推进；失败不能当成空段跳过。如何把分段与块游标绑在一起，是<a href="indexing.html">第 18 课</a>的职责。</p>
+<h2 id="独立作业能否凭一张结算凭证补写锁款">独立作业：能否凭一张结算凭证补写锁款？</h2>
+<p>另开一个全新 <code>WORK</code>，让终端 A 改用 <code>--settle-wei 9007199254740995</code>；终端 B 从新 <code>ARCHIVE</code> 取清单与哈希，重新启动读端，别让原先的断线服务复用旧清单。<strong>先写预测，再查这次的 lock、settle 和本次部署交易三笔</strong>。用本轮的 <code>lock-wire.json</code> 与 <code>lock-view.json</code> 独立复算（把前面断言中的金额和 ETH 展示值一并换为你的预测值）；用原始回执和读端答复组成三行表，列：<code>transactionHash / blockHash / status / 有无 lockedWei / 可回答的业务问题</code>。保留一次对错误短哈希的 <code>curl -i "$BASE/0x12"</code> 结果，结束后同样关闭两个进程。</p>
+<p><strong>过关判据：</strong> 部署在块 1，没有 <code>lockedWei</code>；块 2 锁入 <strong>9007199254740995 wei = 0.009007199254740995 ETH</strong>；块 3 结算成功却不能再记一笔锁款。三笔都能给出本轮不同的交易哈希和独立的块位置。短哈希返回 <strong>400</strong>，不是「没付」。能用 R-17 的线索解释少掉 1 wei 是哪种类型转换可能造成的，并用你自己的整数复算结果排除「少付」；不能仅凭这三次 HTTP 200 推断已提现、已最终化或可以交货。</p>
+<h2 id="查证原文">查证原文</h2>
+<ul>
+<li><a href="https://github.com/ethereum/execution-apis/blob/main/src/eth/transaction.yaml">Ethereum Execution APIs：eth_getTransactionReceipt 的输入、收据、notFound 与 error</a>；<a href="https://eips.ethereum.org/EIPS/eip-658">EIP-658：回执状态码记录顶层调用成功或失败</a>。</li>
+<li><a href="https://docs.soliditylang.org/en/v0.8.28/abi-spec.html#events">Solidity 0.8.28 ABI 规范：Events</a>；<a href="https://github.com/LFDT-web3j/web3j/blob/v4.12.3/core/src/main/java/org/web3j/protocol/core/methods/response/TransactionReceipt.java">web3j 4.12.3 的 TransactionReceipt 字段与类型</a>。</li>
+<li><a href="https://www.jsonrpc.org/specification#response_object">JSON-RPC 2.0：Response object</a>；<a href="https://www.postgresql.org/docs/current/datatype-numeric.html">PostgreSQL：精确与不精确数值类型</a>。</li>
+</ul>
+<nav class="end-links" aria-label="阅读导航"><a rel="prev" href="deployment.html">上一课 · 16</a><a rel="next" href="indexing.html">下一课 · 18</a></nav></article>
+<aside class="rail"><nav aria-label="本页目录"><b>本页目录</b><ol><li><a href="#给客服的接口不能是一层透明代理">给客服的接口，不能是一层透明代理</a></li><li><a href="#从真实部署拿输入不把示例哈希当凭证">从真实部署拿输入，不把示例哈希当凭证</a></li><li><a href="#给读端三种相似的报障让它给出不同证据">给读端三种相似的报障，让它给出不同证据</a></li><li><a href="#读请求可以重试读数不保证永远一样">读请求可以重试，读数不保证永远一样</a></li><li><a href="#独立作业能否凭一张结算凭证补写锁款">独立作业：能否凭一张结算凭证补写锁款？</a></li><li><a href="#查证原文">查证原文</a></li></ol></nav></aside></div><dialog class="figure-zoom" aria-label="配图放大视图">
+<form method="dialog"><a>打开 SVG 原图</a><button autofocus>收起大图</button></form>
+<div class="zoom-scroll" tabindex="0" role="region" aria-label="放大的配图，可滚动"><img alt=""></div></dialog></main><footer><span>链上开发手册</span><a href="../index.html">课程首页</a><a href="rpc.md">Markdown 原稿</a></footer></body></html>

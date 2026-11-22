@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="608" height="644" viewBox="0 0 608 644" role="img" xml:lang="zh-CN" aria-labelledby="title desc">
+  <title id="title">R-25：回执走到哪一个头了？</title>
+  <desc id="desc">OP Sepolia 目标块 51764054 有一笔 0.001 测试 ETH 自转。其 L1 origin 是 12187150。批次索引把目标连到 Sepolia 块 12187164 的 blob 引用。目标到安全头有 44 个连续父哈希，最终头却还低 431 个 L2 块；不能以 latest 多出 116 块判最终化。</desc>
+  <rect width="608" height="644" fill="#fffaf2"/>
+  <g font-family="system-ui,sans-serif" fill="#252c2d">
+    <text x="25" y="40" font-size="25" font-weight="700">一笔自转，三种凭据</text>
+    <text x="25" y="69" font-size="17">R-25 · 2026-11-22 UTC · 块号必须带链名</text>
+    <rect x="22" y="91" width="564" height="105" rx="7" fill="#f5eadb" stroke="#846c55"/>
+    <text x="40" y="121" font-size="19" font-weight="700">① 排序与执行　OP Sepolia（L2）</text>
+    <text x="40" y="151" font-size="18">区块 51,764,054 · 交易位置 1 · status = 1</text>
+    <text x="40" y="178" font-size="17">A → A：0.001 测试 ETH，并没有付给别人。</text>
+    <path d="M304 196v30m-6-7 6 7 6-7" fill="none" stroke="#766654" stroke-width="2"/>
+    <rect x="22" y="229" width="564" height="133" rx="7" fill="#e6eeef" stroke="#4c7175"/>
+    <text x="40" y="259" font-size="19" font-weight="700">② 发布数据　batcher → Sepolia（L1）</text>
+    <text x="40" y="289" font-size="18">L1 origin　12,187,150　← L2 执行引用的背景</text>
+    <text x="40" y="317" font-size="18">L1 发布块　12,187,164　← 一笔 type 3 交易</text>
+    <text x="40" y="345" font-size="16">索引号 3,631,439 → 1 个 blob 引用；不是 blob 原文。</text>
+    <path d="M304 362v30m-6-7 6 7 6-7" fill="none" stroke="#516f68" stroke-width="2"/>
+    <rect x="22" y="395" width="564" height="224" rx="7" fill="#e2f1eb" stroke="#286657"/>
+    <text x="40" y="425" font-size="19" font-weight="700">③ 同一个 L2 目标，分别问两个头</text>
+    <text x="40" y="458" font-size="18">安全头　51,764,098</text>
+    <text x="40" y="486" font-size="17">向后沿 44 条 parentHash → 命中目标块哈希。</text>
+    <path d="M40 503h528" stroke="#95b3a9"/>
+    <text x="40" y="534" font-size="18">最终头　51,763,623</text>
+    <text x="40" y="561" font-size="17">比目标还低 431 个 L2 块 → 当时尚未覆盖。</text>
+    <text x="40" y="596" font-size="17" font-weight="700">结论：可报「已安全」，不可报「已最终化」。</text>
+  </g>
+</svg>

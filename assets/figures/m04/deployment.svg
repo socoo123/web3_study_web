@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="504" height="524" viewBox="0 0 504 524" role="img" aria-labelledby="title desc" xml:lang="zh-CN">
+  <title id="title">清单相同，接班人为什么只在一条链上读合约？</title>
+  <desc id="desc">清单把链号 31337、部署块 1 的哈希 H、创建交易 T 和地址 C 绑在一起。原节点与重启后的空节点都报 31337。原节点块 1 的哈希、交易、回执和运行时代码核对成功，在同一块读取初始状态 0、应领 0 wei；新节点只有创世块，缺少块 1，在调用合约前拒绝。H、T、C 为本轮实值的代号。</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10Z" fill="#65584c"/></marker></defs>
+  <rect width="504" height="524" fill="#fffaf2"/>
+  <g font-family="system-ui,sans-serif" fill="#28221f">
+    <text x="20" y="39" font-size="24" font-weight="700">地址没改，先问部署块还在不在</text>
+    <text x="20" y="66" font-size="17">默认轮，不锁款 · 两条路径使用同一份归档清单</text>
+    <rect x="20" y="88" width="464" height="81" rx="8" fill="#f5eadb" stroke="#846c55"/>
+    <text x="36" y="119" font-size="19" font-weight="700">发布方 → 接班人：链 31337 · 部署块 1</text>
+    <text x="36" y="149" font-size="18">块哈希 H，部署交易 T，合约地址 C，附 ABI</text>
+    <g fill="none" stroke="#65584c" stroke-width="2" marker-end="url(#arrow)"><path d="M252 169v18H133v24"/><path d="M252 187h119v24"/><path d="M133 341v30"/><path d="M371 341v30"/></g>
+    <g stroke="#286657" fill="#e2f1eb"><rect x="20" y="215" width="226" height="125" rx="8"/><rect x="20" y="376" width="226" height="84" rx="8"/></g>
+    <g stroke="#915b36" fill="#ffeddb"><rect x="258" y="215" width="226" height="125" rx="8"/><rect x="258" y="376" width="226" height="84" rx="8"/></g>
+    <g text-anchor="middle" font-size="18">
+      <text x="133" y="245" font-weight="700">原节点 · 31337</text><text x="133" y="274">块 1 = H，含交易 T</text><text x="133" y="301">成功回执给出 C</text><text x="133" y="326">创建输入与代码均对上</text>
+      <text x="371" y="245" font-weight="700">重启空节点 · 31337</text><text x="371" y="274">当前高度 = 0</text><text x="371" y="301">按高度找不到块 1</text><text x="371" y="326">无从确认部署锚点</text>
+      <text x="133" y="406" font-weight="700">对 C 作只读调用</text><text x="133" y="437">状态 0，应领 0 wei</text>
+      <text x="371" y="406" font-weight="700">STOP · 退出码 3</text><text x="371" y="437">不调用 C，不补发部署</text>
+    </g>
+    <path d="M20 480h464" stroke="#b3a594"/><text x="20" y="508" font-size="16">H、T、C 是图示代号；交接时比较完整值，不比前缀。</text>
+  </g>
+</svg>

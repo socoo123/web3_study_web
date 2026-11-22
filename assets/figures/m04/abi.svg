@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="482" height="344" viewBox="0 0 482 344" role="img" aria-labelledby="title desc" xml:lang="zh-CN">
+  <title id="title">同一个金额，为什么调用数据比返回数据多四字节？</title>
+  <desc id="desc">Java 和 Cast 都给 set(uint256) 编出 36 字节。前四字节是 60 fe 47 b1；后面 25 个零字节加 20 00 00 00 00 00 01 是大端 uint256，等于 9007199254740993 wei。节点返回的 32 字节只有金额，没有选择器。本例交易携带的原生金额为零。</desc>
+  <rect width="482" height="344" rx="14" fill="#faf7ef"/>
+  <g font-family="system-ui,sans-serif" fill="#243b35">
+    <text x="18" y="33" font-size="22" font-weight="650">登记单上的 36 字节</text>
+    <text x="18" y="64" font-size="17">① Java / Cast → 合约：set(uint256)</text>
+    <rect x="18" y="77" width="132" height="62" rx="6" fill="#ddd9c9"/>
+    <rect x="153" y="77" width="311" height="62" rx="6" fill="#dce8dd"/>
+    <g font-size="15"><text x="29" y="99">字节 0–3 · 入口</text><text x="164" y="99">字节 4–35 · 一整个无符号整数</text></g>
+    <g font-family="monospace" font-size="16" font-weight="650"><text x="29" y="125">60 fe 47 b1</text><text x="164" y="125">00 × 25 | 20 00 00 00 00 00 01</text></g>
+    <path d="M306 143v18m-5-7 5 7 5-7" fill="none" stroke="#567761" stroke-width="2.5"/>
+    <text x="154" y="183" font-size="17" font-weight="650">登记数 = 9,007,199,254,740,993 wei</text>
+    <path d="M18 201h446" stroke="#c3ccbf"/>
+    <text x="18" y="229" font-size="17">② 合约 → 调用方：eth_call 的返回数据</text>
+    <rect x="18" y="242" width="446" height="40" rx="6" fill="#dce8dd"/>
+    <text x="31" y="268" font-size="17">32 字节 · 与上方绿色参数字相同，没有入口编号</text>
+    <text x="18" y="316" font-size="17" font-weight="650">交易的 value 另列：0 wei。登记不等于付款。</text>
+  </g>
+</svg>

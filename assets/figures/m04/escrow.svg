@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="422" viewBox="0 0 480 422" role="img" aria-labelledby="title desc" xml:lang="zh-CN">
+  <title id="title">同一笔托管，截止时刻将钱判给谁？</title>
+  <desc id="desc">付款方 A 在截止前锁入 12500 wei。仅当 A 调用时，截止前结算记入 B 的应领，截止起退款记入 A 的应领。记账时 ETH 仍在合约 C，只有应领人领取才转出；两条路不能同时走。</desc>
+  <rect width="480" height="422" rx="14" fill="#faf7ef"/>
+  <g font-family="system-ui,sans-serif" fill="#243b35">
+    <text x="18" y="32" font-size="21" font-weight="650">同一份锁款，走哪一条路？</text>
+    <text x="18" y="58" font-size="16">A 付款 · B 收款 · C 托管　｜　金额：wei</text>
+    <rect x="18" y="76" width="444" height="64" rx="6" fill="#e2eade"/>
+    <g text-anchor="middle"><text x="240" y="103" font-size="20" font-weight="650">Awaiting → Locked</text>
+      <text x="240" y="127" font-size="16">截止前 A 调 lock：A → C　12,500</text></g>
+    <g fill="none" stroke="#46735e" stroke-width="2.4" stroke-linejoin="round"><path d="M240 140v14H124v17m-5-6 5 6 5-6m111-11h116v17m-5-6 5 6 5-6"/></g>
+    <g text-anchor="middle" font-size="17" font-weight="650"><text x="124" y="196">t &lt; D：A 调 settle</text><text x="356" y="196">t ≥ D：A 调 refund</text></g>
+    <rect x="18" y="209" width="212" height="80" rx="6" fill="#e2eade"/><rect x="250" y="209" width="212" height="80" rx="6" fill="#ebe5da"/>
+    <g text-anchor="middle"><g font-size="19" font-weight="650"><text x="124" y="237">Settled · B 应领</text><text x="356" y="237">Refunded · A 应领</text></g>
+      <g font-size="16"><text x="124" y="267">12,500 仍在 C</text><text x="356" y="267">12,500 仍在 C</text></g></g>
+    <g fill="none" stroke="#46735e" stroke-width="2.4" stroke-linejoin="round"><path d="M124 289v21m-5-6 5 6 5-6 M356 289v21m-5-6 5 6 5-6"/></g>
+    <g font-size="17" text-anchor="middle"><text x="124" y="336">B 调 withdraw</text><text x="356" y="336">A 调 withdraw</text>
+      <text x="124" y="363" font-weight="650">C → B　12,500</text><text x="356" y="363" font-weight="650">C → A　12,500</text></g>
+    <path d="M18 378h444" stroke="#c3ccbf"/>
+    <text x="18" y="405" font-size="16">t 是执行块时间；到点无人调用，款仍处于 Locked。</text>
+  </g>
+</svg>

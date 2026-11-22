@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="577" viewBox="0 0 560 577" role="img" xml:lang="zh-CN" aria-labelledby="title desc">
+  <title id="title">27 号盖章工单：两种哈希，三种结论</title>
+  <desc id="desc">owner 签用户操作 U；打包人拟把它放进外层交易 T。预检检查 paymaster 可用存款是否至少 800000000000000 wei；差一 wei 则没有 T。余额及政策均通过，发送 T。即使 T 的状态为 1，也要按 U 查 EntryPoint 事件，执行成功记 27，业务冻结失败仍扣费但不盖章。</desc>
+  <defs><marker id="arr" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0l8 4-8 4z" fill="#405d55"/></marker></defs>
+  <rect width="560" height="577" fill="#fffaf2"/>
+  <g font-family="system-ui,sans-serif" fill="#232c29">
+    <text x="22" y="37" font-size="24" font-weight="700">27 号工单 · 先看哪张凭证？</text>
+    <rect x="22" y="58" width="516" height="72" rx="5" fill="#f2e8d8" stroke="#8e7556"/>
+    <text x="37" y="87" font-size="19" font-weight="700">① owner 签 U：给工单 27 盖章</text>
+    <text x="37" y="114" font-size="17">U = userOpHash；账户 nonce 为 0，转账值为 0 wei。</text>
+    <path d="M140 131v24" stroke="#405d55" stroke-width="2" marker-end="url(#arr)"/>
+    <rect x="22" y="159" width="516" height="85" rx="5" fill="#e9eee4" stroke="#5e7565"/>
+    <text x="37" y="187" font-size="19" font-weight="700">② 打包人在本地预检 EntryPoint</text>
+    <text x="37" y="216" font-size="17">代付存款须覆盖 400 000 gas × 2 gwei/gas。</text>
+    <text x="37" y="237" font-size="14">前提：签名、序号和代付范围也正确。</text>
+    <g fill="none" stroke="#405d55" stroke-width="2" marker-end="url(#arr)"><path d="M141 245v27"/><path d="M411 245v27"/></g>
+    <rect x="22" y="276" width="239" height="91" rx="5" fill="#f8e4d9" stroke="#8e5a43"/>
+    <text x="35" y="305" font-size="19" font-weight="700">余额少 1 wei</text>
+    <text x="35" y="333" font-size="17">AA31：不提交 T。</text>
+    <text x="35" y="355" font-size="15">无操作事件，不显示免费成功。</text>
+    <rect x="277" y="276" width="261" height="91" rx="5" fill="#dfede6" stroke="#476e5e"/>
+    <text x="291" y="305" font-size="19" font-weight="700">余额足 · 策略通过</text>
+    <text x="291" y="333" font-size="17">提交 handleOps，得到 T。</text>
+    <text x="291" y="355" font-size="15">T = 外层 transactionHash。</text>
+    <path d="M412 368v23" stroke="#405d55" stroke-width="2" marker-end="url(#arr)"/>
+    <rect x="22" y="395" width="516" height="157" rx="5" fill="#e6eef1" stroke="#53717d"/>
+    <text x="37" y="425" font-size="19" font-weight="700">③ 按 U 找事件，反查外层 T 的回执</text>
+    <text x="37" y="455" font-size="17">T.status = 1，仅证明外层未回退：</text>
+    <path d="M38 470h481" stroke="#a5babf"/>
+    <text x="37" y="498" font-size="17">事件 success = true　→　盖章 27，代付扣费。</text>
+    <text x="37" y="532" font-size="17">事件 success = false　→　不盖章，代付仍扣费。</text>
+  </g>
+</svg>

@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark"><title>第 14 课 · 托管状态机：已结算，为什么还没到账？ · 链上开发手册</title>
+<link rel="stylesheet" href="../assets/site.css?v=2786ad38e29d"><script src="../assets/site.js?v=6dc390471c89" defer></script></head>
+<body><a class="skip" href="#main">跳至正文</a><header class="mast"><div class="mast-inner">
+<a class="brand" href="../index.html"><span class="mark" aria-hidden="true"></span>链上开发手册</a>
+<nav aria-label="全站导航"><a href="../plan.html">课程计划</a><a href="../index.html#labs">实验台</a><button type="button" id="theme" hidden>切换主题</button></nav>
+</div></header><main id="main" class="reading"><div class="crumb"><a href="../index.html">手册首页</a> / <a href="../plan.html#m04">M04 · Solidity：托管与合约测试</a> / 第 14 课</div>
+<header class="lesson-opening"><h1 id="page-title">第 14 课 · 托管状态机：已结算，为什么还没到账？</h1><figure class="specimen"><figcaption>M-14 · 结算后、领取前</figcaption><dl>
+<div><dt>B 应领 / wei</dt><dd>12,500</dd></div>
+<div><dt>B 已领 / wei</dt><dd>0</dd></div></dl>
+<span class="specimen-relation" aria-hidden="true">≠</span><p>钱仍在托管合约；不要再付一笔</p></figure><p>工单 M-14：付款方 A 把 <strong>12,500 wei</strong> 锁进托管合约 C。收款方 B 交了货；A 在截止前一秒验收，页面出现 <code>Settled</code>，C 的余额却还是 12,500 wei。财务要不要再给 B 打一笔？不要。先查 C 欠谁多少钱，再看谁领走了钱。反过来，假如 A 的验收晚一秒才执行，同样一笔锁款就不能判给 B 了。</p></header><div class="reading-grid"><article aria-labelledby="page-title"><details class="mobile-toc"><summary>本页目录</summary><ol><li><a href="#先把发货结算领取拆成三张单">先把发货、结算、领取拆成三张单</a></li><li><a href="#把合同条款写成转移表">把合同条款写成转移表</a></li><li><a href="#读实现钱从哪来授权看哪一层">读实现：钱从哪来，授权看哪一层</a></li><li><a href="#跟一轮账在-d1-结算">跟一轮账：在 D−1 结算</a></li><li><a href="#只把决定推迟一秒">只把决定推迟一秒</a></li><li><a href="#哪些请求必须被拒绝">哪些请求必须被拒绝？</a></li><li><a href="#独立工单过期的是订单还是领取权">独立工单：过期的是订单，还是领取权？</a></li><li><a href="#原文核对">原文核对</a></li></ol></details><p>先修：<a href="abi.html">第 13 课的 ABI、调用数据与持久状态</a>，以及<a href="receipts.html">第 12 课的回执与确认</a>。本课用 <strong>一份合约管一笔原生测试 ETH</strong>。A 同时是部署者和验收人；B 是供应方；没有第三方仲裁者。合约替双方执行约定，不替双方判断货是否合格。这里只在 Forge 的内存 EVM 中操作，不需要钱包、节点或私钥。</p>
+<h2 id="先把发货结算领取拆成三张单">先把发货、结算、领取拆成三张单</h2>
+<p>物流单能说明 B 声称已经交货，不能改 C 的存储；C 没有读物流系统的接口。A 在链下验收后，必须在截止前成功调用 <code>settle()</code>。这一步只形成 C 对 B 的<strong>应付账款</strong>，即 <code>credit(B)</code>。B 再调用 <code>withdraw()</code>，C 才把 ETH 转给 B。合约没有 <code>ship()</code>，也没有「平台管理员手工改成已到账」的入口。</p>
+<p>单据的区别会改变交付决策。B 看见锁款可以知道钱进了 C，但 A 仍可能一直不验收，等超时后退款。因此这不是保证供应方一定拿到货款的仲裁托管。A 看见 <code>Settled</code>，也不能承诺钱已经进了 B 的地址；B 要看自己的应领或领取记录。若业务要求快递签收自动放款、双方都能仲裁或分期收款，要另立需求，不能靠界面换个按钮名字得到。</p>
+<figure class="lesson-figure"><a href="../assets/figures/m04/escrow.svg"><img src="../assets/figures/m04/escrow.svg" alt="A 锁入 12500 wei 后，在截止前结算记 B 应领，截止起退款记 A 应领；记账时钱仍在 C，只有应领者领取，C 才转出资金。"></a><figcaption>从上往下只选一支。中间两格是债权归属，不是转账；钱实际移动的地方是 A 锁款给 C，以及最后 C 付给领取人。D 是截止的 Unix 秒数。</figcaption></figure>
+
+<h2 id="把合同条款写成转移表">把合同条款写成转移表</h2>
+<p>部署 C 时，构造函数把 <strong>这次部署的调用者</strong>定为 <code>payer</code>，把另一个非零地址定为 <code>payee</code>，并要求 <code>deadline</code> 严格晚于部署块时间。这三个值不可改。<code>State</code> 是枚举，<code>state()</code> 依次用 <code>0/1/2/3</code> 表示 <code>Awaiting/Locked/Settled/Refunded</code>；新合约的默认值是第一项。<code>credit(address)</code> 查询指定地址的应领，默认是零。这里的 <code>public</code> 是可以查，不是可以改。</p>
+<p>设执行当前调用的块时间为 <code>t</code>，截止为 <code>D</code>；表中 <code>m</code> 始终指实际锁入的正整数 wei。</p>
+<table class="stackable">
+<thead>
+<tr>
+<th>原状态</th>
+<th>谁、何时、做什么</th>
+<th>新状态及资金效果</th>
+<th>成功事件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="原状态"><code>Awaiting</code></td>
+<td data-label="谁、何时、做什么">A，<code>t &lt; D</code>，<code>lock{value: m}()</code>，<code>m &gt; 0</code></td>
+<td data-label="新状态及资金效果"><code>Locked</code>；A → C，记录这单的 <code>m</code></td>
+<td data-label="成功事件"><code>Locked(A, m)</code></td>
+</tr>
+<tr>
+<td data-label="原状态"><code>Locked</code></td>
+<td data-label="谁、何时、做什么">A，<code>t &lt; D</code>，<code>settle()</code></td>
+<td data-label="新状态及资金效果"><code>Settled</code>；给 B 记 <code>credit(B)=m</code>，不转 ETH</td>
+<td data-label="成功事件"><code>Settled(B, m)</code></td>
+</tr>
+<tr>
+<td data-label="原状态"><code>Locked</code></td>
+<td data-label="谁、何时、做什么">A，<code>t &gt;= D</code>，<code>refund()</code></td>
+<td data-label="新状态及资金效果"><code>Refunded</code>；给 A 记 <code>credit(A)=m</code>，不转 ETH</td>
+<td data-label="成功事件"><code>Refunded(A, m)</code></td>
+</tr>
+<tr>
+<td data-label="原状态"><code>Settled</code> 或 <code>Refunded</code></td>
+<td data-label="谁、何时、做什么">有非零应领的那个人，<code>withdraw()</code>，无时间限制</td>
+<td data-label="新状态及资金效果"><strong>仍在原终态</strong>；自己的应领清零，C → 自己，金额 <code>m</code></td>
+<td data-label="成功事件"><code>Withdrawn(领取者, m)</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>为什么等号要单独写？</strong> <code>block.timestamp</code> 是执行块的 Unix <strong>秒</strong>，不是 <code>System.currentTimeMillis()</code> 的毫秒，不是下单时间，也不是钱包弹出签名窗口的时间。锁款和结算共用 <code>&lt; D</code>，退款用 <code>&gt;= D</code>，在 <code>D</code> 没有两个选项同时可选，也没有无人有权处理的一秒。真实链不保证恰有一个块的时间戳等于 D；实际能退款的是第一个满足条件且执行该调用的块。发送得早、打包得晚的结算仍可能失败。</p>
+<p>时间推进只改变<strong>下次允许的操作</strong>，不会唤醒代码。<code>Locked</code> 的单子过了 D 而 A 未操作，<code>state()</code> 仍是 <code>Locked</code>，A 暂时也没有应领。A 必须先 <code>refund()</code> 再 <code>withdraw()</code>。若截至 D 连钱都没锁，状态仍是 <code>Awaiting</code>，随后锁款将被拒绝；这时没钱可退。</p>
+<h2 id="读实现钱从哪来授权看哪一层">读实现：钱从哪来，授权看哪一层</h2>
+<p>打开<a href="m04/src/MilestoneEscrow.sol">唯一的业务合约 <code>MilestoneEscrow.sol</code></a>。沿着 <code>lock → settle/refund → withdraw</code> 读，不用先记语法大全。</p>
+<ol>
+<li><strong>入金。</strong> <code>lock()</code> 是 <code>external payable</code>：允许这次外部调用附原生 ETH；不会自动要求附款，也不规定金额。<code>onlyPayer</code> 比的是当前这层调用的 <code>msg.sender</code>，不是前端传进来的姓名，也不是整条调用链最初的 <code>tx.origin</code>。合约随后检查起始状态、截止以及 <code>msg.value != 0</code>。通过才把 <code>msg.value</code> 存进 <code>deposit</code> 并改状态。第二次调 <code>lock()</code> 不能给原单追加金额；普通空数据直转也不是这张单的锁款入口。</li>
+<li><strong>裁决。</strong> <code>settle()</code> 和 <code>refund()</code> 均要求 <code>state == Locked</code>，但检查相反的时间区间，且分别把 <code>deposit</code> 记给 B 或 A。它们不按 <code>address(this).balance</code> 判金额：那个值是整个地址持有的 ETH，不是这张订单的入金凭证。<code>deposit</code> 保存原始锁款额，<code>credit</code> 是当前还欠多少，已结算时不能把这两个数加起来当作欠款。终态没有回到待付款的入口，所以一次成功裁决只记一次应领。</li>
+<li><strong>付款。</strong> <code>withdraw()</code> 没有收款地址参数。下面是实现中的关键四句；执行前已从 <code>credit[msg.sender]</code> 读出非零 <code>amount</code>。先消掉债权，再做外部调用；收款若失败，最后的 <code>revert</code> 使本次领取整体回退，清零也撤销。已经成功提交的上一次结算不因此取消。</li>
+</ol>
+<pre><code class="language-solidity">credit[msg.sender] = 0;
+(bool sent,) = payable(msg.sender).call{value: amount}(&quot;&quot;);
+if (!sent) revert WithdrawalFailed();
+emit Withdrawn(msg.sender, amount);
+</code></pre>
+<p>为什么不在 <code>settle()</code> 中顺便打款？结算只需改变本合约的状态；打款可能执行接收方合约的代码，也可能被拒收。把两步分开，付款者的验收不必同步等供应方接受 ETH，但<strong>不保证收款地址能领</strong>。部署条款时须确认收款方能发起领取并接受 ETH；这里只有自己领，没有代领或改收款地址的后门。</p>
+<p>四个业务事件均有一个 <code>indexed</code> 地址和一个未索引的 <code>uint256 amount</code>。例如真实回执里，C 是发出日志的地址，<code>Settled(address,uint256)</code> 的签名哈希在 <code>topics[0]</code>，B 在 <code>topics[1]</code>，金额在 <code>data</code>。B 是受益人，不是发起结算的人。日志用于追溯成功动作，getter 用于读某个块的结果；对账时还要核链、合约地址及回执所在块，不能凭同名事件就放货。Forge 下面还会显示测试夹具自己的记录，它们不属于 C 的 ABI。</p>
+<h2 id="跟一轮账在-d1-结算">跟一轮账：在 D−1 结算</h2>
+<p>依赖：<a href="abi.html#m04-tools">本卷工具与安装</a>，Foundry <strong>1.7.1</strong>、已安装或缓存的 solc <strong>0.8.28</strong>；<a href="m04/foundry.toml">工程配置</a>固定 Cancun、优化 200 runs。没有第三方 Solidity 库。先从仓库根目录进入工程；本课后续命令都在 <code>labs/m04/</code>，使用 Bash 或 zsh：</p>
+<pre><code class="language-bash">cd labs/m04
+forge --version
+set -o pipefail
+forge test --offline --match-contract EscrowTransitionsTest --match-test '^testSettleAtDMinusOne' -vvvv | tee /tmp/m04-settle.trace
+</code></pre>
+<p><a href="m04/test/EscrowTransitions.t.sol"><code>EscrowTransitions.t.sol</code></a> 的 <code>setUp()</code> 为每个测试重新部署。<code>vm.deal</code> 给内存地址 A、B 分别配 <strong>25,000、12,500 wei</strong> 测试余额；<code>vm.prank(A)</code> 令下一次部署或调用的直接调用者为 A，不是签名服务；<code>vm.warp</code> 设置本地执行时间，不会修改部署好的 D。这些接口只在测试夹具中出现。取 <code>T0=1700000000</code>、<code>D=T0+60=1700000060</code>，把第一笔 12,500 wei 在 T0 锁入，令决定时的 <code>t=1700000059</code>。</p>
+<p>在输出中找 <code>[PASS] testSettleAtDMinusOne()</code> 和 <code>emit Ledger</code>。下表是<strong>预期账页（不是实跑记录）</strong>；<code>Ledger</code> 是测试从 <code>state()</code>、C 的余额、<code>credit(A)</code> 和 <code>credit(B)</code> 读值并核对后才发的观察记录。四个数的顺序与事件相同，后三列均为 wei。</p>
+<table class="stackable">
+<thead>
+<tr>
+<th><code>Ledger.step</code></th>
+<th><code>state</code></th>
+<th style="text-align: right;">C 实存</th>
+<th style="text-align: right;">A 应领</th>
+<th style="text-align: right;">B 应领</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="Ledger.step"><code>awaiting</code></td>
+<td data-label="state">0</td>
+<td data-label="C 实存" style="text-align: right;">0</td>
+<td data-label="A 应领" style="text-align: right;">0</td>
+<td data-label="B 应领" style="text-align: right;">0</td>
+</tr>
+<tr>
+<td data-label="Ledger.step"><code>locked</code></td>
+<td data-label="state">1</td>
+<td data-label="C 实存" style="text-align: right;">12,500</td>
+<td data-label="A 应领" style="text-align: right;">0</td>
+<td data-label="B 应领" style="text-align: right;">0</td>
+</tr>
+<tr>
+<td data-label="Ledger.step"><code>early-refund-rejected</code></td>
+<td data-label="state">1</td>
+<td data-label="C 实存" style="text-align: right;">12,500</td>
+<td data-label="A 应领" style="text-align: right;">0</td>
+<td data-label="B 应领" style="text-align: right;">0</td>
+</tr>
+<tr>
+<td data-label="Ledger.step"><code>settled</code></td>
+<td data-label="state">2</td>
+<td data-label="C 实存" style="text-align: right;">12,500</td>
+<td data-label="A 应领" style="text-align: right;">0</td>
+<td data-label="B 应领" style="text-align: right;">12,500</td>
+</tr>
+<tr>
+<td data-label="Ledger.step"><code>withdrawn</code></td>
+<td data-label="state">2</td>
+<td data-label="C 实存" style="text-align: right;">0</td>
+<td data-label="A 应领" style="text-align: right;">0</td>
+<td data-label="B 应领" style="text-align: right;">0</td>
+</tr>
+</tbody>
+</table>
+<p>读 trace 的缩进：在 <code>MilestoneEscrow::refund()</code> 里看到 <code>TooEarly()</code>，这是测试<strong>预期的拒绝</strong>，说明还差一秒才到退款窗口。随后 <code>settle()</code> 成功，<code>settled</code> 那行的实存和应领是同一笔钱的资产、负债两面。最后 <code>withdraw()</code> 下才有 C 带值调用 B 和 <code>Withdrawn(B,12500)</code>，夹具核对 B 的余额增量恰为 12,500 wei。<code>vm.expectEmit</code> 会先列一条测试端的期望模板；只把 <strong>C 的调用内部</strong>那条当作 C 发出的事件，不能把金额加两次。</p>
+<p>这是 Forge 测试内的调用树，不是三笔带交易哈希的公网回执。测试里的余额差不含模拟角色单独发送交易的 gas 费；在真实外部领取交易中，领取者若也付 gas，钱包余额净增不会简单等于应领。gas 数、合约地址、显示缩进不是本题判据。</p>
+<h2 id="只把决定推迟一秒">只把决定推迟一秒</h2>
+<p>保持 A、B、D、C 的初始条款和入金不变。先预测：若仍由 A 调 <code>settle()</code>，<code>t</code> 从 <code>D−1</code> 改为 <code>D</code>，哪一格会变？再跑第二个独立场景：</p>
+<pre><code class="language-bash">forge test --offline --match-contract EscrowTransitionsTest --match-test '^testRefundAtD' -vvvv | tee /tmp/m04-refund.trace
+</code></pre>
+<p>预期 <code>deadline-without-call</code> 为 <code>(1,12500,0,0)</code>；时间已经到点，但钱未自动退。A 的 <code>settle()</code> 应以 <code>DeadlineReached()</code> 拒绝，<code>late-settle-rejected</code> <strong>还是</strong> <code>(1,12500,0,0)</code>。现在 A 改走 <code>refund()</code>，<code>refunded</code> 才变成 <code>(3,12500,12500,0)</code>；A 领取后 <code>withdrawn</code> 为 <code>(3,0,0,0)</code>。成功事件应是 <code>Locked(A,12500)</code>、<code>Refunded(A,12500)</code>、<code>Withdrawn(A,12500)</code>，不是 <code>Settled</code>。这个对照用 <code>vm.warp(D)</code> 精确检查代码的等号，不是在承诺真实区块按秒产生。</p>
+<h2 id="哪些请求必须被拒绝">哪些请求必须被拒绝？</h2>
+<p>检查拒绝不能只看「报过错」：先让其他条件都合法，再断言<strong>指定错误</strong>以及<strong>原账页未改</strong>。例如 B 有测试余额，B 尝试锁款失败才确实能区分「没权限」和「付不起」。从同一目录运行其余测试；去掉 <code>--match-test</code> 即运行本课全部六个用例：</p>
+<pre><code class="language-bash">forge test --offline --match-contract EscrowTransitionsTest --match-test '^testReject' -vvvv | tee /tmp/m04-reject.trace
+</code></pre>
+<table class="stackable">
+<thead>
+<tr>
+<th>夹具场景</th>
+<th>被拒的调用</th>
+<th>预期错误及留下的证据</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="夹具场景"><code>testRejectBadLocks</code></td>
+<td data-label="被拒的调用">A 零入金；B 带足款锁；A 在 D 首次锁</td>
+<td data-label="预期错误及留下的证据">依次 <code>ZeroDeposit</code>、<code>PayerOnly</code>、<code>DeadlineReached</code>；均为 <code>(0,0,0,0)</code></td>
+</tr>
+<tr>
+<td data-label="夹具场景"><code>testRejectWrongDecisionMaker</code></td>
+<td data-label="被拒的调用">已锁，B 在 D−1 结算；B 在 D 退款</td>
+<td data-label="预期错误及留下的证据">两次 <code>PayerOnly</code>；仍是 <code>(1,12500,0,0)</code></td>
+</tr>
+<tr>
+<td data-label="夹具场景"><code>testRejectSecondSettlement</code></td>
+<td data-label="被拒的调用">已结算，A 再结算；A 冒领；B 成功领后再领；A 试图重开</td>
+<td data-label="预期错误及留下的证据">依次 <code>WrongState</code>、<code>NoCredit</code>、<code>NoCredit</code>、<code>WrongState</code>；第二次结算后 B 仍只应领 12,500，最后 <code>(2,0,0,0)</code></td>
+</tr>
+<tr>
+<td data-label="夹具场景"><code>testRejectInvalidTerms</code></td>
+<td data-label="被拒的调用">部署时 B 为零地址、等于 A，或 D 恰等于部署时刻</td>
+<td data-label="预期错误及留下的证据">前两次 <code>InvalidPayee</code>，末次 <code>DeadlineNotFuture</code>；三次都不产生可用的新实例</td>
+</tr>
+</tbody>
+</table>
+<p>若测试本身 <code>[FAIL]</code>，先看失败发生在「预期某个 revert」还是 <code>Ledger</code> 校验；前者从调用者、前态和执行块时间找差异，后者逐项核对 <code>state()</code>、C 的余额和两个地址的应领。失败调用的业务改账与日志会回退，但真实链上的失败交易若已入块，仍会付费。</p>
+<h2 id="独立工单过期的是订单还是领取权">独立工单：过期的是订单，还是领取权？</h2>
+<p>客服收到一张<strong>已在 D−1 成功结算、到 D+3600 仍无人领取</strong>的单子。A 请求退款，B 则认为自己错过了领取时间。不要修改业务合约。在你自己的练习副本中，给 <code>EscrowTransitionsTest</code> 新增 <code>testHomeworkLatePickup()</code>：先锁款、在 D−1 结算，再将时间移至 D+3600，依次尝试 A 退款、B 领取，保留调用前后账页。可复用夹具里的 <code>_lock()</code>、<code>_settle()</code>、<code>_row()</code>、<code>_withdraw()</code>；不要只在 Java 端模拟状态。方法写好后运行：</p>
+<pre><code class="language-bash">forge test --offline --match-contract EscrowTransitionsTest --match-test '^testHomeworkLatePickup' -vvvv | tee /tmp/m04-late-pickup.trace
+</code></pre>
+<p>交付新增测试源码、含<strong>一个匹配并通过的测试</strong>的完整 trace，以及给财务的一句话处理意见。答案判据：A 虽然等到 D 之后，仍因前态是 <code>Settled</code> 得 <code>WrongState()</code>；失败后 C 实存和 B 应领各 12,500 wei；B 领走 12,500 后两者都归零而 <code>state</code> 仍为 2。应告诉财务「不再付款；以这次由 C 发给 B 的 <code>Withdrawn</code> 与账页对上原单」，不能说「到了 D，结算自动作废」。</p>
+<h2 id="原文核对">原文核对</h2>
+<ul>
+<li><a href="https://docs.soliditylang.org/en/v0.8.28/units-and-global-variables.html#block-and-transaction-properties">Solidity 0.8.28：区块与交易上下文</a>：核对 <code>block.timestamp</code>、<code>msg.sender</code> 和 <code>msg.value</code> 的单位与作用范围。</li>
+<li><a href="https://docs.soliditylang.org/en/v0.8.28/common-patterns.html">Solidity 0.8.28：常见合约模式</a>：比较状态机与拉取式付款；本单自己的边界仍由合同条款决定。</li>
+<li><a href="https://docs.soliditylang.org/en/v0.8.28/abi-spec.html#events">ABI 规范：Events</a>：核对日志地址、topics 与 data 的分工。</li>
+<li><a href="https://www.getfoundry.sh/forge/debugging">Foundry：读 Forge 调用跟踪</a>：用 <code>-vvvv</code> 查看通过场景的内部调用、返回和回退。</li>
+</ul>
+<nav class="end-links" aria-label="阅读导航"><a rel="prev" href="abi.html">上一课 · 13</a><a rel="next" href="invariants.html">下一课 · 15</a></nav></article>
+<aside class="rail"><nav aria-label="本页目录"><b>本页目录</b><ol><li><a href="#先把发货结算领取拆成三张单">先把发货、结算、领取拆成三张单</a></li><li><a href="#把合同条款写成转移表">把合同条款写成转移表</a></li><li><a href="#读实现钱从哪来授权看哪一层">读实现：钱从哪来，授权看哪一层</a></li><li><a href="#跟一轮账在-d1-结算">跟一轮账：在 D−1 结算</a></li><li><a href="#只把决定推迟一秒">只把决定推迟一秒</a></li><li><a href="#哪些请求必须被拒绝">哪些请求必须被拒绝？</a></li><li><a href="#独立工单过期的是订单还是领取权">独立工单：过期的是订单，还是领取权？</a></li><li><a href="#原文核对">原文核对</a></li></ol></nav></aside></div><dialog class="figure-zoom" aria-label="配图放大视图">
+<form method="dialog"><a>打开 SVG 原图</a><button autofocus>收起大图</button></form>
+<div class="zoom-scroll" tabindex="0" role="region" aria-label="放大的配图，可滚动"><img alt=""></div></dialog></main><footer><span>链上开发手册</span><a href="../index.html">课程首页</a><a href="escrow.md">Markdown 原稿</a></footer></body></html>

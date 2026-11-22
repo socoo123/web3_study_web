@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="568" viewBox="0 0 520 568" role="img" aria-labelledby="title desc" xml:lang="zh-CN">
+  <title id="title">同一笔 37 wei，不能同时按结算和退款入账</title>
+  <desc id="desc">块 2 锁入 37 wei。A 支块 3 结算给收款方，块 4 为空。开发链回到块 2 后，B 支块 3 到期退款给付款方，块 4 由付款方提现。数据库保留 A 的块和事件但不再计数，只有 B 的提款是实收。</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" markerWidth="7" markerHeight="7" refX="8" refY="5" orient="auto"><path d="M0 0 10 5 0 10Z" fill="#605548"/></marker></defs>
+  <rect width="520" height="568" fill="#fffaf2"/>
+  <g font-family="system-ui,sans-serif" fill="#29251f">
+    <text x="18" y="37" font-size="24" font-weight="700">回退到哪一块？找最后相同的哈希</text>
+    <text x="18" y="65" font-size="17">父块 → 子块　·　参与者：付款方、收款方</text>
+    <g fill="none" stroke="#605548" stroke-width="2.5" marker-end="url(#arrow)"><path d="M228 146 134 198"/><path d="M292 146 386 198"/><path d="M134 293v31"/><path d="M386 293v31"/></g>
+    <rect x="95" y="82" width="330" height="64" rx="8" stroke="#80684a" fill="#f3e8d6"/>
+    <g text-anchor="middle" font-size="18"><text x="260" y="108" font-weight="700">块 2 · Locked · 共同祖先</text><text x="260" y="133">付款方 → 托管：37 wei</text></g>
+    <g stroke="#995e42" fill="#fbeadd"><rect x="18" y="201" width="231" height="91" rx="8"/><rect x="18" y="329" width="231" height="88" rx="8"/></g>
+    <g stroke="#326e60" fill="#e2f1e9"><rect x="271" y="201" width="231" height="91" rx="8"/><rect x="271" y="329" width="231" height="88" rx="8"/></g>
+    <g text-anchor="middle" font-size="18">
+      <text x="133" y="229" font-weight="700">A3 · Settled</text><text x="133" y="255">收款方应领 37 wei</text><text x="133" y="280">实收 0 wei</text>
+      <text x="386" y="229" font-weight="700">B3 · Refunded</text><text x="386" y="255">付款方应领 37 wei</text><text x="386" y="280">实收 0 wei</text>
+      <text x="133" y="357" font-weight="700">A4 · 空块</text><text x="133" y="383">无提款，仍有父哈希</text><text x="133" y="406">此支保留，不再入账</text>
+      <text x="386" y="357" font-weight="700">B4 · Withdrawn</text><text x="386" y="383">付款方应领 0 wei</text><text x="386" y="406">实收 37 wei</text>
+    </g>
+    <path d="M18 445H502" stroke="#baa88e"/>
+    <text x="18" y="480" font-size="20" font-weight="700">SQL：游标 A4 → 块 2 → B4</text>
+    <text x="18" y="512" font-size="17">第一笔事务：A3、A4 失效 + 修正单 + 游标回退。</text>
+    <text x="18" y="541" font-size="17">再补扫 B3、B4。块 2 的锁款不需要重记。</text>
+  </g>
+</svg>

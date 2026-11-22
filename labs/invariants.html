@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark"><title>第 15 课 · 托管测试：这 41 wei 究竟领过几次？ · 链上开发手册</title>
+<link rel="stylesheet" href="../assets/site.css?v=2786ad38e29d"><script src="../assets/site.js?v=6dc390471c89" defer></script></head>
+<body><a class="skip" href="#main">跳至正文</a><header class="mast"><div class="mast-inner">
+<a class="brand" href="../index.html"><span class="mark" aria-hidden="true"></span>链上开发手册</a>
+<nav aria-label="全站导航"><a href="../plan.html">课程计划</a><a href="../index.html#labs">实验台</a><button type="button" id="theme" hidden>切换主题</button></nav>
+</div></header><main id="main" class="reading"><div class="crumb"><a href="../index.html">手册首页</a> / <a href="../plan.html#m04">M04 · Solidity：托管与合约测试</a> / 第 15 课</div>
+<header class="lesson-opening"><h1 id="page-title">第 15 课 · 托管测试：这 41 wei 究竟领过几次？</h1><figure class="specimen"><figcaption>41 wei · 再次领取前后</figcaption><dl>
+<div><dt>首次领取后实收</dt><dd>41 wei</dd></div>
+<div><dt>重试后累计实收</dt><dd>41 wei</dd></div></dl>
+<span class="specimen-relation" aria-hidden="true">=</span><p>第二次领取被拒；把两行累计实收相加会多算一笔</p></figure><p>工单 T-15：付款方锁了 <strong>41 wei</strong>，截止时间是本地第 <strong>110 秒</strong>。项目经理在第 109 秒点了「验收」，收款方的钱包却没多一分钱。这时客服该让谁重试，重试哪个按钮？<strong>结算成功只产生应领款，不等于已经领取。</strong> 我们要交出四行账页，说明钱何时离开托管、第二次领取为什么不能多出 41 wei；然后只让决定晚一秒，看应领人是否换对。</p></header><div class="reading-grid"><article aria-labelledby="page-title"><details class="mobile-toc"><summary>本页目录</summary><ol><li><a href="#从交接单推导断言而不是照抄合约变量">从交接单推导断言，而不是照抄合约变量</a></li><li><a href="#先跑固定例子早一秒与恰好到点">先跑固定例子：早一秒与恰好到点</a></li><li><a href="#用三种测试回答三个不同的问题">用三种测试回答三个不同的问题</a></li><li><a href="#留一份能重放的反例改错的是验收公式不是托管">留一份能重放的反例：改错的是验收公式，不是托管</a></li><li><a href="#这些绿灯不包含什么">这些绿灯不包含什么</a></li><li><a href="#独立作业退款后谁能按领取键">独立作业：退款后，谁能按领取键？</a></li><li><a href="#查证原文">查证原文</a></li></ol></details><p>先修：<a href="abi.html">第 13 课 · ABI 与存储</a>、<a href="escrow.html">第 14 课 · 托管状态机</a>。本课不改<a href="m04/src/MilestoneEscrow.sol">业务合约</a>，只运行<a href="m04/test/EscrowProperties.t.sol">测试和记账器</a>。没有外部节点、钱包、私钥或测试币水龙头。这里的「秒」是 Forge 本地 EVM 的区块时间戳，不是让终端睡眠的时长。</p>
+<h2 id="从交接单推导断言而不是照抄合约变量">从交接单推导断言，而不是照抄合约变量</h2>
+<p>把订单分成三栏：<strong>托管余额</strong>是钱现在放在哪里；<strong>应领</strong>是账上欠谁；<strong>实收</strong>是领取人的账户实际多了多少钱。记应付时，同一笔 41 同时出现在余额和应领两栏：前者是资产，后者是债务，不能相加说成 82。退款也不是自动打钱，而是让付款方取得应领权。用于对账的「累计领取」只在 <code>withdraw()</code> 成功、收款账户发生净增时计一次。</p>
+<figure class="lesson-figure"><a href="../assets/figures/m04/invariants.svg"><img src="../assets/figures/m04/invariants.svg" alt="41 wei 锁款后，109 秒结算把收款方应领从 0 改成 41，累计实收仍为 0；领取才使实收变成 41，再领被拒时三栏都不变。"></a><figcaption>手工推算的验收单。第 ② 行还没发生出金，第 ④ 行不是一次零金额成功付款。改为在截止秒退款时，用同一公式，把应领和实收的主人换成付款方。</figcaption></figure>
+
+<p>如果把合约自己报出的应领金额同时当作实发金额，两边相等可能只是因为抄了同一行。测试另立一册：锁入时记付款方余额的<strong>实际减少</strong>，领取时记领取人余额的<strong>实际增加</strong>，再与合约现金、双方 <code>credit</code> 和订单状态对照。就像 Java 订单服务对银行流水，不能拿两份由同一字段生成的 DTO 互证。</p>
+<p>这里可以把余额差归因给单次调用：两个角色是互异的本地无代码地址，没有其他收支，<code>prank</code> 改的是内部测试调用的身份，不让该账户承担一笔已签名上链交易的 gas。若改用真实节点交易，付款方可能还付手续费，净差口径要回到<a href="evm.html">第 11 课的费用账</a>。本实验只给付款方一次起始资金，不在每次提款前重置余额，也不向托管额外转款。不要把这些条件下的等式误写成任意链上地址的余额定律。</p>
+<h2 id="先跑固定例子早一秒与恰好到点">先跑固定例子：早一秒与恰好到点</h2>
+<p>环境：Foundry <strong>Forge 1.7.1</strong>、原生 <strong>solc 0.8.28</strong>，Cancun，优化器开启、200 runs；没有 <code>forge-std</code> 或其他 Solidity 库。首次取工具见<a href="abi.html#m04-tools">本卷安装说明</a>，工具就绪后所有测试均可离线执行。从仓库根目录，在同一终端进入工程：</p>
+<pre><code class="language-bash">export PATH=&quot;${XDG_CACHE_HOME:-$HOME/.cache}/chain-course/m04/bin:$PATH&quot;
+export FOUNDRY_SOLC=&quot;$(command -v solc)&quot;
+cd labs/m04
+forge --version
+&quot;$FOUNDRY_SOLC&quot; --version
+forge test --offline --match-contract EscrowPropertiesTest --match-test test_LastSecondSettles -vvvv
+forge test --offline --match-contract EscrowPropertiesTest --match-test test_CutoffRefunds -vvvv
+</code></pre>
+<p><code>setUp()</code> 从本地第 100 秒开始，在付款方身份下部署一份新托管，截止为 <code>100 + 10 = 110</code>。每个固定测试从同一初态开始。两者调用的是同一个 <code>_runOrder(40, atCutoff)</code>；<code>40</code> 是生成器输入，不是转款额：<code>1 + 40 % 1_000_000 = 41 wei</code>。唯一不同的开关是 <code>atCutoff</code>：<code>false</code> 在 109 秒由付款方 <code>settle()</code>，<code>true</code> 在 110 秒由付款方 <code>refund()</code>。推进时钟不等于触发退款，还要有这次明确的调用。</p>
+<p>在 <code>-vvvv</code> 的调用树里找测试事件 <code>Page</code>，不是把最外层的 <code>PASS</code> 当余额。字段顺序是 <code>step, inWei, paidWei, heldWei, payerCreditWei, payeeCreditWei</code>。下面是<strong>预期值</strong>；每行后五列都是 wei。两条路径的第一行和最后两行数值相同，但领取调用者不同。</p>
+<table class="stackable">
+<thead>
+<tr>
+<th>账页</th>
+<th style="text-align: right;">累计入金</th>
+<th style="text-align: right;">累计实收</th>
+<th style="text-align: right;">托管余额</th>
+<th style="text-align: right;">付款方应领</th>
+<th style="text-align: right;">收款方应领</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="账页">两轮 <code>lock</code></td>
+<td data-label="累计入金" style="text-align: right;">41</td>
+<td data-label="累计实收" style="text-align: right;">0</td>
+<td data-label="托管余额" style="text-align: right;">41</td>
+<td data-label="付款方应领" style="text-align: right;">0</td>
+<td data-label="收款方应领" style="text-align: right;">0</td>
+</tr>
+<tr>
+<td data-label="账页">109 秒 <code>resolve</code>，已结算</td>
+<td data-label="累计入金" style="text-align: right;">41</td>
+<td data-label="累计实收" style="text-align: right;">0</td>
+<td data-label="托管余额" style="text-align: right;">41</td>
+<td data-label="付款方应领" style="text-align: right;">0</td>
+<td data-label="收款方应领" style="text-align: right;">41</td>
+</tr>
+<tr>
+<td data-label="账页">110 秒 <code>resolve</code>，已退款</td>
+<td data-label="累计入金" style="text-align: right;">41</td>
+<td data-label="累计实收" style="text-align: right;">0</td>
+<td data-label="托管余额" style="text-align: right;">41</td>
+<td data-label="付款方应领" style="text-align: right;">41</td>
+<td data-label="收款方应领" style="text-align: right;">0</td>
+</tr>
+<tr>
+<td data-label="账页">各自由正确的人 <code>withdraw</code></td>
+<td data-label="累计入金" style="text-align: right;">41</td>
+<td data-label="累计实收" style="text-align: right;">41</td>
+<td data-label="托管余额" style="text-align: right;">0</td>
+<td data-label="付款方应领" style="text-align: right;">0</td>
+<td data-label="收款方应领" style="text-align: right;">0</td>
+</tr>
+<tr>
+<td data-label="账页">同一人 <code>retry</code>，内层调用被拒</td>
+<td data-label="累计入金" style="text-align: right;">41</td>
+<td data-label="累计实收" style="text-align: right;">41</td>
+<td data-label="托管余额" style="text-align: right;">0</td>
+<td data-label="付款方应领" style="text-align: right;">0</td>
+<td data-label="收款方应领" style="text-align: right;">0</td>
+</tr>
+</tbody>
+</table>
+<p>业务合约的 <code>Settled</code>、<code>Refunded</code> 和 <code>Withdrawn</code> 是不同的事件；<code>Page</code> 则是测试器另外打印的对账记录，不属于待部署的 ABI。沿调用树核对 <code>withdraw</code> 第一次成功、第二次回退。测试对第二次只接受 <code>ok == false</code> 且领取人余额不变，随后还检查现金、两份应领和终态。若错误地「成功但付零」，即便表面的余额一样，也过不了这一条。</p>
+<h2 id="用三种测试回答三个不同的问题">用三种测试回答三个不同的问题</h2>
+<p><strong>单测：已签字的工单能否照做？</strong> 固定测试就是上面那两张账。还有 <code>test_PayeeCannotSettle</code>：在钱已锁入、时间未到、其他条件均合法时，仅换收款方去点验收。预期业务调用被拒，订单仍为 <code>Locked</code>，余额 41、双方应领均为 0。只有这样隔离变量，才知道拒绝的是角色而不是「根本没锁款」。</p>
+<p><strong>Fuzz：同一路径，换金额还成立吗？</strong> <code>testFuzz_Posting(uint96 raw, bool atCutoff)</code> 让 Forge 生成一对输入，每个样本都从初态运行到连续两次领取。取模再加一将输入映射到 <code>[1, 1_000_000] wei</code>；即使抽到 <code>0</code> 也能真实锁入 1 wei，不会把大量样本花在预期的零额拒绝上。两个布尔值对应相邻的两个有效决策时刻。取模不是均匀抽样的承诺，64 轮也不会穷尽区间。零金额、错误角色等拒绝条件需要另列用例，不能从这个有效域外推。</p>
+<p><strong>Invariant：让别人挑操作顺序，每一步还能平账吗？</strong> <code>EscrowLedgerHandler</code>（下称记账器）不是第二套托管。Forge 通过测试合约的 <code>targetContracts()</code> 和 <code>targetSelectors()</code> 找到它，每次从 <code>lock(raw)</code>、<code>resolve(atCutoff)</code>、<code>collect()</code> 三个动作中选择一个。某次的入金、应领人、是否领过会留给<strong>下一次</strong>调用；不会每一步都重跑 <code>setUp()</code>。而 fuzz 的每个输入是固定的一整条流程，两者不要混淆。</p>
+<table class="stackable">
+<thead>
+<tr>
+<th>动作</th>
+<th>怎样执行</th>
+<th>记账器凭什么记数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="动作"><code>lock(raw)</code></td>
+<td data-label="怎样执行">新单以付款方身份用正额锁款；已有未完成订单则不再锁</td>
+<td data-label="记账器凭什么记数"><code>principal = beforePayer - PAYER.balance</code>，要求等于调用金额，再加进 <code>totalIn</code></td>
+</tr>
+<tr>
+<td data-label="动作"><code>resolve(atCutoff)</code></td>
+<td data-label="怎样执行">仅在已锁且尚未决定时执行；在截止前一秒结算或恰好到点退款</td>
+<td data-label="记账器凭什么记数">本册按所作的业务决定记应领人，不读合约的 <code>credit</code> 来填预期。不把结算算作出金</td>
+</tr>
+<tr>
+<td data-label="动作"><code>collect()</code></td>
+<td data-label="怎样执行">已决定时由登记的人领取；已领取则检查再领被拒</td>
+<td data-label="记账器凭什么记数">直接读领取人调用前后余额。首次要求净增恰等于本单本金，才把净增累加进 <code>totalPaid</code>；再次不许增加</td>
+</tr>
+</tbody>
+</table>
+<p>在不具备某动作的前提时（如一开始就抽到领取），记账器不向合约发那次调用。已经成功领取且验证过再领被拒后，若又抽到锁款，先核旧单已清，再<strong>部署另一份同源码的新单</strong>；绝不重开旧单，也不清历史累计。<code>test_TwoOrdersOneJournal</code> 固定先结算 41，再退款 59，最后累计实际入金和实收都是 100，且旧单仍为 <code>Settled</code>。这让两条路径、两次成功领取和两次明确的拒绝都有确定的到达证据，而不依赖某次随机序列刚好走完。</p>
+<p><code>invariant_cashAndClaimsAgree()</code> 调用的 <code>assertLedger()</code> 每步做三件事：先看 <code>totalPaid &lt;= totalIn</code>，再看当前托管余额是否等于 <code>totalIn - totalPaid</code>（旧单已清），最后按本册应领人和是否已领，核对<strong>两个</strong>角色的 <code>credit</code> 以及 <code>state</code>。即使总钱数正确，只要结算把债权给错了人，第三项也能发现。主调用意外回退会让这一轮失败；只有明确期望拒绝的重复领取在记账器内部捕获并断言。若把所有失败都吞掉，只断言「累计实收不超过 0 入金」，测试可以什么都没做就绿灯。</p>
+<p>在同一 <code>labs/m04</code> 目录运行全套：</p>
+<pre><code class="language-bash">forge test --offline --match-contract EscrowPropertiesTest --fuzz-seed 0x15 -j 1 -vv
+forge test --offline --match-test test_TwoOrdersOneJournal -vvvv
+</code></pre>
+<p>按<a href="m04/foundry.toml">本工程配置</a>，预期四个固定测试通过，<code>testFuzz_Posting</code> 通过 64 轮，<code>invariant_cashAndClaimsAgree</code> 通过 32 轮、每轮深度 16（512 次记账器调用），意外回退为 0；<code>fail_on_revert = true</code>。<strong>512 不是 512 次成功付款。</strong> 包含因前提不符而返回的动作；要用固定路径的 <code>Page</code> 和收款余额差来证明实际付过。命令固定了种子和工作线程数，地址、Gas 数、selector 分布都不是答案。</p>
+<h2 id="留一份能重放的反例改错的是验收公式不是托管">留一份能重放的反例：改错的是验收公式，不是托管</h2>
+<p>某张旧报表写成「<code>decidedAt &lt;= cutoff</code> 时仍给收款方记应领」。在 109 秒这没露馅，但 110 秒会把本应付给付款方的 41 错列到收款方。用<strong>临时目录</strong>重做这次账页纠错，只改测试中的报表公式一个比较符，不换实现、不向任何节点发交易。以下仍从 <code>labs/m04</code> 开始，保留同一个终端的变量。</p>
+<pre><code class="language-bash">PROJECT=$PWD
+CASE=$(mktemp -d)
+mkdir &quot;$CASE/src&quot; &quot;$CASE/test&quot;
+cp foundry.toml &quot;$CASE/&quot;
+cp src/MilestoneEscrow.sol &quot;$CASE/src/&quot;
+T=test/EscrowProperties.t.sol
+awk '{ sub(/bool vendorDue = decidedAt &lt; cutoff;/, &quot;bool vendorDue = decidedAt &lt;= cutoff;&quot;); print }' &quot;$T&quot; &gt; &quot;$CASE/$T&quot;
+cd &quot;$CASE&quot;
+forge test --offline --match-test test_CutoffRefunds -vvvv &gt; fixed-red.log 2&gt;&amp;1
+</code></pre>
+<p>最后一条<strong>预期非零退出</strong>；到这里先读 <code>fixed-red.log</code>。输入固定为 <code>raw=40, atCutoff=true</code>，<code>resolve</code> 行应为 <code>41,0,41,41,0</code>，失败原因应是 <code>posting at cutoff</code>，而不是编译错误。接着在同一目录收集由 Forge 自己找到的输入（普通交互终端中逐段运行，不要用 <code>set -e</code> 跳过预期失败后的取证）：</p>
+<pre><code class="language-bash">forge test --offline --match-test testFuzz_Posting --fuzz-seed 0x15 -j 1 -vvv &gt; fuzz-red.log 2&gt;&amp;1
+F=cache/fuzz/failures/EscrowPropertiesTest/testFuzz_Posting
+cat &quot;$F&quot;
+cp &quot;$F&quot; counterexample.json
+forge test --offline --match-test testFuzz_Posting --fuzz-seed 0x15 -j 1 -vvv &gt; replay-red.log 2&gt;&amp;1
+</code></pre>
+<p>两条 <code>forge test</code> 均预期因<strong>同一条报表断言</strong>失败。记录 <code>fuzz-red.log</code> 中的 <code>args</code> 和 calldata，<code>atCutoff</code> 应为 <code>true</code>；实际 <code>raw</code> 可能不是 40，用 <code>1 + raw % 1_000_000</code> 换算成 wei。Forge 1.7.1 将该模糊测试的反例写进上面的 JSON，再跑同名测试时会先尝试已存输入。若出错的是 invariant，反例则是<strong>有序的调用序列</strong>，默认在 <code>cache/invariant/failures/&lt;测试合约&gt;/&lt;测试函数&gt;</code>；不要只抄最后一次 <code>collect()</code>，没有前置状态就重放不了。<code>cache/test-failures</code> 用于筛选上次失败的测试名，不等于保留了这些参数。先归档再改，不要先 <code>forge clean</code> 把证据洗掉。</p>
+<p>现在把原工程里正确的 <code>&lt;</code> 公式带回<strong>临时工程</strong>，保留缓存和已经归档的 JSON，验证已发现输入与两个相邻时刻：</p>
+<pre><code class="language-bash">cp &quot;$PROJECT/$T&quot; &quot;$T&quot;
+forge test --offline --match-test testFuzz_Posting --fuzz-seed 0x15 -j 1 -vvv &gt; fuzz-green.log 2&gt;&amp;1
+forge test --offline --match-test 'test_(CutoffRefunds|LastSecondSettles)' -vvvv &gt; fixed-green.log 2&gt;&amp;1
+cat fixed-green.log
+printf '本次工单及日志：%s\n' &quot;$CASE&quot;
+cd &quot;$PROJECT&quot;
+</code></pre>
+<p>预期两个固定用例均通过，fuzz 恢复通过。交接时归档版本、配置、错误比较符、完整反例和红绿两次输出；源码中长期保留 <code>test_CutoffRefunds</code> 这个具名回归，它即使在没有缓存的干净机器上，也会覆盖原先误判的一秒。若要钉住<strong>随机发现的具体金额</strong>，将日志中的那个 <code>raw</code> 与 <code>true</code> 原样作为 <code>_runOrder</code> 的两个常量另加具名用例，不要把换算后的 wei 填回 <code>raw</code> 参数。种子有助于重跑一轮，不能替代原参数、操作顺序和代码版本。</p>
+<h2 id="这些绿灯不包含什么">这些绿灯不包含什么</h2>
+<ul>
+<li><strong>最小权限不是「对所有人隐藏函数」。</strong> 函数 ABI 是公开的；由合约校验实际调用者。付款方才能锁款和作决定，领取入口按 <code>msg.sender</code> 取自己的应领，没有代领参数、管理员替人改账或紧急清空的后门。它仍信任付款方在截止前判断里程碑是否完成；代码不替双方仲裁。</li>
+<li><strong>先记账再交互，领取与结算分开。</strong> <code>withdraw()</code> 检查非零应领，将其置零，最后对领取人执行带金额的调用；若发送失败，合约回退，前面的置零不会单独生效。这样结算本身不依赖领取人当场接款成功。第二次领取的断言检验可观察结果，不是外部接收方任何行为都正确的证明；本课没有测试任意收款合约、网络重组或钱包误操作。</li>
+<li><strong>版本也是边界。</strong> 这里测试只导入本卷那一份源码，通过四个明确签名的本地 cheatcode 设置余额、身份、时间、读取时间；这些接口不是主网合约依赖。若今后引入第三方库，固定其发布版本或提交与校验值，复核实际引入的调用和权限，并用同一套账页重新验证。库名、审计标和高覆盖率都不能说明你的业务规则已被覆盖。</li>
+<li><strong>不是审计报告。</strong> 本轮只对指定编译设置、两个角色、有限金额、两个相邻时刻及生成过的序列给出证据。对账式还假定没有无关入账；不能倒过来用合约账户的全部余额当成本单本金。覆盖率回答「哪些行执行过」，不回答「应领人是否应该是这个地址」，更不证明真实资金可以上线。</li>
+</ul>
+<h2 id="独立作业退款后谁能按领取键">独立作业：退款后，谁能按领取键？</h2>
+<p>在你自己的临时工程测试合约 <code>EscrowPropertiesTest</code> 中增加 <code>test_RefundClaimBelongsToPayer</code>，不要改业务合约。新工单金额 <strong>73 wei</strong>：从测试输入推回适用的 <code>raw</code>，锁款并在 110 秒退款。这次不要立刻让付款方领取；先让<strong>收款方</strong>单独调用一次 <code>withdraw()</code>，检查被拒且状态不变。然后让付款方正常领取，再由付款方尝试领取第二次。可沿用 <code>test_PayeeCannotSettle</code> 捕获预期拒绝的写法；读取地址和合约引用后再 <code>prank</code>，因为它只作用于<strong>下一次</strong>外部调用。</p>
+<pre><code class="language-bash">cd &quot;$CASE&quot;
+forge test --offline --match-test test_RefundClaimBelongsToPayer -vvvv &gt; review-73.log 2&gt;&amp;1
+cat review-73.log
+</code></pre>
+<p>交出新增测试源、实际命令和三张 <code>Page</code>，并在调用树标出每次 <code>withdraw</code> 的调用方。判据：收款方被拒后仍是 <code>Refunded</code>，五栏为 <strong>73,0,73,73,0</strong>；付款方成功后为 <strong>73,73,0,0,0</strong>；付款方再领被拒后五栏不变。另核付款方首次领取的余额净增为 73，收款方全程净增为 0。若用错身份时只查「调用失败」、既没查原债权仍在也没查正确的人能取回，就不能交班。</p>
+<h2 id="查证原文">查证原文</h2>
+<ul>
+<li><a href="https://www.getfoundry.sh/forge/testing">Foundry：Solidity 测试、fuzz 与执行 trace</a>；<a href="https://www.getfoundry.sh/guides/invariant-testing">Invariant testing：handler、目标选择与调用序列</a>。本课的轮数取本地 <code>foundry.toml</code>，不取官网示例默认值。</li>
+<li><a href="https://github.com/foundry-rs/foundry/blob/v1.7.1/crates/forge/src/runner.rs">Forge 1.7.1 的测试 runner</a>：查 <code>run_fuzz_test</code>、<code>test_paths</code> 和 <code>persisted_call_sequence</code>，区别记录单次 calldata 与保存状态序列。</li>
+<li><a href="https://docs.soliditylang.org/en/v0.8.28/common-patterns.html#withdrawal-from-contracts">Solidity 0.8.28：Withdrawal from Contracts</a> 与<a href="https://docs.soliditylang.org/en/v0.8.28/security-considerations.html">安全考虑</a>：核对拉取式付款的责任边界、先检查再改账再交互的顺序。</li>
+</ul>
+<nav class="end-links" aria-label="阅读导航"><a rel="prev" href="escrow.html">上一课 · 14</a><a rel="next" href="deployment.html">下一课 · 16</a></nav></article>
+<aside class="rail"><nav aria-label="本页目录"><b>本页目录</b><ol><li><a href="#从交接单推导断言而不是照抄合约变量">从交接单推导断言，而不是照抄合约变量</a></li><li><a href="#先跑固定例子早一秒与恰好到点">先跑固定例子：早一秒与恰好到点</a></li><li><a href="#用三种测试回答三个不同的问题">用三种测试回答三个不同的问题</a></li><li><a href="#留一份能重放的反例改错的是验收公式不是托管">留一份能重放的反例：改错的是验收公式，不是托管</a></li><li><a href="#这些绿灯不包含什么">这些绿灯不包含什么</a></li><li><a href="#独立作业退款后谁能按领取键">独立作业：退款后，谁能按领取键？</a></li><li><a href="#查证原文">查证原文</a></li></ol></nav></aside></div><dialog class="figure-zoom" aria-label="配图放大视图">
+<form method="dialog"><a>打开 SVG 原图</a><button autofocus>收起大图</button></form>
+<div class="zoom-scroll" tabindex="0" role="region" aria-label="放大的配图，可滚动"><img alt=""></div></dialog></main><footer><span>链上开发手册</span><a href="../index.html">课程首页</a><a href="invariants.md">Markdown 原稿</a></footer></body></html>

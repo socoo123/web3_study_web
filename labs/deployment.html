@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark"><title>第 16 课 · 部署交接：这个地址真是昨晚那份托管吗？ · 链上开发手册</title>
+<link rel="stylesheet" href="../assets/site.css?v=2786ad38e29d"><script src="../assets/site.js?v=6dc390471c89" defer></script></head>
+<body><a class="skip" href="#main">跳至正文</a><header class="mast"><div class="mast-inner">
+<a class="brand" href="../index.html"><span class="mark" aria-hidden="true"></span>链上开发手册</a>
+<nav aria-label="全站导航"><a href="../plan.html">课程计划</a><a href="../index.html#labs">实验台</a><button type="button" id="theme" hidden>切换主题</button></nav>
+</div></header><main id="main" class="reading"><div class="crumb"><a href="../index.html">手册首页</a> / <a href="../plan.html#m04">M04 · Solidity：托管与合约测试</a> / 第 16 课</div>
+<header class="lesson-opening"><h1 id="page-title">第 16 课 · 部署交接：这个地址真是昨晚那份托管吗？</h1><figure class="specimen"><figcaption>31337 · 核对旧部署清单</figcaption><dl>
+<div><dt>清单指向的块</dt><dd>1</dd></div>
+<div><dt>新空链的高度</dt><dd>0</dd></div></dl>
+<span class="specimen-relation" aria-hidden="true">≠</span><p>链号相同，但新节点没有这笔部署的回执</p></figure><p>发布单 D-416 写着：本地链 <strong>31337</strong>，托管部署在<strong>第 1 块</strong>，截止时间是创世块时间加 <strong>3,600 秒</strong>，尚未锁款。接班人照着旧地址查询，节点也报 31337，就能把付款入口交给同事吗？不能。重启一条空链，它也能报这个链号。本课交付一份可归档的部署清单：让第二个进程先找回那笔创建交易，再用清单里的 ABI 读出状态 <code>0</code>、收款方应领 <code>0 wei</code>；找不到部署块时，连这次只读调用都不做。</p></header><div class="reading-grid"><article aria-labelledby="page-title"><details class="mobile-toc"><summary>本页目录</summary><ol><li><a href="#清单里的三个指纹各自回答一个问题">清单里的三个指纹，各自回答一个问题</a></li><li><a href="#一条命令从高度-0-到只读交接">一条命令，从高度 0 到只读交接</a></li><li><a href="#只改节点历史链号端口清单一字未改">只改节点历史：链号、端口、清单一字未改</a></li><li><a href="#旧入口怎样停用未提的钱怎么走">旧入口怎样停用，未提的钱怎么走？</a></li><li><a href="#本课作业让一份只改了截止时间的清单过不了关">本课作业：让一份只改了截止时间的清单过不了关</a></li><li><a href="#卷末接手工单-e-416前端今天切换应领款还在旧地址吗">卷末接手工单 E-416：前端今天切换，应领款还在旧地址吗？</a></li><li><a href="#查证原文">查证原文</a></li></ol></details><p>先修：<a href="receipts.html">12 · 回执与块锚点</a>、<a href="abi.html">13 · ABI 字节</a>、<a href="escrow.html">14 · 托管状态机</a>、<a href="invariants.html">15 · 测试与不变量</a>。使用同一份<a href="m04/src/MilestoneEscrow.sol">托管源码</a>与<a href="m04/foundry.toml">构建配置</a>。<a href="m04/deployment.py">发布程序</a>有权在自己的开发节点提交交易；<a href="m04/handoff.py">接班程序</a>是独立的 Python 标准库程序，只读，不需要合约工程、Forge、Cast 或解锁账户。</p>
+<h2 id="清单里的三个指纹各自回答一个问题">清单里的三个指纹，各自回答一个问题</h2>
+<p>Java 服务能用 Git 提交号、JAR 摘要和运行端口定位版本。合约还要回答：<strong>哪条链上的哪一次创建？</strong> 同一份构建可在不同地址部署，参数可以不同；同一地址字符串在不同链上也可以代表不同东西。ABI 是参数和返回值的编解码约定，不是链给代码开具的身份证明。接班人应该从受信发布渠道拿清单，再向受信节点核对，不能让节点刚刚返回的地址直接充当订单期望地址。</p>
+<table>
+<thead>
+<tr>
+<th>归档字段</th>
+<th>从哪里取、用在哪里</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>build.sourcePath/sourceSha256</code>、<code>configSha256</code>、<code>compiler</code>、<code>settings</code>、<code>forgeVersion</code></td>
+<td>源码、<code>foundry.toml</code> 原始字节和工具输出。这里用 solc <strong>0.8.28+commit.7893614a</strong>、优化开启、<code>runs=200</code>、目标 <code>cancun</code>。200 是优化时对代码执行次数的权衡参数，不是部署限额或测试次数。这里只有一个源码单元、没有第三方 Solidity 库或待链接库地址。</td>
+</tr>
+<tr>
+<td><code>build.artifactSha256</code>、<code>abiSha256</code>、<code>creationCodeSha256</code>、完整 <code>abi</code></td>
+<td>分别对应归档 <code>artifact.json</code> 的原文件、键排序/紧凑 UTF-8 JSON 的 ABI、解成字节后的创建代码。工具换了 JSON 排版，文件摘要可以变，即使可执行字节没变；所以复编比较的是 ABI、有效设置和创建输入，不是终端打印长得像。</td>
+</tr>
+<tr>
+<td><code>chainId</code>、<code>deploymentTransactionHash</code>、<code>deploymentBlockNumber/Hash</code>、<code>contractAddress</code></td>
+<td><code>eth_chainId</code>、部署交易与成功回执，加上按高度找到的规范块。地址取自创建回执的 <code>contractAddress</code>，不是普通调用回执的 <code>to</code>。只有高度不能排除同高度的另一个块。</td>
+</tr>
+<tr>
+<td><code>deployer</code>、<code>constructor.payee/deadline</code>、<code>runtimeSha256</code></td>
+<td>部署者就是付款方；参数给出收款方和绝对截止时间（Unix 秒）。运行时代码摘要取自部署块的 <code>eth_getCode</code>，不是本地 <code>.sol</code> 文件摘要。读 <code>payer()/payee()/deadline()</code> 再与清单核对。</td>
+</tr>
+</tbody>
+</table>
+<p>以上 SHA-256 均用于<strong>文件或字节归档</strong>。第 13 课取 selector 用的是规范函数签名的 Keccak-256，不要把 <code>hashlib.sha256</code> 或 <code>sha3_256</code> 的前四字节当 selector。摘要能揭示与可信原件不一致，不能给发布人签名；若对方能同时替换清单和所有期望摘要，仅比较清单自身不足以证明来源。</p>
+<h2 id="一条命令从高度-0-到只读交接">一条命令，从高度 0 到只读交接</h2>
+<p>准备 Python 3.11、<code>lsof</code> 和<a href="abi.html#m04-tools">本卷固定的工具链</a>。以下命令都从<strong>仓库根目录</strong>执行。安装只需准备时联网；安装好后导出路径，构建禁用下载，节点与读端只访问 <code>127.0.0.1:18556</code>。保留空闲端口，不接入已有节点。<code>anvil_lab.py</code> 确认本次子进程拥有监听端口，账户来自随机的临时钱包；不用输入、传递或导出密钥。</p>
+<pre><code class="language-bash">export PATH=&quot;${XDG_CACHE_HOME:-$HOME/.cache}/chain-course/m04/bin:$PATH&quot;
+export FOUNDRY_SOLC=&quot;${XDG_CACHE_HOME:-$HOME/.cache}/chain-course/m04/bin/solc&quot;
+unset ANVIL  # 不复用前几卷可能留下的节点程序路径
+WORK=$(mktemp -d)
+python3 labs/m04/deployment.py --out &quot;$WORK/release-a&quot;
+</code></pre>
+<p><code>--out</code> 要求一个<strong>尚不存在</strong>的目录，避免用新回执覆盖旧档；也可省略，由程序创建并打印 <code>ARCHIVE</code> 路径。命令返回时会停本次节点，归档保留。预期摘要如下；真正的交易哈希、块哈希、两个角色地址、绝对截止时间随轮次变化，以你目录里的完整值为准。</p>
+<pre><code class="language-text">REBUILD creationArgsMatch=true constructorBytes=64 compiler=0.8.28+commit.7893614a …
+HANDOFF chainId=31337 deployBlock=1 readBlock=1 state=0 payeeCreditWei=0 escrowBalanceWei=0
+</code></pre>
+<p><strong>第一步，封存输入。</strong> 发布程序复制源码及配置，再在临时空目录中运行 <code>forge build --root . --offline --extra-output metadata</code>。它从产物里的编译器元数据读实际编译版本、优化设置和 EVM 版本，而不是只抄工程配置的意图。源文件的相对路径同样是构建输入：注释或路径变了也可能改变元数据和字节码。带库的工程还须锁库版本、导入映射和链接地址；本卷不用库，并检查只有托管那个源码单元。</p>
+<p><strong>第二步，把创建和调用分开。</strong> 发布方读取创世块时间 <code>t₀</code>，用第一个临时账户发送一笔没有 <code>to</code> 的创建交易。最后一段输入是 <code>abi.encode(payee, t₀ + 3600)</code>：地址是 <code>12 个零字节 + 20 字节地址</code>，秒数是 32 字节大端无符号整数，共 <code>32+32=64</code> 字节，<strong>没有函数 selector</strong>。前面是初始化代码。初始化代码执行构造函数并返回要安装的运行时代码；之后对新地址发 <code>eth_call</code> 执行的是后者。不要拿整笔创建输入的摘要直接和 <code>eth_getCode</code> 比。构造阶段写入运行时代码的 <code>immutable</code> 值也可能使两个实例的运行时指纹不同。</p>
+<p>拿到交易哈希后，发布方要等待<strong>原哈希</strong>的回执；本机的自动挖块并不保证 <code>eth_sendTransaction</code> 返回时查询就已能读到它。短暂的 <code>null</code> 不是失败回执，不另发一笔创建。超过等待时限则暂停发布、保留原哈希待查；只有核过 <code>status</code> 和区块位置才交付。</p>
+<p><strong>第三步，重编校准，而不是拿旧产物验证旧产物。</strong> 成功回执给出部署块与地址。发布程序用归档源码和配置，在另一个没有缓存、没有 <code>out/</code> 的目录重新编译，并从节点按部署交易哈希取回原 <code>input</code>。检查第二次编译的 ABI、设置，且 <strong>第二次创建字节码 + 两个参数字 = 原交易输入</strong>，逐字节相等才继续。它保存原输入为 <code>deployment-input.hex</code>、回执为 <code>receipts.json</code>，将链上已安装代码的 SHA-256 写入 <code>manifest.json</code>。这是对本地这笔部署的源码校准，不是区块浏览器的公开验证徽章，更不是安全审计。</p>
+<p><strong>第四步，另一个进程接手。</strong> 发布程序在空工作目录用 Python 隔离模式启动 <code>handoff.py</code>。给它的唯一业务文件是 <code>manifest.json</code>，RPC 端点是读程序固定的本机约定。它按这个次序执行：</p>
+<ol>
+<li>查节点版本与链号，再按<strong>高度</strong>取部署块，并比较完整块哈希。旧块即使还能按哈希查到，也不能替代当前规范链上该高度的块。</li>
+<li>检查该块包含部署交易，回执 <code>status=0x1</code>、地址和块位置都对应；原交易确为本次部署者创建、无转账金额，输入尾部是清单两参数，去掉尾部后是记录过的创建代码指纹。</li>
+<li>固定当前读块，用 <code>{blockHash, requireCanonical:true}</code> 读合约代码与状态。运行时摘要不符就停止。按 ABI 取 getter 的输入和返回类型，计算 selector，用 <code>eth_call</code> 查询付款方、收款方、期限、枚举及应领；返回单个静态值要有完整的 32 字节。<code>credit(address)</code> 的 calldata 长 <strong>36 字节</strong>：4 字节 selector 后才是地址参数，不是直接拼 20 字节地址。</li>
+<li>接班人将<strong>实际读到的</strong> <code>readBlockHash</code>、角色、期限、<code>state</code>、<code>creditCalldata</code>、<code>payeeCreditWei</code> 和同块 <code>escrowBalanceWei</code> 交回 <code>handoff.json</code>。此处独立发布刚部署且没存款，故枚举 <code>0=Awaiting</code>、两个金额均为 0。若只看金额为 0 而不核锚点，可能根本没找到这份合约。</li>
+</ol>
+<figure class="lesson-figure"><a href="../assets/figures/m04/deployment.svg"><img src="../assets/figures/m04/deployment.svg" alt="同一清单在原链核对部署块 1、回执和代码后读到状态 0、应领 0 wei；新空链也报 31337，却因缺块 1 在调用前停止。"></a><figcaption>左支的零是一次 ABI 调用读回来的；右支没有调用，不能把「没找到部署」记成「余额为零」。</figcaption></figure>
+
+<h2 id="只改节点历史链号端口清单一字未改">只改节点历史：链号、端口、清单一字未改</h2>
+<pre><code class="language-bash">if python3 labs/m04/deployment.py --reset --out &quot;$WORK/reset&quot;; then rc=0; else rc=$?; fi
+printf 'exit=%s\n' &quot;$rc&quot;
+</code></pre>
+<p>本轮先重新部署并验收；在<strong>这一轮内部</strong>，程序随即关闭节点，启动另一条同版本、同端口、同链号但只有创世块的空链，把<strong>这一轮同一份</strong>清单交给同一读端。正常读端先交出 <code>HANDOFF</code>；第二次预期 <code>STOP chainId=31337 missing deployment block 1</code>，没有第二份读数，退出码 <code>3</code>，原因保存在 <code>refusal.txt</code>。这是主动更换本地内存链，不是回滚原链上一笔已确认交易。若看到连接拒绝、编译失败或端口占用，那是环境错误，不能当作本题的拒绝证据。</p>
+<h2 id="旧入口怎样停用未提的钱怎么走">旧入口怎样停用，未提的钱怎么走？</h2>
+<p>这份托管是<strong>直接部署、不可升级</strong>的单笔状态机。发布方没有管理员开关，不能在旧地址换代码，也不能替别人把 <code>credit</code> 提走。若发新版本，新建实例、复编和生成<strong>新的</strong>清单；不要让旧清单原地改地址。一个可执行的停用单是：</p>
+<ol>
+<li>在订单服务停止向新单分配旧地址；界面撤下旧地址的「新建/锁款」按钮，保留旧单查询。记生效时间、旧/新完整清单与对应订单范围。<strong>这不是链上暂停</strong>：对仍在 <code>Awaiting</code> 且未截止的旧实例，原付款方仍可能直接调用；要通知当事人，不许声称已经禁用合约。</li>
+<li>逐旧单核对角色、状态、余额和事件。<code>Locked</code> 的单仍须走原约定：截止前由 <code>payer</code> 决定是否 <code>settle</code>，到期后由 <code>payer</code> 发 <code>refund</code>；时钟到点不替人发交易。终态且有 <code>credit</code> 的，保留正确链/旧地址/旧 ABI 的 <code>withdraw()</code> 入口与说明，让受益人用自己的身份领取。客服不能用新地址清偿旧地址的余额。</li>
+<li>把旧地址标为只接存量单，持续核对两方 <code>credit</code> 和提款回执，不凭「余额已降」推断是谁领取。恢复错误路由可修正后续请求，但不能撤销已执行交易、替用户改旧账或把已付手续费退回。需要补偿时另立经授权的业务流程。</li>
+</ol>
+<p>若选<strong>可升级代理</strong>，入口地址可不变：代理经 <code>delegatecall</code> 借用实现代码，状态仍在代理的存储中。迁移负担从「用户切地址」部分移到「谁能授权切实现、谁核存储布局与初始化、客户端何时切 ABI」。不是所有代理都可升级。接手这类项目不能只记代理的代码摘要，还要按生效块记录代理地址、实现地址/代码、升级权限和变更凭据；切回旧实现也不会自动撤销新版已经写入的状态。这些是设计对照，实验里<strong>没有</strong>代理、管理员或升级交易。</p>
+<h2 id="本课作业让一份只改了截止时间的清单过不了关">本课作业：让一份只改了截止时间的清单过不了关</h2>
+<p>终端 A 从仓库根目录运行 <code>python3 labs/m04/deployment.py --hold</code>，保留打印的 <code>ARCHIVE</code> <strong>绝对路径</strong>。程序在正常验收后等待回车，节点仍在。终端 B 也从仓库根目录运行下面的命令，按提示粘贴该路径。别动原清单，只把一个副本的秒数加 1。先预测拒绝发生在回执、构造参数还是 getter 这一关。</p>
+<pre><code class="language-bash">printf '粘贴本轮 ARCHIVE 绝对路径：'; IFS= read -r R
+python3 -I labs/m04/handoff.py &quot;$R/manifest.json&quot;
+python3 - &quot;$R&quot; &lt;&lt;'PY'
+import json, pathlib, sys
+p = pathlib.Path(sys.argv[1]); m = json.loads((p/'manifest.json').read_text())
+m['constructor']['deadline'] += 1
+with (p/'wrong-deadline.json').open('x') as f: json.dump(m, f)
+PY
+if python3 -I labs/m04/handoff.py &quot;$R/wrong-deadline.json&quot;; then rc=0; else rc=$?; fi
+printf 'exit=%s\n' &quot;$rc&quot;
+</code></pre>
+<p>原件应返回带实际 <code>readBlockHash</code> 的 JSON；副本的链、块、回执、地址全是真的，但创建输入最后 32 字节没有跟着改，预期 <code>STOP constructor argument mismatch</code>、退出 <code>3</code>。交回原件读数、被改字段的两个实际整数与拒绝原因；回终端 A 按回车关闭自己启动的节点。<strong>判据：</strong>没有第二次部署或写交易；能指出「同一地址」和「构造参数符合交付单」需要两种不同证据。</p>
+<p><a id="m04-checkout"></a></p>
+<h2 id="卷末接手工单-e-416前端今天切换应领款还在旧地址吗">卷末接手工单 E-416：前端今天切换，应领款还在旧地址吗？</h2>
+<p>同事交来一份不同的需求：付款期限改为创世后 <strong>5,400 秒</strong>，测试金额为 <strong>9,007,199,254,741,017 wei</strong>（<code>2⁵³+25</code>）。在新链先部署，再由付款方锁款、结算，但<strong>不提现</strong>。你是第二班，不能只读发布者的终端：要用实际 <code>Settled</code> 日志、读端应领和合约余额各自复算；决定能否关闭旧单的提现页面。这不是让你重新编一个托管合约。</p>
+<p>先写下预计的状态、已付给受益人的金额、应领金额。下面从仓库根目录执行，沿用前面的工具环境；<code>CASE</code> 保存在本终端。先留第 15 课的真实测试记录，再启动一条新链：</p>
+<pre><code class="language-bash">CASE=$(mktemp -d)
+(cd labs/m04 &amp;&amp; forge test --offline) &gt; &quot;$CASE/tests.log&quot; &amp;&amp; cat &quot;$CASE/tests.log&quot; &amp;&amp;
+python3 labs/m04/deployment.py --ttl 5400 --settle-wei 9007199254741017 --out &quot;$CASE/old&quot;
+</code></pre>
+<p>若测试未通过，不放行。<code>receipts.json</code> 的 <code>deploy/lock/settle</code> 分别是三笔真实交易的回执；先看清 <code>Settled(address,uint256)</code> 的收款地址是 indexed，进 <code>topics[1]</code>，金额非 indexed，在 <code>data</code>。下面的<strong>离线复核</strong>只用归档，不读节点，把日志同另一个进程的 <code>handoff.json</code> 对起来：</p>
+<pre><code class="language-bash">TOPIC=$(cast keccak 'Settled(address,uint256)')
+python3 - &quot;$CASE/old&quot; &quot;$TOPIC&quot; &lt;&lt;'PY'
+import hashlib, json, pathlib, sys
+p = pathlib.Path(sys.argv[1]); load = lambda f: json.loads((p/f).read_text())
+m, r, h = map(load, ('manifest.json', 'receipts.json', 'handoff.json'))
+assert hashlib.sha256((p/'artifact.json').read_bytes()).hexdigest() == m['build']['artifactSha256']
+assert hashlib.sha256((p/m['build']['sourcePath']).read_bytes()).hexdigest() == m['build']['sourceSha256']
+a = load('artifact.json'); addr = m['constructor']['payee']; deadline = m['constructor']['deadline']
+creation = bytes.fromhex(a['bytecode']['object'][2:]); words = bytes(12) + bytes.fromhex(addr[2:]) + deadline.to_bytes(32, 'big')
+assert deadline - m['genesisTimestamp'] == 5400 and creation + words == bytes.fromhex((p/'deployment-input.hex').read_text().strip()[2:])
+assert [int(r[k]['blockNumber'],16) for k in ('deploy','lock','settle')] == [1, 2, 3]
+assert all(r[k]['status'] == '0x1' for k in ('deploy','lock','settle'))
+assert r['deploy']['blockHash'] == m['deploymentBlockHash'] and r['settle']['blockHash'] == h['readBlockHash']
+log, = r['settle']['logs']; assert log['address'] == m['contractAddress'] and log['topics'][0] == sys.argv[2]
+assert bytes.fromhex(log['topics'][1][2:]) == words[:32] and h['payee'].lower() == addr.lower()
+amount = int(log['data'], 16)
+assert amount == int(h['payeeCreditWei']) == int(h['escrowBalanceWei']) == 9007199254741017 and h['state'] == 2
+assert len(bytes.fromhex(h['creditCalldata'][2:])) == 36
+print('settleTx=', r['settle']['transactionHash'], 'readBlockHash=', h['readBlockHash'], 'owedWei=', amount)
+PY
+</code></pre>
+<p><strong>交接判据：</strong></p>
+<ul>
+<li>交出本轮测试摘要、清单、构建输入与产物、三笔回执及独立读端的回报，注明所用版本。清单部署块是 <strong>1</strong>，读数却属于<strong>块 3</strong>；两者各有自己的完整块哈希，不能混成「3 号块部署」。用本轮真实值写出付款/收款角色，说明 <code>creditCalldata</code> 中哪 32 字节是收款地址。</li>
+<li>三笔回执都成功，日志金额、收款方应领、隔离实例的余额都是 <strong>9,007,199,254,741,017 wei</strong>，状态 <strong>2=Settled</strong>。本轮无 <code>withdraw</code> 交易，已从托管转给受益人的金额仍为 <strong>0 wei</strong>。多笔外部收支时不能把任意余额净差当作订单金额；这张单有自己的角色、事件、状态和独占的资金流。</li>
+<li>给客服一句可执行指令：「停发旧地址的新单，保留该旧地址的查询和本人提现；收到成功 <code>Withdrawn</code> 回执并核对应领后再结案。」请同事另选非零整数（不超过 <code>10¹⁸</code> wei），换一个全新 <code>--out</code> 走一遍，用自己的数替换复核工单金额。若只会在演示固定地址上得到一个绿色输出，不算接过了发布。</li>
+</ul>
+<p>实验归档只含本机合成业务及公开链字段，不含助记词、私钥、真实订单。关闭节点后能复核文件、自行重新构建，不能凭归档恢复已销毁的链状态；另起节点是新部署，不是同一个地址的在线服务，更不是主网最终性证明。</p>
+<h2 id="查证原文">查证原文</h2>
+<ul>
+<li><a href="https://docs.soliditylang.org/en/v0.8.28/metadata.html">Solidity 0.8.28：合约元数据与复现构建</a>；<a href="https://docs.soliditylang.org/en/v0.8.28/abi-spec.html">ABI 规范：函数 selector、参数字与事件</a>。</li>
+<li><a href="https://github.com/ethereum/execution-apis/blob/main/src/eth/transaction.yaml">Ethereum Execution APIs：交易与回执</a>；<a href="https://eips.ethereum.org/EIPS/eip-1898">EIP-1898：按块哈希读取规范链状态</a>。</li>
+<li><a href="https://docs.openzeppelin.com/contracts/5.x/api/proxy">OpenZeppelin：代理、实现与升级权限的区别</a>。用于比较设计，本实验不导入代理库。</li>
+</ul>
+<nav class="end-links" aria-label="阅读导航"><a rel="prev" href="invariants.html">上一课 · 15</a><a rel="next" href="rpc.html">下一课 · 17</a></nav></article>
+<aside class="rail"><nav aria-label="本页目录"><b>本页目录</b><ol><li><a href="#清单里的三个指纹各自回答一个问题">清单里的三个指纹，各自回答一个问题</a></li><li><a href="#一条命令从高度-0-到只读交接">一条命令，从高度 0 到只读交接</a></li><li><a href="#只改节点历史链号端口清单一字未改">只改节点历史：链号、端口、清单一字未改</a></li><li><a href="#旧入口怎样停用未提的钱怎么走">旧入口怎样停用，未提的钱怎么走？</a></li><li><a href="#本课作业让一份只改了截止时间的清单过不了关">本课作业：让一份只改了截止时间的清单过不了关</a></li><li><a href="#卷末接手工单-e-416前端今天切换应领款还在旧地址吗">卷末接手工单 E-416：前端今天切换，应领款还在旧地址吗？</a></li><li><a href="#查证原文">查证原文</a></li></ol></nav></aside></div><dialog class="figure-zoom" aria-label="配图放大视图">
+<form method="dialog"><a>打开 SVG 原图</a><button autofocus>收起大图</button></form>
+<div class="zoom-scroll" tabindex="0" role="region" aria-label="放大的配图，可滚动"><img alt=""></div></dialog></main><footer><span>链上开发手册</span><a href="../index.html">课程首页</a><a href="deployment.md">Markdown 原稿</a></footer></body></html>

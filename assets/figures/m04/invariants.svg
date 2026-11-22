@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="346" viewBox="0 0 480 346" role="img" aria-labelledby="title desc" xml:lang="zh-CN">
+  <title id="title">41 wei 从锁入到再次领取的四行账页</title>
+  <desc id="desc">付款方锁入 41 wei，截止为第 110 秒。在第 109 秒结算后，托管余额和收款方应领都是 41，但实收仍为零。领取成功后，托管余额与应领都变为零，累计实收 41。再次领取被拒，三列不变。若到第 110 秒才决定，应领人改为付款方。</desc>
+  <rect width="480" height="346" rx="14" fill="#fffaf2"/>
+  <g font-family="system-ui, sans-serif" fill="#28221f">
+    <text x="22" y="35" font-size="22" font-weight="700">一笔托管，三种金额</text>
+    <text x="22" y="63" font-size="16">付款方锁入 41 wei · 截止 110 秒 · 以下单位 wei</text>
+    <rect x="16" y="83" width="448" height="37" rx="5" fill="#285c60"/>
+    <g font-size="16" fill="#fff" text-anchor="middle">
+      <text x="80" y="107">业务动作</text><text x="204" y="107">托管余额</text><text x="308" y="107">收款方应领</text><text x="416" y="107">累计实收</text>
+    </g>
+    <rect x="16" y="151" width="448" height="36" rx="4" fill="#fff1dc"/>
+    <rect x="16" y="222" width="448" height="35" rx="4" fill="#e1efea"/>
+    <g font-size="17" text-anchor="middle">
+      <text x="80" y="142">① 锁款</text><text x="204" y="142">41</text><text x="308" y="142">0</text><text x="416" y="142">0</text>
+      <text x="80" y="176">② 109 秒结算</text><text x="204" y="176">41</text><text x="308" y="176">41</text><text x="416" y="176" font-weight="700">0</text>
+      <text x="80" y="212">③ 领取</text><text x="204" y="212">0</text><text x="308" y="212">0</text><text x="416" y="212" font-weight="700">41</text>
+      <text x="80" y="246">④ 再领被拒</text><text x="204" y="246">0</text><text x="308" y="246">0</text><text x="416" y="246">41</text>
+    </g>
+    <path d="M22 272H458" stroke="#9b9184" stroke-dasharray="4 4"/>
+    <text x="22" y="300" font-size="18" font-weight="650">每行：托管余额 + 累计实收 = 41</text>
+    <text x="22" y="327" font-size="16">若第 ② 行改为 110 秒退款，应领人换成付款方。</text>
+  </g>
+</svg>

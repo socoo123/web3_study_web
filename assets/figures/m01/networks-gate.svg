@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="432" height="335" viewBox="0 0 432 335" role="img" aria-labelledby="title desc" xml:lang="zh-CN">
+  <title id="title">同一端口、同一版本，按实际读回的链号分流</title>
+  <desc id="desc">检查脚本已从本次 Anvil 读取版本和链号，版本符合要求。此时将实际链号与工单要求的 0x7a69 比较。相等时只通过环境检查，退出码 0；如果实际为 0x7a6a，不相等，签名与发送均未执行，退出码 3。</desc>
+  <defs>
+    <marker id="down" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0 10 5 0 10Z" fill="#514840"/></marker>
+  </defs>
+  <rect width="432" height="335" rx="14" fill="#fffaf2"/>
+  <g font-family="system-ui, sans-serif" text-anchor="middle" fill="#28221f">
+    <rect x="55" y="12" width="322" height="53" rx="9" fill="#f0e9dc"/>
+    <text x="216" y="34" font-size="18">同一端口，同一版本</text>
+    <text x="216" y="56" font-size="19" font-weight="650">18546 · anvil/v1.7.1</text>
+    <path d="M216 65V85" fill="none" stroke="#514840" stroke-width="2.5" marker-end="url(#down)"/>
+    <path d="M216 87 351 145 216 203 81 145Z" fill="#fff" stroke="#514840" stroke-width="2"/>
+    <text x="216" y="141" font-size="19">返回的链号</text>
+    <text x="216" y="165" font-size="20" font-weight="650">是 0x7a69 吗？</text>
+    <g fill="none" stroke="#514840" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#down)">
+      <path d="M81 145H34V233H109V252"/>
+      <path d="M351 145H398V233H323V252" stroke-dasharray="6 4"/>
+    </g>
+    <text x="111" y="220" font-size="18">是 · 0x7a69</text>
+    <text x="321" y="220" font-size="18">否 · 0x7a6a</text>
+    <rect x="12" y="255" width="194" height="64" rx="9" fill="#e1efea" stroke="#285c60" stroke-width="1.8"/>
+    <rect x="226" y="255" width="194" height="64" rx="9" fill="#fbe8da" stroke="#9b421d" stroke-width="1.8"/>
+    <text x="109" y="282" font-size="20" font-weight="650">PASS · 退出 0</text>
+    <text x="323" y="282" font-size="20" font-weight="650">STOP · 退出 3</text>
+    <text x="109" y="307" font-size="18">只通过环境检查</text>
+    <text x="323" y="307" font-size="18">没签名，也没发送</text>
+  </g>
+</svg>

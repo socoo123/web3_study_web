@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="460" height="514" viewBox="0 0 460 514" role="img" aria-labelledby="title desc" xml:lang="zh-CN">
+  <title id="title">09:02，节点从含凭条 18 的 X 分支切换到 Y 分支</title>
+  <desc id="desc">示意中，父块 F 的累计工作量为 100。09:00 节点收到含凭条 18 的 X，累计为 110；09:01 收到同样指向 F 的 Y，累计也是 110，此时仍采用 X。09:02 节点验证了 Y 的子块 Z，该分支累计 120，大于 X 的 110，节点改走 F、Y、Z。Y 和 Z 不含凭条 18。原来的两个兄弟摘要仍能把凭条算到 X 的原根。</desc>
+  <defs>
+    <marker id="parent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10Z" fill="#28221f"/></marker>
+    <marker id="proof" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 10 5 0 10Z" fill="#93461f"/></marker>
+  </defs>
+  <rect width="460" height="514" fill="#fffaf2"/>
+  <g fill="#28221f" font-family="system-ui, sans-serif">
+    <text x="18" y="34" font-weight="700" font-size="24">同一个父块，两条历史</text>
+    <text x="18" y="64" font-size="18">实线是子块指向父块；工作量用示意单位。</text>
+    <g fill="none" stroke="#28221f" stroke-width="2.6" marker-end="url(#parent)">
+      <path d="M114 202V184L190 149"/>
+      <path d="M346 202V184L270 149"/>
+      <path d="M346 380V306"/>
+    </g>
+    <path d="M114 380V306" fill="none" stroke="#93461f" stroke-width="2.6" stroke-dasharray="7 5" marker-end="url(#proof)"/>
+    <g stroke-width="2.3">
+      <rect x="136" y="87" width="188" height="60" rx="12" fill="#f5eadb" stroke="#51473e"/>
+      <rect x="16" y="202" width="196" height="102" rx="12" fill="#fff0dc" stroke="#93461f"/>
+      <rect x="248" y="202" width="196" height="102" rx="12" fill="#e0f1eb" stroke="#115c56"/>
+      <rect x="248" y="380" width="196" height="88" rx="12" fill="#e0f1eb" stroke="#115c56"/>
+      <path d="M25 382H185L205 402V466H25Z M185 382V402H205" fill="#fffaf2" stroke="#93461f" stroke-linejoin="round"/>
+    </g>
+    <g text-anchor="middle" font-size="18">
+      <text x="230" y="112" font-size="20" font-weight="700">共享父块 F</text><text x="230" y="136">高度 100 · 累计 100</text>
+      <text x="114" y="232" font-weight="700" font-size="21">09:00 收到 X</text><text x="114" y="261">高度 101 · 累计 110</text><text x="114" y="288">含凭条 18</text>
+      <text x="346" y="232" font-weight="700" font-size="21">09:01 收到 Y</text><text x="346" y="261">高度 101 · 累计 110</text><text x="346" y="288">无凭条 18</text>
+      <text x="68" y="349" fill="#783a1c">核对根</text><text x="390" y="349">父哈希</text>
+      <text x="115" y="418">凭条 18 + 两个兄弟</text><text x="115" y="450" font-weight="700">仍算到 X 的根</text>
+      <text x="346" y="406" font-size="21" font-weight="700">09:02 收到 Z</text><text x="346" y="432">高度 102 · 累计 120</text><text x="346" y="456">无凭条 18</text>
+    </g>
+    <text x="230" y="499" text-anchor="middle" font-weight="700" font-size="18">09:02：120 &gt; 110，节点改走 F → Y → Z。</text>
+  </g>
+</svg>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="452" viewBox="0 0 680 452" role="img" aria-labelledby="title desc" xml:lang="zh-CN">
+  <title id="title">同一持有人的余额与扣款上限是两本账</title>
+  <desc id="desc">以 LAB6 最小单位计，A 持有一千万，B 为获授权者和收款人。A 设二百五十万上限时余额不动。B 扣一百二十三万四千五百六十七个单位后，A 剩八百七十六万五千四百三十三，B 收到扣款，额度余一百二十六万五千四百三十三。再多扣一个单位时交易失败，三个读数不变。</desc>
+  <rect width="680" height="452" rx="10" fill="#fcf8ef"/>
+  <g font-family="system-ui,sans-serif" fill="#202b28">
+    <text x="24" y="40" font-size="25" font-weight="700">授权不是付款：看哪一列变了</text>
+    <text x="24" y="70" font-size="17">LAB6 · 单位均为最小单位（1 枚 = 1,000,000）</text>
+    <rect x="24" y="90" width="632" height="54" rx="6" fill="#e5eee9"/>
+    <g font-size="17" font-weight="700"><text x="36" y="123">谁调用代币</text><text x="362" y="123" text-anchor="end">A 持有余额</text><text x="501" y="123" text-anchor="end">B 收款余额</text><text x="641" y="123" text-anchor="end">B 剩余额度</text></g>
+    <g stroke="#d2cabb" fill="none"><path d="M24 199h632m-632 64h632m-632 68h632"/></g>
+    <g font-size="18" font-variant-numeric="tabular-nums">
+      <text x="36" y="179">部署后</text><text x="362" y="179" text-anchor="end">10,000,000</text><text x="501" y="179" text-anchor="end">0</text><text x="641" y="179" text-anchor="end">0</text>
+      <text x="36" y="230">A → approve</text><text x="36" y="252" font-size="15">上限 2,500,000</text><text x="362" y="238" text-anchor="end">10,000,000</text><text x="501" y="238" text-anchor="end">0</text><text x="641" y="238" text-anchor="end" font-weight="700">2,500,000</text>
+      <text x="36" y="295">B → transferFrom</text><text x="36" y="318" font-size="15">A 付给 B：1,234,567</text><text x="362" y="306" text-anchor="end">8,765,433</text><text x="501" y="306" text-anchor="end">1,234,567</text><text x="641" y="306" text-anchor="end">1,265,433</text>
+      <text x="36" y="363">B → transferFrom</text><text x="36" y="386" font-size="15">请求 1,265,434</text><text x="362" y="374" text-anchor="end">8,765,433</text><text x="501" y="374" text-anchor="end">1,234,567</text><text x="641" y="374" text-anchor="end">1,265,433</text>
+    </g>
+    <rect x="24" y="401" width="632" height="35" rx="5" fill="#f3ecdc"/>
+    <text x="36" y="425" font-size="16" font-weight="600">最后一行：A 的余额够，B 的额度差 1；回滚，不新增 Transfer。</text>
+  </g>
+</svg>

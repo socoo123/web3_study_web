@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="460" height="431" viewBox="0 0 460 431" role="img" aria-labelledby="title desc" xml:lang="zh-CN">
+  <title id="title">从位置 2 的凭条走到四叶树的根</title>
+  <desc id="desc">底层从左到右是 L0、L1、L2、L3。核对方从凭条 18 算出 L2；把对方给的 L3 放在右边，算出 P23；再把对方给的 P01 放在左边，算出候选根。灰色的 L0、L1 不需要重算。候选根要另外与自己保存的可信根比较。</desc>
+  <defs>
+    <marker id="mine" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10Z" fill="#115c56"/></marker>
+    <marker id="sent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10Z" fill="#93461f"/></marker>
+  </defs>
+  <rect width="460" height="431" fill="#fffaf2"/>
+  <g font-family="system-ui, sans-serif" fill="#28221f">
+    <text x="19" y="33" font-size="24" font-weight="700">核对凭条 18：从下往上读</text>
+    <g font-size="18">
+      <path d="M20 61h24" stroke="#115c56" stroke-width="4"/><text x="52" y="67">自己算</text>
+      <path d="M139 61h26" stroke="#93461f" stroke-width="3" stroke-dasharray="6 4"/><text x="174" y="67">对方给</text>
+      <path d="M263 61h26" stroke="#948c81" stroke-width="1.5"/><text x="298" y="67">无需重算</text>
+    </g>
+    <g fill="none">
+      <path d="M60 306 100 252 M170 306 130 252" stroke="#948c81" stroke-width="1.5"/>
+      <path d="M342 192 266 146" stroke="#115c56" stroke-width="3.5" marker-end="url(#mine)"/>
+      <path d="M400 306 366 255" stroke="#93461f" stroke-width="3" stroke-dasharray="7 5" marker-end="url(#sent)"/>
+      <path d="M115 192 192 146" stroke="#93461f" stroke-width="3" stroke-dasharray="7 5" marker-end="url(#sent)"/>
+      <path d="M288 306 319 255" stroke="#115c56" stroke-width="3.5" marker-end="url(#mine)"/>
+    </g>
+    <g stroke-width="2.5">
+      <rect x="152" y="91" width="156" height="54" rx="12" fill="#e0f1eb" stroke="#115c56"/>
+      <rect x="44" y="193" width="142" height="59" rx="10" fill="#fff0dc" stroke="#93461f" stroke-dasharray="7 4"/>
+      <rect x="271" y="193" width="142" height="59" rx="10" fill="#e0f1eb" stroke="#115c56"/>
+      <rect x="17" y="306" width="86" height="56" rx="9" fill="#f3eee5" stroke="#948c81" stroke-width="1.5"/>
+      <rect x="127" y="306" width="86" height="56" rx="9" fill="#f3eee5" stroke="#948c81" stroke-width="1.5"/>
+      <rect x="243" y="306" width="90" height="56" rx="9" fill="#e0f1eb" stroke="#115c56"/>
+      <rect x="355" y="306" width="90" height="56" rx="9" fill="#fff0dc" stroke="#93461f" stroke-dasharray="7 4"/>
+    </g>
+    <g text-anchor="middle" font-size="19">
+      <text x="230" y="114" font-weight="700">候选根</text><text x="230" y="136">P(P01, P23)</text>
+      <text x="115" y="217" font-weight="700">P01</text><text x="115" y="241">第 2 个兄弟</text>
+      <text x="342" y="217" font-weight="700">P23</text><text x="342" y="241">P(L2, L3)</text>
+      <text x="60" y="341">L0</text><text x="170" y="341">L1</text>
+      <text x="288" y="328" font-weight="700">L2</text><text x="288" y="352" font-size="18">凭条 18</text>
+      <text x="400" y="328" font-weight="700">L3</text><text x="400" y="352" font-size="18">兄弟 1</text>
+      <text x="60" y="387">位置 0</text><text x="170" y="387">位置 1</text><text x="288" y="387" font-weight="700">位置 2</text><text x="400" y="387">位置 3</text>
+    </g>
+    <text x="230" y="417" text-anchor="middle" font-size="18">只用一张原始凭条，另收两个 32 字节摘要。</text>
+  </g>
+</svg>
