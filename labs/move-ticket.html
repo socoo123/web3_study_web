@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark"><title>第 36 课 · 交出去的工单，原经办人还能退回吗？ · 链上开发手册</title>
+<link rel="stylesheet" href="../assets/site.css?v=2786ad38e29d"><script src="../assets/site.js?v=6dc390471c89" defer></script></head>
+<body><a class="skip" href="#main">跳至正文</a><header class="mast"><div class="mast-inner">
+<a class="brand" href="../index.html"><span class="mark" aria-hidden="true"></span>链上开发手册</a>
+<nav aria-label="全站导航"><a href="../plan.html">课程计划</a><a href="../index.html#labs">实验台</a><button type="button" id="theme" hidden>切换主题</button></nav>
+</div></header><main id="main" class="reading"><div class="crumb"><a href="../index.html">手册首页</a> / <a href="../plan.html#m09">M09 · 专项实验室〔按需选修〕</a> / 第 36 课</div>
+<header class="lesson-opening"><h1 id="page-title">第 36 课 · 交出去的工单，原经办人还能退回吗？</h1><figure class="specimen"><figcaption>同一张工单 · 所有权已经交接</figcaption><dl>
+<div><dt>原持有人再转</dt><dd>被拒</dd></div>
+<div><dt>现持有人再转</dt><dd>获准</dd></div></dl>
+<span class="specimen-relation" aria-hidden="true">≠</span><p>工单仍用同一对象 ID；谁能交接取决于当前所有权，而非谁创建了它</p></figure><p>白班 A 开的 <strong>3601 号工单</strong>已经交给夜班 B。交接记录有两栏：用来认这张单的对象 ID 没变，「当前持有人」从 A 变成了 B。客服现在要把这张单退给 A。A 知道对象 ID，也能读到最新一版；如果由 A 在退回申请上签名，系统该不该受理？</p></header><div class="reading-grid"><article aria-labelledby="page-title"><details class="mobile-toc"><summary>本页目录</summary><ol><li><a href="#给工单找一个不会随交接而变的键">给工单找一个不会随交接而变的键</a></li><li><a href="#两个入口一份能够移动不能复制的值">两个入口，一份能够移动、不能复制的值</a></li><li><a href="#从空创世发布不借用你的-sui-配置">从空创世发布，不借用你的 Sui 配置</a></li><li><a href="#接手人怎样读证据而不是认截图">接手人怎样读证据，而不是认截图</a></li><li><a href="#如果要改成主管能调度工单">如果要改成“主管能调度工单”</a></li><li><a href="#同一张需求单三种状态放在哪里">同一张需求单，三种状态放在哪里</a></li><li><a href="#课后作业不让工单号被-javascript-四舍五入">课后作业：不让工单号被 JavaScript 四舍五入</a></li><li><a href="#卷末工单-x-936按岗位签自己能证明的一联">卷末工单 X-936：按岗位签自己能证明的一联</a></li><li><a href="#可直接核对的资料">可直接核对的资料</a></li></ol></details><p>不该。要把工单从 B 手里交出去，得看<strong>谁现在持有它</strong>，不是看谁开的单。3601 是业务号，不一定唯一；即使拿着准确的对象 ID，也不能代替 B 的签名。拒绝这次请求后，工单应仍归 B；一条报错本身还不能证明拒绝原因，要与交接前后的记录对照。</p>
+<p>只把<strong>签名人换成 B</strong>：还是同一个对象，还是要求「退给 A」。这次该不该受理？该。有效交接后对象 ID 不变，最新版本的持有人应是 A。这说明控制权回到了 A，不说明 A 已亲自签收，也不说明维修完成。</p>
+<p>只读到这里就可以停；若有其他岗位问题，可<a href="../plan.html#m09">返回 M09 目录任选另一课</a>。四个专项彼此独立，不是先后步骤。以下是选做的 Move 程序、本地交接实验和卷末工单；只需能<a href="crypto.html">区分知道编号与持钥签名</a>、<a href="networks.html">确认客户端所连的网络</a>。A、B 是独立临时测试钱包，工单不涉及收款；不接公共 Sui 网络，不用助记词、插件或水龙头。业务若不需要链上交接，一次带授权检查的数据库更新可能已经够用。</p>
+<h2 id="给工单找一个不会随交接而变的键">给工单找一个不会随交接而变的键</h2>
+<p>关系库中你可能有 <code>ticket(pk, number, assignee, rev)</code>。行锁能让写请求串行，<code>WHERE pk=? AND rev=?</code> 能发现旧版写入；两者都不能代替“这个用户现在是否有权交出这张单”的检查。在 Sui 中，普通 <strong>地址拥有对象</strong>把这三件事分开了：</p>
+<table class="stackable">
+<thead>
+<tr>
+<th>要问的问题</th>
+<th>去哪里读</th>
+<th>不能据此推出什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="要问的问题">哪张工单？</td>
+<td data-label="去哪里读"><code>objectId</code> 是对象的标识，内容里的 <code>fields.id.id</code> 与它相同；<code>fields.number</code> 只是业务标签</td>
+<td data-label="不能据此推出什么">显示号码 3601 不代表全网唯一。这个教学包允许同号开两张单；只看号码就会串单</td>
+</tr>
+<tr>
+<td data-label="要问的问题">在读哪个状态？</td>
+<td data-label="去哪里读">普通拥有对象在交易里的引用含 <strong>ID、version、对象 digest</strong>。读取结果的 <code>previousTransaction</code> 是把它写成这个状态的交易摘要</td>
+<td data-label="不能据此推出什么">对象摘要和交易摘要不是一个东西；对象版本不是时钟、区块高度、用户第几次点击或工单流水号</td>
+</tr>
+<tr>
+<td data-label="要问的问题">谁能提交它？</td>
+<td data-label="去哪里读">外层 <code>owner.AddressOwner</code> 记录当前持有地址，执行输入检查会核对发送方</td>
+<td data-label="不能据此推出什么">知道 ID 或保存旧回执没有授权作用；字段在链上可读，也谈不上工单内容保密</td>
+</tr>
+</tbody>
+</table>
+<p>在<a href="m09/move-ticket/ticket/sources/ticket.move">实验包</a>里没有冗余的 <code>assignee</code> 字段。手写第二份经办人再忘了同步，会造成“前端显示 A、协议只认 B”。本课把地址所有权定义为<strong>下一次交接权</strong>，不是客户已同意、收件人已签收或维修已完成。如果业务要 B 明确同意，应额外设计待接收状态和 B 的确认操作，不能把单向转移当双签。</p>
+<figure class="lesson-figure"><a href="../assets/figures/m09/move-ticket.svg"><img src="../assets/figures/m09/move-ticket.svg" alt="3601 号单的同一对象从 A 转给 B。A 请求退回时仍由 B 持有，版本与摘要不变；B 自己提交同一请求才把所有权转回 A。"></a><figcaption>默认演练的判据。v₀、v₁、v₂ 是三张快照上实际版本的代号，并非数字 0、1、2。虚线是被拒的申请，不是一笔成功的交接。</figcaption></figure>
+
+<h2 id="两个入口一份能够移动不能复制的值">两个入口，一份能够移动、不能复制的值</h2>
+<pre><code class="language-move">module workshop::ticket;
+
+public struct Ticket has key {
+    id: UID,
+    number: u64,
+}
+
+public entry fun open(number: u64, ctx: &amp;mut TxContext) {
+    let ticket = Ticket { id: object::new(ctx), number };
+    transfer::transfer(ticket, ctx.sender());
+}
+
+public entry fun handoff(ticket: Ticket, recipient: address) {
+    transfer::transfer(ticket, recipient);
+}
+</code></pre>
+<ol>
+<li><code>key</code> 是 Move 类型的 <strong>ability</strong>：这个类型可以作为 Sui 对象，首字段为 <code>UID</code>。这不是钱包私钥，也不是授予某位操作员的许可证。<code>object::new(ctx)</code> 让运行时分配新 UID；<code>number</code> 相同不会拿到相同 UID。</li>
+<li>调用 <code>open</code> 时，运行时给出交易上下文，<code>ctx.sender()</code> 来自本次发送者，不是页面能任意填写的“当前用户”。模块把新对象交给这个地址。任何人都能开自己的单；没有对发行数量、企业身份或订单号去重作承诺。</li>
+<li><code>handoff</code> <strong>按值接收</strong> <code>ticket: Ticket</code>，不是把一串 ID 当作已授权工单。调用方必须提供能被运行时接受的当前输入。该类型没有 <code>copy</code> 或 <code>drop</code>；模块把值移给 <code>transfer::transfer</code> 后，不能再拿同一个局部变量转第二次。这里有两层不同的检查：Move 对值的使用规则，与账本对交易输入/签名的检查。</li>
+<li>我们故意没给 <code>Ticket</code> 声明 <code>store</code>。有 <code>key + store</code> 的对象可以走通用 <code>public_transfer</code>；这里只有定义模块能用受限的 <code>transfer</code> 交接本类型。因此演练通过 <strong><code>ticket::handoff</code></strong>，不通过通用 <code>sui client transfer</code>。入口对所有人可见，不表示所有人都能提供 B 拥有的输入。</li>
+</ol>
+<p><strong>版本为什么未必加一？</strong> 假设交接前工单版本是 7，付 gas 的 SUI 币对象版本是 12。本例这两项是交接时的可变输入，新写入的版本是 <code>1 + max(7, 12) = 13</code>。这不是工单丢了五条回执。反过来，若工单是 7、gas 币是 3，则结果是 8。本地脚本让同一次交易的输入引用、gas 引用、变更条目和后读的对象互相校验，不用假定起始版本。这里算的是对象版本，不是 gas 数量；<strong>1 SUI = 1,000,000,000 MIST</strong>。</p>
+<h2 id="从空创世发布不借用你的-sui-配置">从空创世发布，不借用你的 Sui 配置</h2>
+<p>在仓库根目录运行以下命令。需要 Bash、<code>tar</code>、<code>curl</code>、<code>install</code>、CPython 3.10+（仅标准库）以及能运行官方本机发行文件的 macOS 或 Ubuntu；不用 Docker、Rust、PostgreSQL、外部 RPC。先预留约 3 GB 空间给发行归档、框架源码、节点和临时账本。第一次安装会联网，后面的运行使用本地依赖。</p>
+<pre><code class="language-sh">LAB=labs/m09/move-ticket
+bash &quot;$LAB/setup.sh&quot;
+WORK=$(mktemp -d)
+python3 &quot;$LAB/run.py&quot; --out &quot;$WORK/default&quot;
+python3 &quot;$LAB/review.py&quot; &quot;$WORK/default&quot; --expect-number 3601 --expect-final A
+</code></pre>
+<p><a href="m09/move-ticket/setup.sh">安装脚本</a>固定 <strong>MystenLabs <code>mainnet-v1.53.2</code></strong> 的 <code>sui</code>、<code>sui-node</code> 以及同标签框架。标签名是软件来源，<strong>不是选择主网</strong>。脚本按平台核验发行包，macOS arm64 归档 SHA-256 为 <code>4f2c65d55057110ff11033774d1b9778d6f49594d321ab776026194151386048</code>；源码归档 SHA-256 为 <code>b32bc517e9cda7257386beacb1e38b3886949d6a5e88f312c9905dda10b92939</code>。下载、二进制和 <code>framework/{sui-framework,move-stdlib}</code> 放在 <code>~/.cache/chain-course/m09/sui-1.53.2/</code>，不改全局 PATH。哈希不符请停下，不要放宽检查。固定旧版本是为了可复跑这个本地 JSON-RPC 实验，不是生产版本推荐。</p>
+<p><a href="m09/move-ticket/run.py">run.py</a> 为每轮新建临时 HOME 和 <code>SUI_CONFIG_DIR</code>，从空目录 <code>sui genesis --committee-size 1</code> 产生一份创世，再按配置分别启动验证者和全节点。它把 RPC 和节点监听地址限制到回环；不启动 faucet 或索引服务。两个客户端配置都只知道这一轮的回环 RPC。A 取自临时创世钱包，B 在另一份全新的 keystore 中生成；不展示或存档恢复短语。脚本把一个测试 SUI 从 A 拨给 B 付 gas，这笔 <code>fund-B.json</code> 和“工单归谁”无关。发行版节点带 HTTP 遥测，脚本为子进程把非本地 HTTP(S) 代理限定到一个不接受连接的回环端口；这不是操作系统级网络沙箱。</p>
+<p><a href="m09/move-ticket/ticket/Move.toml">Move.toml</a> 显式引用同版的本地 <code>Sui</code> 框架，不用拉取滚动分支。运行器在临时包目录编译，<code>publish --verify-deps</code> 对照本地链上的依赖，完成发布后从 <code>published</code> 变更取包 ID，再找刚创建的完整类型 <code>包ID::ticket::Ticket</code>。<strong>包 ID、工单 ID、升级能力对象 ID、付费币 ID</strong> 都可能同时出现在一次演练里；取“列表第一个 ID”不能定位工单。</p>
+<p>下表对应真正执行的 CLI 调用。<code>$P</code>、<code>$T</code>、<code>$A</code>、<code>$B</code> 分别表示<strong>本轮</strong>的包、工单和两位钱包地址；自动脚本负责填值、给各命令指定临时 <code>--client.config</code>、预算和 <code>--json</code>。不要在自己的默认钱包照抄缩写命令。</p>
+<table class="stackable">
+<thead>
+<tr>
+<th>默认演练</th>
+<th>参数中的动作</th>
+<th>应保留什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="默认演练">A 建单</td>
+<td data-label="参数中的动作"><code>call --package $P --module ticket --function open --args 3601</code></td>
+<td data-label="应保留什么"><code>open.json</code> 有 <code>created</code> 变更；<code>created.json</code> 对象归 A</td>
+</tr>
+<tr>
+<td data-label="默认演练">A 交班</td>
+<td data-label="参数中的动作"><code>call --package $P --module ticket --function handoff --args $T $B</code></td>
+<td data-label="应保留什么"><code>handoff.json</code> 的 sender 为 A；<code>handed.json</code> 同 ID、较新版本、归 B</td>
+</tr>
+<tr>
+<td data-label="默认演练">A 要求退回</td>
+<td data-label="参数中的动作"><code>call --package $P --module ticket --function handoff --args $T $A</code></td>
+<td data-label="应保留什么"><code>refusal.json</code> 非零退出，错误指向该对象、当前 owner B 与请求签名人 A；<code>after-refusal.json</code> 和 <code>handed.json</code> 对象完全一致</td>
+</tr>
+<tr>
+<td data-label="默认演练">B 要求退回</td>
+<td data-label="参数中的动作"><strong>同一个</strong> <code>handoff --args $T $A</code>，只换客户端为 B</td>
+<td data-label="应保留什么"><code>return.json</code> 的 sender 为 B；<code>returned.json</code> 同 ID、再次增版、归 A</td>
+</tr>
+</tbody>
+</table>
+<p>被拒时不能只看一个红色错误：丢了网络、gas 不足和把 <code>$P</code> 写成 <code>$T</code> 都足以令命令失败，却无法证实权限边界。这里明确给出 gas 预算，走正常客户端请求，由输入所有权检查拒绝；没有构造特殊签名或修改节点。<strong>拒单文本不是成功回执，也不要编一笔 Move 抛错后已上链的交易号。</strong> 对照组让有权的 B 真正完成相同的退回，排除“函数本来就不能用”。</p>
+<h2 id="接手人怎样读证据而不是认截图">接手人怎样读证据，而不是认截图</h2>
+<p><code>--out</code> 要求新目录，防止混用创世。结束时脚本会关闭节点，清理临时钱包、编译目录和节点库；留下的是公开材料。先独立读快照，显示完整 ID、版本、持有地址和上一笔实际写入交易：</p>
+<pre><code class="language-sh">python3 - &quot;$WORK/default&quot; &lt;&lt;'PY'
+import json, pathlib, sys
+p = pathlib.Path(sys.argv[1])
+for label in ('created', 'handed', 'after-refusal', 'returned'):
+    o = json.loads((p / (label + '.json')).read_text())['data']
+    print(label, o['objectId'], o['version'], o['owner']['AddressOwner'], o['previousTransaction'])
+PY
+</code></pre>
+<p>先用上面打印的四行判断权限：拿 <code>handed</code> 与 <code>after-refusal</code> 对读，持有人都为 B，版本、ID 和上次写入交易都没有变；再去 <code>refusal.json</code> 看拒绝原因确实是<strong>请求签名人 A 不拥有这个输入对象</strong>。若只是断网，快照也可能不变，但不能得出权限检查生效的结论。</p>
+<p>再验 B 的成功退回，不只看最后一行写了 A。取 <code>return.json</code> 的 <code>transaction.data.transaction.inputs</code> 中工单的 ID、版本和对象摘要，与 <code>handed.json</code> 的对象逐项对齐，证明交出的是 B 手里那一版。用 <code>gasData.payment</code> 的 gas 币版本和工单输入版本按前面的最大值公式算出新版本；用同一 ID 在 <code>objectChanges</code> 找新 owner 和对象摘要，与 <code>returned.json</code> 对照。最后，这张快照的 <code>previousTransaction</code> 要等于 <code>return.json</code> 的交易 <code>digest</code>：前者指向生成这张新记录的那一笔，不是对象自身的摘要。<a href="m09/move-ticket/review.py">复核器</a>用 <code>run.json</code> 的角色映射做这些检查；默认判据是 <code>MATCH_LOCAL number=3601 final=A</code>，并报三次实际版本、<code>refused=UNCHANGED</code>。地址、摘要和版本以本轮为准。</p>
+<p>只改业务的签收要求，不重发交易：</p>
+<pre><code class="language-sh">python3 &quot;$LAB/review.py&quot; &quot;$WORK/default&quot; --expect-number 3601 --expect-final B
+</code></pre>
+<p>预期 <code>HOLD: wrong final holder</code>，退出 3。交班那笔确实曾把对象交给 B，但对账要求的是<strong>最后的持有人</strong>，不能跳过第三笔实际写入。离线复核的前提是信任归档来源：本脚本没有独立认证检查点、重验验证者证书，也不能证明链外人员已经交班。</p>
+<h2 id="如果要改成主管能调度工单">如果要改成“主管能调度工单”</h2>
+<p>不要把 <strong>ability、capability、shared</strong> 当作三个权限开关。<code>key</code>、<code>store</code> 是类型静态具备的 ability。<strong>Capability</strong> 是应用授予某项操作权限的一份值，常建模成独立对象，例如 <code>DispatchCap</code>。只允许模块在初始化时创建它，要求管理入口额外接收 <code>&amp;DispatchCap</code>。谁能合法提供这份值，谁才能走这个入口；如果有多个项目，能力还要绑定相应工单簿 ID 并核对，不能接受别的簿同类型的能力。发布回执里的框架 <code>UpgradeCap</code> 只涉及包升级，不是替所有经办人签字的派工权。</p>
+<p>如果单子仍是 B <strong>地址拥有</strong>的，主管仅有 <code>DispatchCap</code>，还是不能把 B 的 <code>Ticket</code> 直接当作自己的交易输入。反之，如果真正需求是多方轮流更新同一本队列，可以在创建时 <code>share_object</code> 一份 <strong>shared 对象</strong>：它不再依赖某个经办人地址才能作为交易输入，不同提交者可以请求访问。但修改动作仍受 Move 入口和权限检查约束。可以把“分配”建模成 <code>assign(board: &amp;mut Board, cap: &amp;DispatchCap, ...)</code>，把“认领”建模成另一条核对签名人的入口。共享不是“公开任意改”，也不是对已交出的普通对象补点一个按钮就改成共享。热门 <code>Board</code> 的写操作需要排定次序，吞吐和拥塞要用相同业务流量实测。这是改需求后的设计对照，实验没有部署共享队列或主管接口。</p>
+<h2 id="同一张需求单三种状态放在哪里">同一张需求单，三种状态放在哪里</h2>
+<table class="stackable">
+<thead>
+<tr>
+<th>平台与最小模型</th>
+<th>交接时谁做授权检查</th>
+<th>何时选它，付出什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="平台与最小模型">EVM：合约内 <code>mapping(uint256 =&gt; Ticket)</code>，行里放 <code>assignee</code>；改变后发事件</td>
+<td data-label="交接时谁做授权检查">合约显式校验 <code>msg.sender == assignee</code>，再更新同一行；若要标准化可评估 ERC-721 并决定是否允许 operator</td>
+<td data-label="何时选它，付出什么">团队已有 Solidity、EVM 钱包及日志索引，或要求按业务号唯一开单时，合约可集中检查。要自己定义角色、并发/重试语义和事件，事件不是当前持有人字段</td>
+</tr>
+<tr>
+<td data-label="平台与最小模型">Solana：每工单一个由程序拥有的数据账户，可用“簿 + 工单号”推导 PDA；在账户数据存经办人公钥</td>
+<td data-label="交接时谁做授权检查">程序核对账户归属、结构/PDA 和当前经办人的 signer，再写入新公钥。运行时外层 <code>owner</code> 是<strong>程序</strong>，不能拿它当“经办人地址”</td>
+<td data-label="何时选它，付出什么">已有 Solana 客户和账户标准、想显式规划交易访问哪些账户时合适；不同工单可分账户。须处理账户大小、创建成本、账户清单、写锁和约束</td>
+</tr>
+<tr>
+<td data-label="平台与最小模型">Sui：每张 <code>Ticket</code> 一个 UID，普通地址拥有，外层 <code>AddressOwner</code> 就是本题交接权</td>
+<td data-label="交接时谁做授权检查">运行时检查拥有对象输入与发送者，模块决定准许的操作；接收方无需签字</td>
+<td data-label="何时选它，付出什么">一物一持有人的交接和按对象查证很直接。若要求主管随时追回、同号绝不重复或多方争抢，必须重新安排状态/能力和共享写入，不是原模型天然免费支持</td>
+</tr>
+</tbody>
+</table>
+<p>选型要追问：只需知道“此刻谁能转出”，还是需要“经理可越过经办人代派、客服可回滚、接单方必须签收”？三者不等价。先画出谁能提交哪项状态，再谈语言和每秒交易数。</p>
+<h2 id="课后作业不让工单号被-javascript-四舍五入">课后作业：不让工单号被 JavaScript 四舍五入</h2>
+<p>另起一轮，开 <code>9007199254740993</code>（比二进制浮点能逐整数精确表示的上界 <code>2^53</code> 多 1）号单。Java 可以用正的 <code>long</code> 表示这个数，网页若先转成 JS <code>Number</code> 则可能读到 <code>9007199254740992</code>；从命令行到回执都保留十进制字串或整数。</p>
+<pre><code class="language-sh">python3 &quot;$LAB/run.py&quot; --number 9007199254740993 --out &quot;$WORK/precision&quot;
+python3 &quot;$LAB/review.py&quot; &quot;$WORK/precision&quot; --expect-number 9007199254740993 --expect-final A
+python3 &quot;$LAB/review.py&quot; &quot;$WORK/precision&quot; --expect-number 9007199254740992 --expect-final A
+</code></pre>
+<p>交一张四行表：每行列出 ID、业务号、owner、version、previousTransaction，指出哪两行完全相同。过关线：第一次复核 <code>MATCH_LOCAL</code>，第二次只改合同号就 <code>HOLD</code>、退出 3；用 <code>handoff.json</code> 的工单与 gas 输入<strong>手算交班后的实际版本</strong>。只给 <code>3601</code> 例子的地址或用截图抹掉完整 ID，不通过。</p>
+<p><a id="m09-checkout"></a></p>
+<h2 id="卷末工单-x-936按岗位签自己能证明的一联">卷末工单 X-936：按岗位签自己能证明的一联</h2>
+<p>你接手一次技术选型演示。委托人没有要求四种技术集成：<strong>从下面四联任选实际岗位需要的一联</strong>，不用先学其他三课。每联都要交输入、运行环境、正常原件、只改一个条件的反例、据此能签收什么及不能签收什么。其他三联不因这一联通过而自动通过。</p>
+<ul>
+<li><strong>工单平台联（本课）</strong>：936 号返修单，由夜班 <strong>B</strong> 开单交给 <strong>A</strong>，收到退回通知后只有当前持有人 A 可以将其交还 B。最终收件人必须是 B，不能拿中途归 A 的回执结案。</li>
+<li><strong>钱包联</strong>：用<a href="lightning.html">第 33 课</a>的独立作业输入，在两个回环 Lightning 节点核对发票、通道内支付和关通道证据；不能用一笔链上付款代替发票结算。</li>
+<li><strong>数据服务联</strong>：用<a href="subgraph.html">第 34 课</a>的独立作业输入，指定部署和同一目标块，比对派生视图与 Java 账本并交重建记录；不要把两个“最新”当同一高度。</li>
+<li><strong>证明应用联</strong>：用<a href="preimage.html">第 35 课</a>的独立作业输入，在同一验证密钥下检查 A 的证明配 A 的承诺、A 的证明配 B 的承诺、B 的证明配 B 的承诺；三次应依次为通过、拒绝、通过，不认证真实身份。</li>
+</ul>
+<p><strong>工单平台联的接手命令</strong>（从仓库根目录开始，可给未看过 3601 范例的同事）：</p>
+<pre><code class="language-sh">LAB=labs/m09/move-ticket
+bash &quot;$LAB/setup.sh&quot;
+BOX=$(mktemp -d)
+python3 &quot;$LAB/run.py&quot; --out &quot;$BOX/X-936&quot; --number 936 --reverse
+python3 &quot;$LAB/review.py&quot; &quot;$BOX/X-936&quot; --expect-number 936 --expect-final B
+python3 &quot;$LAB/review.py&quot; &quot;$BOX/X-936&quot; --expect-number 936 --expect-final A
+</code></pre>
+<p><strong>独立过关线</strong>：保留 <code>X-936/</code> 内公开 JSON。复核 B→A→B 的三个成功写入引用的是<strong>本轮同一对象</strong>；B 的旧权限申请具体因 owner/signer 不匹配而被拒，前后对象原件相同；A 才能完成最后一笔退回。按工单要求「最终持有人是 B」复核，结果为 <code>MATCH_LOCAL number=936 final=B</code>；最后一条只把要求改成「最终持有人是 A」，同一组链上写入仍成功，签收判断必须是 <code>HOLD</code>、退出 3。交一段对“如果主管必须能代派怎么办”的选型意见，写清需要改变哪类对象或权限。不要打包 <code>~/.sui</code>、keystore、节点库或助记词；本联与其他三联没有共用的交易或金额。</p>
+<p><strong>离线先接手一份实物：</strong> 仓库里有一轮<a href="m09/evidence/X-936/run.json">角色与对象清单</a>、<a href="m09/evidence/X-936/refusal.json">错误签名人的拒单</a>和<a href="m09/evidence/X-936/return.json">当前持有人的退回回执</a>。从根目录运行 <code>python3 labs/m09/move-ticket/review.py labs/m09/evidence/X-936 --expect-number 936 --expect-final B</code>，只读公开原件，不用启动 Sui。然后再按上面的命令用新的创世交自己的单；两轮的对象 ID 不应混用。</p>
+<h2 id="可直接核对的资料">可直接核对的资料</h2>
+<ul>
+<li>Sui 文档：<a href="https://docs.sui.io/develop/objects/object-ownership/address-owned">地址拥有对象</a>、<a href="https://docs.sui.io/develop/objects/object-ownership/shared">共享对象</a>、<a href="https://docs.sui.io/develop/objects/versioning">版本规则与 Lamport 算例</a>。核对“谁能提交”和“谁排写入顺序”是两个问题。</li>
+<li>The Move Book：<a href="https://move-book.com/programmability/capability/">Capability 模式</a>。比较应用授予的对象能力与类型的 <code>key</code>、<code>store</code>。</li>
+<li>MystenLabs：<a href="https://github.com/MystenLabs/sui/releases/tag/mainnet-v1.53.2">本课官方发行</a>、<a href="https://github.com/MystenLabs/sui/blob/mainnet-v1.53.2/crates/sui-framework/packages/sui-framework/sources/transfer.move">该版 transfer 模块</a>、<a href="https://github.com/MystenLabs/sui/blob/mainnet-v1.53.2/crates/sui-transaction-checks/src/lib.rs">该版输入检查</a>。看 <code>transfer</code> 的类型约束，以及对象拥有者与签名人不匹配的拒绝条件。</li>
+<li>对照设计：<a href="https://docs.soliditylang.org/en/latest/types.html#mapping-types">Solidity 的 mappings</a>、<a href="https://solana.com/docs/core/accounts">Solana 账户模型</a>。本课没有把同一个包部署到这两种链上，也没有做跨链吞吐基准。</li>
+</ul>
+<nav class="end-links" aria-label="阅读导航"><a rel="prev" href="preimage.html">上一课 · 35</a><a rel="next" href="scope.html">下一课 · 37</a></nav></article>
+<aside class="rail"><nav aria-label="本页目录"><b>本页目录</b><ol><li><a href="#给工单找一个不会随交接而变的键">给工单找一个不会随交接而变的键</a></li><li><a href="#两个入口一份能够移动不能复制的值">两个入口，一份能够移动、不能复制的值</a></li><li><a href="#从空创世发布不借用你的-sui-配置">从空创世发布，不借用你的 Sui 配置</a></li><li><a href="#接手人怎样读证据而不是认截图">接手人怎样读证据，而不是认截图</a></li><li><a href="#如果要改成主管能调度工单">如果要改成“主管能调度工单”</a></li><li><a href="#同一张需求单三种状态放在哪里">同一张需求单，三种状态放在哪里</a></li><li><a href="#课后作业不让工单号被-javascript-四舍五入">课后作业：不让工单号被 JavaScript 四舍五入</a></li><li><a href="#卷末工单-x-936按岗位签自己能证明的一联">卷末工单 X-936：按岗位签自己能证明的一联</a></li><li><a href="#可直接核对的资料">可直接核对的资料</a></li></ol></nav></aside></div><dialog class="figure-zoom" aria-label="配图放大视图">
+<form method="dialog"><a>打开 SVG 原图</a><button autofocus>收起大图</button></form>
+<div class="zoom-scroll" tabindex="0" role="region" aria-label="放大的配图，可滚动"><img alt=""></div></dialog></main><footer><span>链上开发手册</span><a href="../index.html">课程首页</a><a href="move-ticket.md">Markdown 原稿</a></footer></body></html>

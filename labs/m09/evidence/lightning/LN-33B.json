@@ -1,0 +1,77 @@
+{
+  "network": "private-regtest",
+  "core_version": 300500,
+  "lnd_version": "0.21.8-beta",
+  "funding": {
+    "channel_point": "17d60352ca71ddf9afee3aa06ccf7e3a278577e0d5b23b636de8b9578f6d8e9e:0",
+    "blockhash": "1f674436fa63083b981617d30b84685265cfc0aa20ceedfee225c502cef7ed10",
+    "height": 103,
+    "capacity_sat": 500000,
+    "type": "witness_v0_scripthash"
+  },
+  "before_sat": {
+    "alice": {
+      "local_balance": 496530,
+      "remote_balance": 0,
+      "commit_fee": 3140
+    },
+    "bob": {
+      "local_balance": 0,
+      "remote_balance": 496530,
+      "commit_fee": 3140
+    }
+  },
+  "after_sat": {
+    "alice": {
+      "local_balance": 424530,
+      "remote_balance": 72000,
+      "commit_fee": 2810
+    },
+    "bob": {
+      "local_balance": 72000,
+      "remote_balance": 424530,
+      "commit_fee": 2810
+    }
+  },
+  "payment": {
+    "direction": "alice->bob",
+    "payment_hash": "1078fc8aefdebf71f7fd442029c494ee4859cbbb21d9e4a9ebe56a0836e47d9f",
+    "value_sat": 72000,
+    "status": "SUCCEEDED",
+    "fee_sat": 0,
+    "hops": 1,
+    "sha256_preimage_matches": true,
+    "receiver_state": "SETTLED",
+    "amt_paid_sat": 72000
+  },
+  "reverse": {
+    "direction": "bob->alice",
+    "payment_hash": "6fd92fe0be22b87dd217d116ec65823974665797a277a94f5eb774ccf95e8a8c",
+    "value_sat": 82000,
+    "status": "FAILED",
+    "failure_reason": "FAILURE_REASON_INSUFFICIENT_BALANCE",
+    "receiver_state": "OPEN",
+    "amt_paid_sat": 0,
+    "balances_unchanged": true
+  },
+  "unchanged_chain_during_payments": {
+    "bestblock": "42f65b11ba4fbb294445044e728aee48cad517c8c7d5c79cabd96e5f748c6e21",
+    "funding_unspent_sat": 500000,
+    "mempool_txids": []
+  },
+  "close": {
+    "txid": "393568477c54fbef422b7c4193d2b3299193fee5899467080f7c92bc42fcbdb2",
+    "blockhash": "5ae8824ffa16fdf021ac37372bd18f4ec0dfd74d8944d9e7f9909c31fa77de49",
+    "height": 109,
+    "spends": [
+      "17d60352ca71ddf9afee3aa06ccf7e3a278577e0d5b23b636de8b9578f6d8e9e:0"
+    ],
+    "outputs_sat": [
+      72000,
+      426798
+    ],
+    "miner_fee_sat": 1202,
+    "funding_unspent_after": false,
+    "both_nodes_close_type": "COOPERATIVE_CLOSE"
+  }
+}

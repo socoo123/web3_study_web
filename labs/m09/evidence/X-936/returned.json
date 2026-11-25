@@ -1,0 +1,23 @@
+{
+  "data": {
+    "objectId": "0xdf3ed4c2692ff38505324fe51d08615d29ae401ce0222ecf04c3a0a07b7d9831",
+    "version": "6",
+    "digest": "HnnvgZh5fjk6TWNxQiFir4M9FMvnciHmDnWDtVMJYhcW",
+    "type": "0x5148633e17c4396e0a0d2fceb9d7d204d2f6cf70da6518107cbc5411025c43f5::ticket::Ticket",
+    "owner": {
+      "AddressOwner": "0xe8e928423772f1c358fd2fa3ca50122a0b4a913a33cad0ff592ec0a112213e93"
+    },
+    "previousTransaction": "5G4ML7dau4oZw1MJqimcimF5D4SVf2aNnDRn2q1oFgQF",
+    "content": {
+      "dataType": "moveObject",
+      "type": "0x5148633e17c4396e0a0d2fceb9d7d204d2f6cf70da6518107cbc5411025c43f5::ticket::Ticket",
+      "hasPublicTransfer": false,
+      "fields": {
+        "id": {
+          "id": "0xdf3ed4c2692ff38505324fe51d08615d29ae401ce0222ecf04c3a0a07b7d9831"
+        },
+        "number": "936"
+      }
+    }
+  }
+}

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="584" height="478" viewBox="0 0 584 478" role="img" xml:lang="zh-CN" aria-labelledby="title desc">
+  <title id="title">头在块 4，评委把复核门槛从两次改为三次</title>
+  <desc id="desc">演示单应收 125 wei。结算在块 3，游标和节点头都在块 4，当前有两次确认，应用已记一条应领、一条待通知。只读复核器要求两次时相符，要求三次时等待。断连时两条分支都不能使用，只能展示带时间的历史归档。</desc>
+  <rect width="584" height="478" rx="8" fill="#fcf8ef"/>
+  <g font-family="system-ui,sans-serif" fill="#222e29">
+    <text x="24" y="36" font-size="24" font-weight="700">同一笔应领，两道验收门槛</text>
+    <text x="24" y="64" font-size="16">演示台 · 链 31337 · 订单预定 125 wei / 2 次确认</text>
+    <rect x="24" y="84" width="536" height="86" rx="6" fill="#f0ecdf" stroke="#8b795b"/>
+    <text x="40" y="113" font-size="19" font-weight="700">付款人确认 → 托管合约 → 索引</text>
+    <text x="40" y="140" font-size="17">块 3：Settled(B, 125)；B 应领，不是钱包到账。</text>
+    <path d="M292 171v19m-6-6 6 7 6-7" fill="none" stroke="#547463" stroke-width="2"/>
+    <rect x="24" y="194" width="536" height="70" rx="6" fill="#e2eee6" stroke="#4d765f"/>
+    <text x="40" y="221" font-size="18" font-weight="700">头与游标同在块 4，确认数 = 4 − 3 + 1 = 2</text>
+    <text x="40" y="246" font-size="16">对账回调完成：1 条应领流水 + 1 条 outbox。</text>
+    <path d="M292 265v17H154v15m138-15h139v15m-283-6 6 7 6-7m265 0 6 7 6-7" fill="none" stroke="#687a70" stroke-width="2"/>
+    <rect x="24" y="303" width="257" height="82" rx="6" fill="#e6f1ea" stroke="#397357"/>
+    <rect x="303" y="303" width="257" height="82" rx="6" fill="#faecd6" stroke="#976129"/>
+    <text x="40" y="332" font-size="18" font-weight="700">评委要求 2 次 → MATCH</text>
+    <text x="40" y="360" font-size="16">当场读回同一日志。</text>
+    <text x="318" y="332" font-size="18" font-weight="700">评委要求 3 次 → 等一块</text>
+    <text x="318" y="360" font-size="16">WAIT_EXTRA_DEPTH</text>
+    <path d="M24 408h536" stroke="#958b77" stroke-dasharray="5 4"/>
+    <text x="24" y="436" font-size="17" font-weight="700">RPC 不通？两边都不能签。只讲上次证据，不重发。</text>
+    <text x="24" y="460" font-size="15">评委改的是只读复核门槛，不是客户的订单，也不产生新交易。</text>
+  </g>
+</svg>

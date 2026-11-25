@@ -1,0 +1,30 @@
+{
+  "genesisHash": "9fQTfmyiVUb2TGipeBmLfpF1zkdm1a6X6c87fLXiB5Sm",
+  "version": {
+    "feature-set": 2142755730,
+    "solana-core": "2.3.13"
+  },
+  "programId": "841hPEnHjRQ7bn4tm6Lk6whxMtt5dCfbJL2Hf5QA6XKv",
+  "soSha256": "1aef9b6d26262c9b7b49af78c75ccad5dcd8eaf269b290f0dd931bbf73e022c5",
+  "lockSha256": "1e35ac48a1b588dc4ee6764aa99d5e0057bf448774f43072908871fd4069cd15",
+  "feePayer": "13QgTtNcD45fXXRRETjHMgDHd27zPYf1ARj8BA23ahYS",
+  "commitment": "confirmed",
+  "actor": "A",
+  "requestedTicket": "3109",
+  "snapshotOrder": [
+    "A",
+    "B"
+  ],
+  "users": {
+    "A": {
+      "authority": "HThWHGEDxMkK3U9gLc65NaKUWwdiUVPm5snDS8FgsajW",
+      "entry": "DHXb1eJhWZWxL1qbzyLjBvDTSPbSBC2GRCMNBDVgK2Ct",
+      "bump": 255
+    },
+    "B": {
+      "authority": "HG5qZfsirkqTxNXrsht61Bo1Bv6VCnaw1MfDkXZPMkLb",
+      "entry": "6QkNTut6kc4j9S8xAESkarcYSHY82s4e1DrNXjZe89fQ",
+      "bump": 252
+    }
+  }
+}

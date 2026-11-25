@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="500" viewBox="0 0 680 500" role="img" aria-labelledby="title desc" xml:lang="zh-CN">
+  <title id="title">同是成功回执，为什么一张可入账、另一张必须停？</title>
+  <desc id="desc">两轮各起一套空链和空库。付款人拒签则不广播。确认锁入125 wei，随后单独确认结算，块3给受益人记125 wei应领；补块并扫到块4有2次确认。应收125时差额0，流水与outbox各1。另一轮全程应收126，差1 wei，人工核对，流水与outbox都是0。</desc>
+  <rect width="680" height="500" rx="10" fill="#faf8ef"/>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 1 8 5 0 9" fill="none" stroke="#41675a" stroke-width="1.8"/></marker></defs>
+  <g font-family="system-ui,sans-serif" fill="#20372d">
+    <text x="24" y="39" font-size="25" font-weight="700">回执成功以后，还要问谁该得多少</text>
+    <text x="24" y="67" font-size="16">两轮互不复用部署或订单；下图金额均为本地原生币 wei。</text>
+    <rect x="24" y="90" width="632" height="84" rx="7" fill="#edf1e9" stroke="#577461"/>
+    <text x="40" y="119" font-size="18" font-weight="700">付款人 · 拒签：没有广播，仍在部署块 1</text>
+    <text x="40" y="151" font-size="17">确认 lock：125 → 合约（块 2）　再确认 settle：附款 0（块 3）</text>
+    <path d="M340 174v23" stroke="#41675a" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="24" y="201" width="632" height="84" rx="7" fill="#e4ece6" stroke="#577461"/>
+    <text x="40" y="232" font-size="18" font-weight="700">后台 · 指定合约的 Settled(B, 125) 是 B 的应领</text>
+    <text x="40" y="263" font-size="17">本地再出块 4；头和游标同高同哈希，确认数 4 − 3 + 1 = 2</text>
+    <g fill="none" stroke="#41675a" stroke-width="2" marker-end="url(#arrow)"><path d="M340 285v18H178v18"/><path d="M340 303h162v18"/></g>
+    <rect x="24" y="327" width="306" height="134" rx="7" fill="#e1eee7" stroke="#537764"/>
+    <rect x="350" y="327" width="306" height="134" rx="7" fill="#ffecd6" stroke="#995c34"/>
+    <g font-size="17"><text x="41" y="359" font-size="18" font-weight="700">订单 A · 应收 125</text><text x="41" y="390">125 − 125 = 0，后台核销</text><text x="41" y="419">流水 1 行 / outbox 1 行</text><text x="41" y="446">重放原块，不增行</text>
+    <text x="368" y="359" font-size="18" font-weight="700">订单 B · 应收 126</text><text x="368" y="390">126 − 125 = 1，转人工</text><text x="368" y="419">流水 0 行 / outbox 0 行</text><text x="368" y="446">保留报价，点回原始回执</text></g>
+    <text x="24" y="486" font-size="15">两支都没有 Withdrawn；应领不是钱包到账，outbox 不是外部已发货。</text>
+  </g>
+</svg>

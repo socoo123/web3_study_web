@@ -1,0 +1,11 @@
+type Posting @entity(immutable: true) {
+  id: Bytes!
+  height: BigInt!
+  blockHash: Bytes!
+  txHash: Bytes!
+  logIndex: BigInt!
+  address: Bytes!
+  kind: String!
+  actor: Bytes!
+  amountWei: BigInt!
+}

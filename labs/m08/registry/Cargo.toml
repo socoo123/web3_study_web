@@ -1,0 +1,28 @@
+[package]
+name = "course-registry"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.84"
+publish = false
+
+[lib]
+name = "course_registry"
+crate-type = ["cdylib"]
+
+[features]
+default = ["no-idl"]
+no-idl = []
+no-entrypoint = []
+cpi = ["no-entrypoint"]
+no-log-ix-name = []
+anchor-debug = ["anchor-lang/anchor-debug"]
+custom-heap = []
+custom-panic = []
+
+[dependencies]
+anchor-lang = "=0.31.3"
+
+[profile.release]
+overflow-checks = true
+lto = "fat"
+codegen-units = 1

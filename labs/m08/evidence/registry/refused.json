@@ -1,0 +1,90 @@
+{
+  "blockTime": 1795362688,
+  "meta": {
+    "computeUnitsConsumed": 4180,
+    "costUnits": 6264,
+    "err": {
+      "InstructionError": [
+        0,
+        {
+          "Custom": 2006
+        }
+      ]
+    },
+    "fee": 10000,
+    "innerInstructions": [],
+    "loadedAddresses": {
+      "readonly": [],
+      "writable": []
+    },
+    "logMessages": [
+      "Program 841hPEnHjRQ7bn4tm6Lk6whxMtt5dCfbJL2Hf5QA6XKv invoke [1]",
+      "Program log: Instruction: Revise",
+      "Program log: AnchorError caused by account: entry. Error Code: ConstraintSeeds. Error Number: 2006. Error Message: A seeds constraint was violated.",
+      "Program log: Left:",
+      "Program log: 6QkNTut6kc4j9S8xAESkarcYSHY82s4e1DrNXjZe89fQ",
+      "Program log: Right:",
+      "Program log: CvGYeehyEtjTDRFmHyc1Crq95JGKPwb9qs6ESh6UHFWk",
+      "Program 841hPEnHjRQ7bn4tm6Lk6whxMtt5dCfbJL2Hf5QA6XKv consumed 4180 of 200000 compute units",
+      "Program 841hPEnHjRQ7bn4tm6Lk6whxMtt5dCfbJL2Hf5QA6XKv failed: custom program error: 0x7d6"
+    ],
+    "postBalances": [
+      99995709400,
+      890880,
+      1231920,
+      1141440
+    ],
+    "postTokenBalances": [],
+    "preBalances": [
+      99995719400,
+      890880,
+      1231920,
+      1141440
+    ],
+    "preTokenBalances": [],
+    "rewards": [],
+    "status": {
+      "Err": {
+        "InstructionError": [
+          0,
+          {
+            "Custom": 2006
+          }
+        ]
+      }
+    }
+  },
+  "slot": 6,
+  "transaction": {
+    "message": {
+      "accountKeys": [
+        "13QgTtNcD45fXXRRETjHMgDHd27zPYf1ARj8BA23ahYS",
+        "HThWHGEDxMkK3U9gLc65NaKUWwdiUVPm5snDS8FgsajW",
+        "6QkNTut6kc4j9S8xAESkarcYSHY82s4e1DrNXjZe89fQ",
+        "841hPEnHjRQ7bn4tm6Lk6whxMtt5dCfbJL2Hf5QA6XKv"
+      ],
+      "header": {
+        "numReadonlySignedAccounts": 1,
+        "numReadonlyUnsignedAccounts": 1,
+        "numRequiredSignatures": 2
+      },
+      "instructions": [
+        {
+          "accounts": [
+            1,
+            2
+          ],
+          "data": "SmMyHQET4wWvJumvYGLMCj",
+          "programIdIndex": 3,
+          "stackHeight": 1
+        }
+      ],
+      "recentBlockhash": "5j7UTSJjczRZg4cjCHrgpFTKj3ghYyahnh1Vqh9JbTCu"
+    },
+    "signatures": [
+      "37RZZFBE676xTW7D1356gkJnbmQKxHgP7cHMxXjc4yZY13bW44bC56tFCjM4wd98gWNjUSC6V4hF781fNfWv1ED9",
+      "56ctStAi2eV9DqEokWfoAiPRfy1F7NJ6WaxJGQDg68xp7PPKnS11hcGGsWXMv6WMF4CY2DiddVY7nQmYqWGfjjVv"
+    ]
+  },
+  "version": "legacy"
+}

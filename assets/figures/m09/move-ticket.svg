@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 430" role="img" aria-labelledby="title desc">
+  <title id="title">3601 号工单：签名人和所有者何时相同</title>
+  <desc id="desc">A 建单并交给 B 后，A 请求退回，被拒且快照不变；只换 B 签相同退回指令，同一对象回到 A。v0、v1、v2 代表三次观测到的版本，不是实际版本号。</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#216957"/></marker></defs>
+  <rect width="760" height="430" rx="15" fill="#f5f5eb"/>
+  <g font-family="system-ui, sans-serif" fill="#152f2b">
+    <text x="28" y="42" font-size="26" font-weight="700">同一张工单，不同的签名人</text>
+    <text x="28" y="71" font-size="17">工单号 3601　·　同一对象 ID　·　只读链上快照</text>
+    <path d="M52 111V360" stroke="#216957" stroke-width="2.5" marker-end="url(#arrow)"/>
+    <g fill="#216957"><circle cx="52" cy="121" r="9"/><circle cx="52" cy="203" r="9"/><circle cx="52" cy="365" r="9"/></g>
+    <path d="M52 218L69 243V310L52 330" fill="none" stroke="#955326" stroke-width="2" stroke-dasharray="5 5"/>
+    <g font-size="19" font-weight="650">
+      <text x="83" y="120">A 创建</text><text x="83" y="202">A 签：交给 B</text>
+      <text x="83" y="279" fill="#864519">A 请求：退给 A</text>
+      <text x="83" y="362">B 签：退给 A</text>
+    </g>
+    <g font-size="16" fill="#415852"><text x="83" y="145">open(3601)</text><text x="83" y="227">handoff(ID, B)</text><text x="83" y="304">handoff(ID, A)</text><text x="83" y="387">handoff(ID, A)</text></g>
+    <g stroke="#216957" stroke-width="2" marker-end="url(#arrow)"><path d="M304 121H355"/><path d="M304 204H355"/><path d="M304 365H355"/></g>
+    <path d="M304 283H351" stroke="#955326" stroke-width="2" stroke-dasharray="4 4"/><path d="M351 275V291" stroke="#955326" stroke-width="3"/>
+    <g stroke="#93b2a2" fill="#e4efe6"><rect x="371" y="101" width="359" height="50" rx="6"/><rect x="371" y="184" width="359" height="50" rx="6"/><rect x="371" y="345" width="359" height="50" rx="6"/></g>
+    <rect x="371" y="262" width="359" height="50" rx="6" stroke="#c39a69" fill="#f4e6d0"/>
+    <g x="0" font-size="18"><text x="390" y="132">owner = A　·　版本 v₀</text><text x="390" y="215">owner = B　·　版本 v₁ &gt; v₀</text><text x="390" y="293" fill="#703d1a">拒绝　·　仍为 B、v₁，摘要不变</text><text x="390" y="376">owner = A　·　版本 v₂ &gt; v₁</text></g>
+  </g>
+</svg>

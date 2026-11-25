@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="434" viewBox="0 0 600 434" role="img" xml:lang="zh-CN" aria-labelledby="t d">
+  <title id="t">先钉住块，再比较两张账页</title>
+  <desc id="d">块 2 锁入 125 wei，块 3 为 B 记应领，块 4 才领取。两套读端同查块 3 的哈希，均应返回 2 条日志。若映射从块 3 才开始，即使游标已追平也只剩 1 条。</desc>
+  <defs><marker id="arrow" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0l8 4-8 4z" fill="#47675a"/></marker></defs>
+  <rect width="600" height="434" fill="#fffaf2"/>
+  <g font-family="system-ui, sans-serif" fill="#22332c">
+    <text x="22" y="38" font-size="24" font-weight="700">一份托管 · 两个读端</text>
+    <text x="22" y="65" font-size="16">源：31337 链的部署块 1 ／ C 地址　　单位：wei</text>
+    <g stroke="#778674" fill="#eef3e9"><rect x="22" y="91" width="164" height="68" rx="4"/><rect x="214" y="91" width="170" height="68" rx="4"/><rect x="412" y="91" width="166" height="68" rx="4"/></g>
+    <g stroke="#47675a" stroke-width="2" marker-end="url(#arrow)"><path d="M188 124h20"/><path d="M386 124h20"/></g>
+    <g font-size="18" font-weight="600"><text x="34" y="119">2 · Locked</text><text x="226" y="119">3 · Settled</text><text x="424" y="119">4 · Withdrawn</text></g>
+    <g font-size="16"><text x="34" y="145">A 锁入 125</text><text x="226" y="145">B 应领 125</text><text x="424" y="145">B 领取 125</text></g>
+    <path d="M299 160v31m-151 14v-14h301v14" fill="none" stroke="#47675a" stroke-width="2"/>
+    <rect x="22" y="209" width="257" height="96" rx="4" fill="#e4eeee" stroke="#58777c"/>
+    <rect x="320" y="209" width="258" height="96" rx="4" fill="#e7eedf" stroke="#6f8161"/>
+    <g font-size="19" font-weight="700"><text x="35" y="236">GraphQL · 查 H₃</text><text x="334" y="236">Java / SQL · 查至块 3</text></g>
+    <g font-size="16"><text x="35" y="263">_meta 核 CID、块哈希</text><text x="35" y="287">2 行：Locked、Settled</text><text x="334" y="263">规范块表复核 H₃</text><text x="334" y="287">2 行：Locked、Settled</text></g>
+    <rect x="22" y="332" width="556" height="75" rx="4" fill="#f6e8d9"/>
+    <text x="35" y="361" font-size="19" font-weight="700">如果映射从块 3 起步？</text>
+    <text x="35" y="389" font-size="17">同一 H₃：Graph 1 行 ／ Java 2 行。已追平 ≠ 历史完整。</text>
+  </g>
+</svg>

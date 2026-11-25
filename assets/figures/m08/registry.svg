@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="490" viewBox="0 0 560 490" role="img" xml:lang="zh-CN" aria-labelledby="title desc">
+  <title id="title">同一条改号指令，收件地址能否换人？</title>
+  <desc id="desc">上半部并排展示 A 与 B 用公钥作种子派生的 49 字节账户，初始登记号分别为 3101、7202。A 签字把 A 表改为 3109；只换成 B 表再提交时种子不符。失败后 A 仍为 3109、B 仍为 7202，交易费单独扣。</desc>
+  <defs><marker id="arrow" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0l8 4-8 4z" fill="#47675a"/></marker></defs>
+  <rect width="560" height="490" fill="#fffaf2"/>
+  <g font-family="system-ui, sans-serif" fill="#22332c">
+    <text x="20" y="38" font-size="24" font-weight="700">R-31 · 两个人，两张登记表</text>
+    <text x="21" y="64" font-size="16">同一程序 ID；登记号是 u64，不是 lamport。</text>
+    <rect x="20" y="87" width="250" height="52" rx="4" fill="#e8eee2" stroke="#6a8068"/>
+    <rect x="290" y="87" width="250" height="52" rx="4" fill="#e7eff1" stroke="#67838a"/>
+    <text x="32" y="119" font-size="18" font-weight="600">种子：entry + A 公钥</text>
+    <text x="302" y="119" font-size="18" font-weight="600">种子：entry + B 公钥</text>
+    <g stroke="#47675a" stroke-width="2" marker-end="url(#arrow)"><path d="M144 142v22"/><path d="M414 142v22"/></g>
+    <rect x="20" y="171" width="250" height="84" rx="4" fill="#eff4eb" stroke="#6a8068"/>
+    <rect x="290" y="171" width="250" height="84" rx="4" fill="#edf3f4" stroke="#67838a"/>
+    <text x="32" y="200" font-size="19" font-weight="700">A 表 · 49 字节</text>
+    <text x="32" y="233" font-size="18">authority A　号 3101</text>
+    <text x="302" y="200" font-size="19" font-weight="700">B 表 · 49 字节</text>
+    <text x="302" y="233" font-size="18">authority B　号 7202</text>
+    <text x="20" y="289" font-size="19" font-weight="700">两次改号：A 签名，写入值均为 3109</text>
+    <rect x="20" y="306" width="520" height="46" rx="4" fill="#e2eee5"/>
+    <text x="32" y="335" font-size="18">选 A 表 → 地址、授权者匹配 → A：3101 → 3109</text>
+    <rect x="20" y="361" width="520" height="59" rx="4" fill="#f5e7da"/>
+    <text x="32" y="386" font-size="18">选 B 表 → 地址不匹配 → 拒绝修改</text>
+    <text x="32" y="409" font-size="15">Anchor：ConstraintSeeds（2006）</text>
+    <path d="M20 439h520" stroke="#a59d8b"/>
+    <text x="20" y="467" font-size="17" font-weight="600">拒单后再读：A 3109 ／ B 7202　·　费用另查回执</text>
+  </g>
+</svg>

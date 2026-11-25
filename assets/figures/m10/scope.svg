@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="620" height="454" viewBox="0 0 620 454" role="img" aria-labelledby="title desc" xml:lang="zh-CN">
+  <title id="title">按谁发起交易选择 R-37 或 W-37</title>
+  <desc id="desc">只查受益人的应领，选 R：链到索引，再到财务，六人日九千元。有付款入口且 A 亲自逐笔确认，选 W：锁款附一百二十五 wei，结算附零 wei，含同样的对账，十人日一万五千元。若要求后台替 A 确认，两单都拒绝。</desc>
+  <rect width="620" height="454" rx="10" fill="#fcf8ef"/>
+  <g font-family="system-ui, sans-serif" fill="#202b28">
+    <text x="24" y="40" font-size="24" font-weight="700">谁来发起那笔交易？</text>
+    <text x="24" y="68" font-size="16">同一部署 · 同一笔 125 wei 应领 · 服务费单位为人民币元</text>
+    <path d="M310 82v18H162v19M310 100h148v19" fill="none" stroke="#53675e" stroke-width="2"/>
+    <path d="m156 112 6 8 6-8m284 0 6 8 6-8" fill="none" stroke="#53675e" stroke-width="2"/>
+    <rect x="24" y="125" width="278" height="216" rx="8" fill="#e7efea" stroke="#47715e"/>
+    <rect x="318" y="125" width="278" height="216" rx="8" fill="#f2eadb" stroke="#8a7048"/>
+    <g font-size="17">
+      <text x="40" y="153" font-weight="700">R-37　财务只查账</text>
+      <text x="40" y="190">链 → 索引 → 财务</text>
+      <text x="40" y="219">核对 Settled 的受益人与金额</text>
+      <text x="40" y="248">读端不签名、不发交易</text>
+      <text x="334" y="153" font-weight="700">W-37　用户要付款入口</text>
+      <text x="334" y="190">A → 确认端 → 合约</text>
+      <text x="334" y="219">锁款附 125 wei；结算附 0</text>
+      <text x="334" y="248">两次独立确认，已包含对账</text>
+    </g>
+    <path d="M40 268h246m48 0h246" fill="none" stroke="#acb4a6"/>
+    <text x="40" y="296" font-size="16">6 人日 × 1,500 元</text>
+    <text x="334" y="296" font-size="16">10 人日 × 1,500 元</text>
+    <text x="40" y="325" font-size="22" font-weight="700">9,000 元</text>
+    <text x="334" y="325" font-size="22" font-weight="700">15,000 元</text>
+    <rect x="24" y="362" width="572" height="70" rx="7" fill="#fae9de" stroke="#99654b"/>
+    <text x="40" y="390" font-size="18" font-weight="700">若要求后台替 A 确认 → 两单都不接</text>
+    <text x="40" y="416" font-size="16">改变的是谁能动钱，不是把 6 人日与 10 人日相加。</text>
+  </g>
+</svg>

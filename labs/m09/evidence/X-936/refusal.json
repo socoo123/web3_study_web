@@ -1,0 +1,6 @@
+{
+  "sender": "0xe8e928423772f1c358fd2fa3ca50122a0b4a913a33cad0ff592ec0a112213e93",
+  "recipient": "0xe8e928423772f1c358fd2fa3ca50122a0b4a913a33cad0ff592ec0a112213e93",
+  "exitCode": 1,
+  "detail": "ErrorObject { code: ServerError(-32002), message: \"Transaction validator signing failed due to issues with transaction inputs, please review the errors and try again:\\n- Transaction was not signed by the correct sender: Object 0xdf3ed4c2692ff38505324fe51d08615d29ae401ce0222ecf04c3a0a07b7d9831 is owned by account address 0x3397be0131896c77c88b612cd18b697c63a96862cd7ecc0526500d446faeddd0, but given owner/signer address is 0xe8e928423772f1c358fd2fa3ca50122a0b4a913a33cad0ff592ec0a112213e93\", data: None }\n\nCaused by:\n    ErrorObject { code: ServerError(-32002), message: \"Transaction validator signing failed due to issues with transaction inputs, please review the errors and try again:\\n- Transaction was not signed by the correct sender: Object 0xdf3ed4c2692ff38505324fe51d08615d29ae401ce0222ecf04c3a0a07b7d9831 is owned by account address 0x3397be0131896c77c88b612cd18b697c63a96862cd7ecc0526500d446faeddd0, but given owner/signer address is 0xe8e928423772f1c358fd2fa3ca50122a0b4a913a33cad0ff592ec0a112213e93\", data: None }"
+}

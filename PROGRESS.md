@@ -1,8 +1,8 @@
 # 链上课程 · 批次交接
 
-**下一关键词：`链上续写 M10`**
+**已结课：10 卷、40/40 课全部完成。没有下一批续写关键词。**
 
-主线 M01–M06 及本次指定的选修 M07 已完成。可从[第 25 课的 Rollup 回执](labs/rollup.html)开始，或直接接手[卷末工单 X-728](labs/withdrawal.html#m07-checkout)。当前无进行中批次；下一批回到主线 M10（37–40 课），不以 M08、M09 为先修。
+主线 28 课、选修 12 课均已开放。可从[专项实验室目录](plan.html#m09)按需选一课，或直接按[卷末工单 X-936](labs/move-ticket.html#m09-checkout)换输入接手。主线项目仍按[毕业交付工单](labs/hackathon.html#m10-checkout)验收。
 
 ## 全站零基础返修（已完成 · 40/40）
 
@@ -48,10 +48,59 @@ M01 保留已验收的 4 课；四位作者完成 M02，后续每卷仍由四位
 | `链上续写 M04` | 13–16 | Solidity、托管状态机、Foundry 测试、部署清单 | 已完成（四课、四图、离线测试与部署交接工单） |
 | `链上续写 M05` | 17–20 | Java RPC、日志索引、重组恢复、订单对账 | 已完成（四课、四图、本地服务与备份恢复工单） |
 | `链上续写 M06` | 21–24 | 钱包登录、资产授权、AMM、价格与借贷 | 已完成（四课、四图、本地签名与链上实验、四联工单） |
-| `链上续写 M10` | 37–40 | 接单范围、收款对账台、移交演练、黑客松 | 待开始 |
+| `链上续写 M10` | 37–40 | 接单范围、收款对账台、移交演练、黑客松 | 已完成（四课、四图、可移交的本地对账台与卷末工单） |
 | `链上续写 M07` | 25–28 | L2、费用、智能账户、跨层状态 | 已完成（四课、四图、测试网历史归档、本地代付实验与卷末工单） |
-| `链上续写 M08` | 29–32 | Rust、Solana 账户、Anchor、SPL Token | 待开始 |
-| `链上续写 M09` | 33–36 | Lightning、专用索引、零知识应用、Move | 待开始 |
+| `链上续写 M08` | 29–32 | Rust、Solana 账户、Anchor、SPL Token | 已完成（四课、四图、本地 validator、签名回执与卷末交接包演练） |
+| `链上续写 M09` | 33–36 | Lightning、专用索引、零知识应用、Move | 已完成（四课、四图、四项本地实验与卷末 X-936） |
+
+## M09 分工
+
+33 `labs/lightning.md`：两端 Lightning 节点在 regtest 上开通道、付票、协作关闭。34 `labs/subgraph.md`：The Graph 的事件映射与 M05 Java 账本按块对读。35 `labs/preimage.md`：用现成电路验证承诺原像，替换公开输入。36 `labs/move-ticket.md`：本地 Sui 工单的持有人交接及独立卷末验收。四位作者各负责同名的 `labs/m09/` 实验目录与 `assets/figures/m09/` 配图。主 agent 复核接口和证据、整合全站导航、实跑并验收；各课独立，不把不同系统的输出合成一张付款凭证。
+
+## M09 验收记录
+
+以下从仓库根目录运行。宿主 macOS arm64、CPython 3.11.8；实验使用各自的独立创世、测试节点或本地设置。
+
+- **33 · 发票查支付哈希，关闭查原输出。** `python3 labs/m09/lightning/run.py`：Bitcoin Core 30.5、两端 LND 0.21.8-beta。默认 **50,000 sat** 正向一跳、路由费 0，Bob 的票 `SETTLED`；反向 **60,000 sat** 因可用余额不足失败，票仍 `OPEN`、实收 0，链尖和注资 UTXO 不动。块 109 的协作关闭花费块 103 的原输出，`50,000 + 448,798 + 1,202 = 500,000 sat`；三次确认后两端均报 `COOPERATIVE_CLOSE`。[默认凭单](labs/m09/evidence/lightning/LN-33.json)与[另起通道的 72,000 sat 作业单](labs/m09/evidence/lightning/LN-33B.json)分开保存；后者用 `--pay-sat 72000` 运行，反向 82,000 未付。
+- **34 · 同块比较，能区分落后和漏扫。** `python3 labs/m09/subgraph/run.py --out <新目录>`：Graph Node 0.45.0/WASM 与 M05 Java 在同一块 3 哈希读到 `Locked + Settled`，B 应领 125 wei、已提 0；块 4 才已提 125。重建到 3 分别为 **1,528 ms、960 ms**（含调度/JVM 启动，非性能排名）。`--late-start` 时两边已追平，子图仍只有 1 行，Java 与回执各 2 行，退出 3。[两端各自的查询](labs/m09/evidence/subgraph/normal.json)、[原始回执](labs/m09/evidence/subgraph/receipts.json)和[漏扫记录](labs/m09/evidence/subgraph/late.json)可对读。另起一轮 `--refund --wei 9007199254741034`，受益人换为付款方 A；再加 `--late-start`，只剩 `Refunded`，不能替代被漏掉的 `Locked`。
+- **35 · 一份证明不能换一张登记单。** 从根目录按[第 35 课](labs/preimage.html)设置 `ZK35_TOOLS`，运行 `bash labs/m09/preimage/setup.sh "$WORK/keys"`，再用 `prove.sh` 对 `A`、`B` 各生成一套。Circom 2.2.3 编出 240 条约束，2 个私有输入、0 个公开输入、1 个公开输出。同一把 VK 下，两套原件各自 `OK!`；公开数加一、以及 A/B 证明与另一单承诺的两种交叉组合均 `Invalid proof`，退出 1。重放完整 B 单仍成功，说明验证不防重复领取。[A 的公开材料](labs/m09/evidence/preimage/A/proof.json)及[本轮 VK](labs/m09/evidence/preimage/verification_key.json)可离线复验，不含见证；没有生产设置、身份认证或上链验证。
+- **36 与卷末 X-936 · 知道对象 ID 不等于能交接。** `python3 labs/m09/move-ticket/run.py --out <新目录>`：3601 号单由 A→B→A，三次写入版本 4→5→6。另起本地 Sui 1.53.2 创世加 `--number 936 --reverse`，B→A 后旧持有人 B 的申请因输入对象不归签名人被拒（`-32002`，CLI 退出 1），版本、所有者和摘要不动；只换当前持有人 A，确实退回 B。关闭节点后，对[归档](labs/m09/evidence/X-936/run.json)执行 `review.py labs/m09/evidence/X-936 --expect-number 936 --expect-final B` 得 `MATCH_LOCAL`，只改 `--expect-final A` 得 `HOLD`、退出 3。再用 `--number 9007199254740993` 从头运行，业务号保持精确；把要求减 1，复核拒绝。
+- **站点。** `python3 tools/build.py` 成功。首页、计划、第 32–37 及 40 课的 **429** 个本地引用和片段均可解析。离线 Chrome 从首页或 32 课进入 33，顺读 33→36 再回主线 37；从 40 课能回专项目录，计划可直达 X-936。四页在 1280 / 375 px 均无页面横向溢出，桌面凭条与导语并排、手机先凭条后导语。正文图宽 736 / 359 px，四图可放大、关闭并返回链接焦点；代码明暗对比度分别为 10.61:1、9.96:1。
+- **边界。** 各课首次准备需要下载部分工具；未验证其他平台、主网或真实账户。Lightning 不含多跳路由和单方关闭；本地子图未发布到公共网络；两阶段设置仅供教学；Sui 快照取自自建节点，离线读端不验证共识证书。没有实际收付款或代持资产。
+
+## M08 分工
+
+四位作者各执笔一课和 `assets/figures/m08/` 下同名图：29 `labs/rust-order.md`、`labs/m08/order/`（订单字节与显式错误）；30 `labs/solana-payment.md`、`labs/m08/payment/`（本地付款与签名查证）；31 `labs/registry.md`、`labs/m08/registry/`（每人独立的 Anchor 登记程序）；32 `labs/spl-delivery.md`、`labs/m08/token/`（本地 mint、ATA 结算与卷末交接）。主 agent 提供隔离的回环 validator 和 RPC 客户端公共接口，维护站点、复跑实验并验收，不使用真实钱包或资金。
+
+## M08 验收记录
+
+从仓库根目录运行。宿主 Rust 1.98.1、CPython 3.11.8。`bash labs/m08/setup.sh` 校验 Agave 2.3.13 和 SPL 程序摘要；`source labs/m08/env.sh` 使用课程缓存的 CLI 和 `solders==0.26.0`。每轮用 `solana-genesis` 新建账本，`agave-validator` 的 RPC 和节点地址显式绑定回环。创世给临时付款人测试 SOL，不启动 faucet，不读已有钱包。
+
+- **29 · 残件不补零。** `rustc --edition=2021 -O labs/m08/order/main.rs`（用 `-o` 输出到临时目录）。`encode 513 open 9223372036854776065` 写出的 12 字节为 `01 10 01 02 01 01 00 00 00 00 00 80`，`decode` 还原原数。截去末字节报 `LENGTH expected=12 bytes_seen=11`；只改状态为 `7f` 报 `STATUS tag=0x7f`，两次退出 2。作业单 1025 的 `u64::MAX` 经 Rust 与 JShell 独立按小端解码，Java 有符号显示 −1，无符号显示 18446744073709551615。追加一个零字节、给报价加一都拒绝，不返回订单。
+- **30 · 过期不是撤销。** `python labs/m08/payment/run.py --out <新目录> --wait-expiry`。A 在 slot 2 实收 **1,250,000 lamports**，付款人少 1,255,000；唯一 signer 是付款人。等待 78.2 秒后，确认块高 **153 > 151**，原哈希已无效，A 仍按同一签名查到 `finalized`；B 从未提交，用原件模拟报 `BlockhashNotFound`。[A 的回执](labs/m08/evidence/payment/A-receipt.json)与[过期观察](labs/m08/evidence/payment/expiry.json)均可离线核对。改付 1 lamport，低于新账户门槛 890,880，签名前退出 3；另起账本改付 1,730,009，商户净增同额。未制造真实网络超时。
+- **31 · 知道 PDA 地址不是改号授权。** Anchor 0.31.3、SBF platform-tools v1.48（`rustc 1.84.1-dev`）编出 `course_registry.so`，本机制品 SHA-256 `1aef9b6d26262c9b7b49af78c75ccad5dcd8eaf269b290f0dd931bbf73e022c5`。`python labs/m08/registry/run.py --out <新目录>`：A、B 初始化各自 49 字节的表，注册日志可见 System Program `invoke [2]`。A 把 3101 改为 3109；仅选错成 B 的表，slot 6 确认失败，报 `ConstraintSeeds / 2006`，两表原件不变、代付者扣 10,000 lamports。改用 `--actor B --ticket 9007199254740993` 得 **3101 / 9007199254740993**，没有精度丢失或串写。[部署清单](labs/m08/evidence/registry/manifest.json)和[拒单回执](labs/m08/evidence/registry/refused.json)归同一次默认运行。程序于创世预载、无升级权限，没有部署交易签名。
+- **32 · 同一 mint，两本账。** `python labs/m08/token/deliver.py --out <新目录>`：向仓库 ATA 发行 2,500,000 个最小单位，精度为 6。在 slot 5 错写 5，回执 `Custom: 18`、两侧代币余额不动，费用支付者仍付 10,000 lamports。slot 6 按精度 6 实转 **1,250,001**，两侧为 **1,249,999 / 1,250,001**，供应量不变。关闭节点后，`python labs/m08/token/review.py labs/m08/evidence/token/evidence.json` 从签名字节、回执和账户原件复算得 `MATCH_LOCAL`。这是经典 Token 程序的本地 mint，不是公开发行资产。
+- **卷末 S-832 · 少一个单位，改签收结论。** 用[卷末工单](labs/spl-delivery.html#m08-checkout)从源码编码 832 号单，12 字节还原应收，11 字节拒读。SOL 联到账 2,000,032 lamports，确认块高超过 151 后 A 的原签名仍有效可查，B 未提交。登记联由 B 签字写 832，误选 A 表被拒，两表仍为 **3101 / 832**。券联发行 **9,007,199,254,741,153** 个最小单位；足额时商户实收 **9,007,199,254,741,019**、仓库余 134；在新创世少转 1，交货交易同样成功，但仓库余 135、订单 `HOLD_AMOUNT`，退出 3。几联的签名不能跨创世拼成同一笔付款。
+- **从包接手。** 按第 32 课白名单生成 36 项 `S-832.tar`，在空目录校验 SHA-256 后解包，无 ledger、编译目标或 keypair。离线重读包内两份券联，分别报 `MATCH_LOCAL`、`HOLD_AMOUNT`。在解包根目录用 `CARGO_NET_OFFLINE=true bash labs/m08/registry/build.sh --offline` 从源码复编，再让 B 改为 833：正常选择 B 表成功，误选 A 表仍报 2006，双表最终 **3101 / 833**。构建有一条 Anchor 宏生成的 `realloc` 弃用警告，不影响本次编译与执行。
+- **站点。** `python3 tools/build.py` 构建成功。首页、计划、28–32、40 课共 **361** 个本地引用（含公开回执与片段）可解析。离线 Chrome 可从首页、第 28 或 40 课进入 29，从计划直接打开卷末；顺读 29→32 再进 M09 计划。四课在 1280 / 375 px 均无横向溢出，桌面凭条与导语并排、手机先凭条；正文图宽 736 / 359 px，四图均可放大、关闭并返回原焦点。代码浅/深对比度 10.61:1 / 9.96:1。
+- **边界。** 实跑为 macOS arm64 单验证者、新创世、临时身份；没有公开部署、真实资产、硬件钱包、Token-2022 或多节点最终性实验。首次构建下载编译器、Rust 依赖及 SDK 辅助工具；仅缓存齐备后验证离线复编，不推定其他平台已通过。离线消息验签不认证 RPC 提供的余额和日志。
+
+## M10 分工
+
+37 `labs/scope.md`、`labs/m10/scope/`：两份范围与里程碑报价；38 `labs/payment-desk.md`、`labs/m10/desk/`：将 M04 托管、M05 订单/索引及用户确认接成可查原始回执的本地对账台；39 `labs/operations.md`、`labs/m10/ops/`：交付包、断连告警与恢复验账；40 `labs/hackathon.md`、`labs/m10/demo/`：48 小时赛程、三分钟演示与独立卷末工单。四位作者各执笔一课，配图位于 `assets/figures/m10/`。主 agent 负责导航、首屏、独立复跑和浏览器验收。
+
+## M10 验收记录
+
+从仓库根目录运行；本机 CPython 3.11.8、JDK 21.0.2、Maven 3.9.11、PostgreSQL 17.5、Forge/Cast/Anvil 1.7.1、solc 0.8.28。`bash labs/m05/build.sh -o` 用已有 Maven 缓存编译了 6 份 Java 源码。每轮新建回环链和专库，不跨部署沿用交易哈希。
+
+- **37 · 两份替代报价，不是两笔收入。** 执行 `labs/scope.md` 的 `awk` 核价段，两张文本单分别得到 `6 9000`、`10 15000`（人日、人民币元）。只把第一单的 M2 当期款从 4,500 改为 4,600，核价得到 `6 9100` 并退出 1。报价、签收人与变更均为教学案例，没有真实收款。
+- **38 · 用户发起，后台只核应领。** `python3 labs/m04/deployment.py --out "$WORK/release" --hold` 配 `bash labs/m10/desk/run.sh init "$WORK" DESK-38 125 2`。Chrome 付款人窗口拒绝第一份预览：仍是块 1，付款人 nonce 仍为 1。重新确认锁款、结算后，订单先读到头 3 / 游标 1 的 `HOLD_LAG`；补扫到 3 仍 `HOLD_DEPTH`。挖一空块、追平才入账。块 3 的结算交易 `0x073ccde443f13a3bc0dc94236b7250fef7da5eb6ae0e09047e7c177c117ed60c` 对应本合约日志 0：核对主题、受益人和金额，实见 **125 wei 应领**。停止工作台、保留节点和库，再 `run.sh resume "$WORK"` 后由页面强制重扫块 1–4，匹配两条业务日志、新增 0，流水 / outbox / 提示键仍 `1 / 1 / 1`。
+- **38 · 同样成功的回执，不同的订单判断。** 新工作目录、空库和新链，`init "$WORK" DESK-SHORT 126 2`，付款人只锁 **125 wei**。在块 4 已有两次确认，仍为 `HOLD_AMOUNT`。375 px 浏览器队列显示该单差额 **+1 wei**、流水 / outbox `0 / 0`；从队列打开的回执与付款端保存的整份 JSON 相同。
+- **39 · 恢复通信，再恢复账。** `incident.py prepare "$WORK"` 在块 1 备份 1 个意图、0 流水；付款人独立锁款、结算并推进到块 4。对 `OPS-39` 运行 `outage.py` 暂停原 Anvil，读请求超时，订单 API 实报 `503 HOLD_UNAVAILABLE`、禁止通知。恢复同一进程和头哈希后仍为 `HOLD_LAG`。停止旧服务，`incident.py restore "$WORK"` 在新库还原，`audit "$WORK"` 补扫 2..4 新增 2 条事件；重放同区间新增 0。足额 **125 wei** 时流水 / outbox 为 `1 / 1`；另一轮只锁 **124 wei**，同样恢复、补扫和重放后差额 `+1`，两表均为 0。两轮均向活节点核对结算回执，未向外部交付或投递通知。
+- **40 · 从源码包接手 C-1040。** 用 `python3 labs/m10/ops/bundle.py <新 tar>` 制包，在独立空目录校验 **41** 项摘要；包里没有旧 `target`，用本机已预热的 Maven 依赖离线复编。从解包目录新部署，用 `run.sh init "$WORK" C-1040 9007199254741137 3` 开单。在 Chrome 拒签后另行同意锁款与结算；从补扫结果点开原始回执再后退，回到 `/result`，没有重提 POST。头 5 / 游标 3 时暂停 RPC 得 503，恢复仍为 `HOLD_LAG`。`Recover` 补齐两空块；首次核销、同键重试、`Scan 2` 后再提示，只留下 1 流水和 1 outbox。
+- **同一份原件，评委能改结论。** 对结算交易 `0x221e795ea8e5770b327b5c55dc12db151d61526efea53a52ccd4f6a460fc3239` 的日志 0 解出 **9,007,199,254,741,137 wei**。块 5 上，`witness.py "$WORK/release/manifest.json" C-1040 --depth 3` 报 `MATCH`、退出 0；仅改 `--depth 4` 得 `WAIT_EXTRA_DEPTH`、退出 3。再挖一空块并追平到 6，无须重新付款就恢复 `MATCH`。报价独立复算：只读 4,480 元，含用户确认 7,040 元；追加导出后 7,680 元，超 7,200 元预算 **480 元**。导演单为三分钟课堂排练，不是一次已举办的人工评审或比赛录像。
+- **站点。** `python3 tools/build.py` 成功；首页、计划、24、28、37–40 课共 **368** 个本地链接、资源和片段均可解析。Chrome 离线从 24 或 28 进入 37，从首页顺读 37→40 后进入 M08 计划。四课在 1280 / 375 px 下均无横向溢出，桌面凭条与导语并排，手机先凭条后导语；四图可放大、收起并回到原链接焦点。代码块浅/深主题实测对比度 10.61:1 / 9.96:1。
+- **边界。** 实跑限本机 macOS、受控端口、合成订单、预热工具缓存；未验证其他平台或无缓存离线安装。服务分进程不等于隔离本机解锁 RPC 的签名权；无真实资产、真实钱包、外部履约、生产安全审计或参赛授权。临时服务已关闭。
 
 ## M07 分工
 
@@ -184,3 +233,6 @@ M01 保留已验收的 4 课；四位作者完成 M02，后续每卷仍由四位
 - M05 成品：17–20 课 Markdown 和同名 HTML、`labs/m05/` Java/SQL 工程与 `assets/figures/m05/` 四图已接入[本卷目录](plan.html#m05)。卷末可从付款前数据库恢复到同一部署；M06 正文未开始。
 - M06 成品：21–24 课 Markdown 与同名 HTML、`labs/m06/` 签名台及合约实验、`assets/figures/m06/` 四图已接入[本卷目录](plan.html#m06)。卷末交付相互独立的登录、额度、成交和估值凭证。下一批转主线 M10，未开始后续正文。
 - M07 成品：25–28 课的 Markdown 与同名 HTML、`labs/m07/` 的运行程序和公开测试网证据、`assets/figures/m07/` 四图已接入[本卷目录](plan.html#m07)。卷末分开签收一笔官方桥付款与一张本地代付拒单，未开始 M10 正文。
+- M10 成品：37–40 课 Markdown 与同名 HTML、`assets/figures/m10/` 四图、`labs/m10/` 的范围报价、对账台、制包/恢复脚本和评委工具已接入[本卷目录](plan.html#m10)。接手人不依赖旧数据库或原作者的签名账户；M08、M09 正文尚未开始。
+- M08 成品：29–32 课 Markdown、同名 HTML 与 `assets/figures/m08/` 四图已接入[本卷目录](plan.html#m08)。`labs/m08/` 含共用运行时、四课源码及三课的本地原始回执；S-832 在新账本复跑并交接公开材料。未开始 M09 正文。
+- M09 成品：33–36 课原稿、同名 HTML、`assets/figures/m09/` 四图、`labs/m09/` 运行程序及公开验收材料已接入[本卷目录](plan.html#m09)。X-936 可从源码复跑，也可对已归档的 Sui 工单离线换签收条件。至此十卷结课。

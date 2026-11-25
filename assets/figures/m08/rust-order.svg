@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="620" height="475" viewBox="0 0 620 475" role="img" xml:lang="zh-CN" aria-labelledby="title desc">
+  <title id="title">订单 513：读第十二个字节，再决定能不能报金额</title>
+  <desc id="desc">从左到右是版本 01、状态 10、小端订单号 01 02，以及小端金额 01 01 00 00 00 00 00 80。最后的 80 贡献 2 的 63 次方。12 字节读出 9223372036854776065 个最小单位；11 字节应返回长度错误，不能补零报 257。</desc>
+  <rect width="620" height="475" fill="#fffaf2"/>
+  <g font-family="system-ui,sans-serif" fill="#252c2d">
+    <text x="24" y="39" font-size="25" font-weight="700">少一字节，还能报订单金额吗？</text>
+    <text x="24" y="67" font-size="17">交换格式 v1 · 左为文件开头 · 偏移从 0 起，单位为字节</text>
+    <g stroke="#846c55" fill="#f5eadb">
+      <rect x="24" y="93" width="70" height="87" rx="5"/>
+      <rect x="99" y="93" width="70" height="87" rx="5"/>
+      <rect x="174" y="93" width="92" height="87" rx="5"/>
+      <rect x="271" y="93" width="325" height="87" rx="5" fill="#e6eeef" stroke="#4c7175"/>
+    </g>
+    <g font-size="15" text-anchor="middle">
+      <text x="59" y="117">0 · 版本</text><text x="134" y="117">1 · 状态</text>
+      <text x="220" y="117">2–3 · 单号</text><text x="434" y="117">4–11 · 金额（u64，小端）</text>
+    </g>
+    <g font-family="monospace" font-size="19" text-anchor="middle" font-weight="700">
+      <text x="59" y="154">01</text><text x="134" y="154">10</text><text x="220" y="154">01 02</text>
+      <text x="434" y="154">01 01 00 00 00 00 00 80</text>
+    </g>
+    <text x="25" y="212" font-size="18">发送端写入 → 接收端先数整帧，再解释字段</text>
+    <rect x="24" y="234" width="572" height="90" rx="6" fill="#e2f1eb" stroke="#286657"/>
+    <text x="41" y="263" font-size="19" font-weight="700">12 字节，合法版本与状态 → 返回订单 513 · Open</text>
+    <text x="41" y="296" font-size="18">金额 = 2⁶³ + 256 + 1 = 9,223,372,036,854,776,065 单位</text>
+    <rect x="24" y="337" width="572" height="91" rx="6" fill="#f6e6da" stroke="#8c4b32"/>
+    <text x="41" y="367" font-size="19" font-weight="700">11 字节，末尾的 80 缺失 → 返回 LENGTH</text>
+    <text x="41" y="400" font-size="18">金额未知。补 00 会制造另一张金额仅为 257 的订单。</text>
+    <text x="25" y="457" font-size="16">格式有效只代表能读，不是交易签名，也不是入账凭证。</text>
+  </g>
+</svg>

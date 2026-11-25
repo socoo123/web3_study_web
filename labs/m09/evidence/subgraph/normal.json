@@ -1,0 +1,338 @@
+{
+  "chainId": 31337,
+  "source": "0x26ca86c781f04b06d1888896fc9d3100e62d254d",
+  "deploymentBlockHash": "0xab3704fae6c4f36574dd48f023d61ce952af215176722d4003671afa5a6e158b",
+  "subgraphCID": "QmQDeJXkVyPaKNPt8hAp9YVpxVEm9D8dScVSpqdqGmzP6Y",
+  "startBlock": 1,
+  "rebuildTo3Ms": {
+    "graph": 1528,
+    "java": 960
+  },
+  "pages": [
+    {
+      "height": 3,
+      "hash": "0xdf0f08dcb3b24c374924c14b9bb7747174a953d76991c03410deaef7139f8639",
+      "graph": {
+        "postings": [
+          {
+            "height": "2",
+            "blockHash": "0x6b73e8cb6314ab6bdbfb27901e52e7b8634c91746801fd0ba8eb7500db8efd1f",
+            "txHash": "0xb6c75c44614f21fd20e942695d21318734f889cffbdd78864e1765815ba7af8b",
+            "logIndex": "0",
+            "address": "0x26ca86c781f04b06d1888896fc9d3100e62d254d",
+            "kind": "Locked",
+            "actor": "0xc8a3dcd1c1edd6e9afc6f7fa8eb86db18a1fefc3",
+            "amountWei": "125"
+          },
+          {
+            "height": "3",
+            "blockHash": "0xdf0f08dcb3b24c374924c14b9bb7747174a953d76991c03410deaef7139f8639",
+            "txHash": "0xcb073436eb0f11a06800a9619e92bf3ab44ad1db9274fc8e74f957638a069ba9",
+            "logIndex": "0",
+            "address": "0x26ca86c781f04b06d1888896fc9d3100e62d254d",
+            "kind": "Settled",
+            "actor": "0x4cdd435d6eac25d7beb3ec715c5f854832ca88f4",
+            "amountWei": "125"
+          }
+        ],
+        "_meta": {
+          "deployment": "QmQDeJXkVyPaKNPt8hAp9YVpxVEm9D8dScVSpqdqGmzP6Y",
+          "hasIndexingErrors": false,
+          "block": {
+            "number": 3,
+            "hash": "0xdf0f08dcb3b24c374924c14b9bb7747174a953d76991c03410deaef7139f8639"
+          }
+        }
+      },
+      "java": {
+        "cursor": {
+          "id": 1,
+          "chain_id": 31337,
+          "contract_address": "0x26ca86c781f04b06d1888896fc9d3100e62d254d",
+          "deploy_height": 1,
+          "deploy_hash": "0xab3704fae6c4f36574dd48f023d61ce952af215176722d4003671afa5a6e158b",
+          "height": 3,
+          "block_hash": "0xdf0f08dcb3b24c374924c14b9bb7747174a953d76991c03410deaef7139f8639"
+        },
+        "blockHash": "0xdf0f08dcb3b24c374924c14b9bb7747174a953d76991c03410deaef7139f8639",
+        "postings": [
+          {
+            "height": "2",
+            "blockHash": "0x6b73e8cb6314ab6bdbfb27901e52e7b8634c91746801fd0ba8eb7500db8efd1f",
+            "txHash": "0xb6c75c44614f21fd20e942695d21318734f889cffbdd78864e1765815ba7af8b",
+            "logIndex": "0",
+            "address": "0x26ca86c781f04b06d1888896fc9d3100e62d254d",
+            "kind": "Locked",
+            "actor": "0xc8a3dcd1c1edd6e9afc6f7fa8eb86db18a1fefc3",
+            "amountWei": "125"
+          },
+          {
+            "height": "3",
+            "blockHash": "0xdf0f08dcb3b24c374924c14b9bb7747174a953d76991c03410deaef7139f8639",
+            "txHash": "0xcb073436eb0f11a06800a9619e92bf3ab44ad1db9274fc8e74f957638a069ba9",
+            "logIndex": "0",
+            "address": "0x26ca86c781f04b06d1888896fc9d3100e62d254d",
+            "kind": "Settled",
+            "actor": "0x4cdd435d6eac25d7beb3ec715c5f854832ca88f4",
+            "amountWei": "125"
+          }
+        ]
+      },
+      "receiptRows": [
+        {
+          "height": "2",
+          "blockHash": "0x6b73e8cb6314ab6bdbfb27901e52e7b8634c91746801fd0ba8eb7500db8efd1f",
+          "txHash": "0xb6c75c44614f21fd20e942695d21318734f889cffbdd78864e1765815ba7af8b",
+          "logIndex": "0",
+          "address": "0x26ca86c781f04b06d1888896fc9d3100e62d254d",
+          "kind": "Locked",
+          "actor": "0xc8a3dcd1c1edd6e9afc6f7fa8eb86db18a1fefc3",
+          "amountWei": "125"
+        },
+        {
+          "height": "3",
+          "blockHash": "0xdf0f08dcb3b24c374924c14b9bb7747174a953d76991c03410deaef7139f8639",
+          "txHash": "0xcb073436eb0f11a06800a9619e92bf3ab44ad1db9274fc8e74f957638a069ba9",
+          "logIndex": "0",
+          "address": "0x26ca86c781f04b06d1888896fc9d3100e62d254d",
+          "kind": "Settled",
+          "actor": "0x4cdd435d6eac25d7beb3ec715c5f854832ca88f4",
+          "amountWei": "125"
+        }
+      ],
+      "match": true
+    },
+    {
+      "height": 3,
+      "hash": "0xdf0f08dcb3b24c374924c14b9bb7747174a953d76991c03410deaef7139f8639",
+      "graph": {
+        "postings": [
+          {
+            "height": "2",
+            "blockHash": "0x6b73e8cb6314ab6bdbfb27901e52e7b8634c91746801fd0ba8eb7500db8efd1f",
+            "txHash": "0xb6c75c44614f21fd20e942695d21318734f889cffbdd78864e1765815ba7af8b",
+            "logIndex": "0",
+            "address": "0x26ca86c781f04b06d1888896fc9d3100e62d254d",
+            "kind": "Locked",
+            "actor": "0xc8a3dcd1c1edd6e9afc6f7fa8eb86db18a1fefc3",
+            "amountWei": "125"
+          },
+          {
+            "height": "3",
+            "blockHash": "0xdf0f08dcb3b24c374924c14b9bb7747174a953d76991c03410deaef7139f8639",
+            "txHash": "0xcb073436eb0f11a06800a9619e92bf3ab44ad1db9274fc8e74f957638a069ba9",
+            "logIndex": "0",
+            "address": "0x26ca86c781f04b06d1888896fc9d3100e62d254d",
+            "kind": "Settled",
+            "actor": "0x4cdd435d6eac25d7beb3ec715c5f854832ca88f4",
+            "amountWei": "125"
+          }
+        ],
+        "_meta": {
+          "deployment": "QmQDeJXkVyPaKNPt8hAp9YVpxVEm9D8dScVSpqdqGmzP6Y",
+          "hasIndexingErrors": false,
+          "block": {
+            "number": 3,
+            "hash": "0xdf0f08dcb3b24c374924c14b9bb7747174a953d76991c03410deaef7139f8639"
+          }
+        }
+      },
+      "java": {
+        "cursor": {
+          "id": 1,
+          "chain_id": 31337,
+          "contract_address": "0x26ca86c781f04b06d1888896fc9d3100e62d254d",
+          "deploy_height": 1,
+          "deploy_hash": "0xab3704fae6c4f36574dd48f023d61ce952af215176722d4003671afa5a6e158b",
+          "height": 4,
+          "block_hash": "0x61361618dde7d81ca17e3c8679f92b453075c520dbed856650ad6632d411e46f"
+        },
+        "blockHash": "0xdf0f08dcb3b24c374924c14b9bb7747174a953d76991c03410deaef7139f8639",
+        "postings": [
+          {
+            "height": "2",
+            "blockHash": "0x6b73e8cb6314ab6bdbfb27901e52e7b8634c91746801fd0ba8eb7500db8efd1f",
+            "txHash": "0xb6c75c44614f21fd20e942695d21318734f889cffbdd78864e1765815ba7af8b",
+            "logIndex": "0",
+            "address": "0x26ca86c781f04b06d1888896fc9d3100e62d254d",
+            "kind": "Locked",
+            "actor": "0xc8a3dcd1c1edd6e9afc6f7fa8eb86db18a1fefc3",
+            "amountWei": "125"
+          },
+          {
+            "height": "3",
+            "blockHash": "0xdf0f08dcb3b24c374924c14b9bb7747174a953d76991c03410deaef7139f8639",
+            "txHash": "0xcb073436eb0f11a06800a9619e92bf3ab44ad1db9274fc8e74f957638a069ba9",
+            "logIndex": "0",
+            "address": "0x26ca86c781f04b06d1888896fc9d3100e62d254d",
+            "kind": "Settled",
+            "actor": "0x4cdd435d6eac25d7beb3ec715c5f854832ca88f4",
+            "amountWei": "125"
+          }
+        ]
+      },
+      "receiptRows": [
+        {
+          "height": "2",
+          "blockHash": "0x6b73e8cb6314ab6bdbfb27901e52e7b8634c91746801fd0ba8eb7500db8efd1f",
+          "txHash": "0xb6c75c44614f21fd20e942695d21318734f889cffbdd78864e1765815ba7af8b",
+          "logIndex": "0",
+          "address": "0x26ca86c781f04b06d1888896fc9d3100e62d254d",
+          "kind": "Locked",
+          "actor": "0xc8a3dcd1c1edd6e9afc6f7fa8eb86db18a1fefc3",
+          "amountWei": "125"
+        },
+        {
+          "height": "3",
+          "blockHash": "0xdf0f08dcb3b24c374924c14b9bb7747174a953d76991c03410deaef7139f8639",
+          "txHash": "0xcb073436eb0f11a06800a9619e92bf3ab44ad1db9274fc8e74f957638a069ba9",
+          "logIndex": "0",
+          "address": "0x26ca86c781f04b06d1888896fc9d3100e62d254d",
+          "kind": "Settled",
+          "actor": "0x4cdd435d6eac25d7beb3ec715c5f854832ca88f4",
+          "amountWei": "125"
+        }
+      ],
+      "match": true
+    },
+    {
+      "height": 4,
+      "hash": "0x61361618dde7d81ca17e3c8679f92b453075c520dbed856650ad6632d411e46f",
+      "graph": {
+        "postings": [
+          {
+            "height": "2",
+            "blockHash": "0x6b73e8cb6314ab6bdbfb27901e52e7b8634c91746801fd0ba8eb7500db8efd1f",
+            "txHash": "0xb6c75c44614f21fd20e942695d21318734f889cffbdd78864e1765815ba7af8b",
+            "logIndex": "0",
+            "address": "0x26ca86c781f04b06d1888896fc9d3100e62d254d",
+            "kind": "Locked",
+            "actor": "0xc8a3dcd1c1edd6e9afc6f7fa8eb86db18a1fefc3",
+            "amountWei": "125"
+          },
+          {
+            "height": "3",
+            "blockHash": "0xdf0f08dcb3b24c374924c14b9bb7747174a953d76991c03410deaef7139f8639",
+            "txHash": "0xcb073436eb0f11a06800a9619e92bf3ab44ad1db9274fc8e74f957638a069ba9",
+            "logIndex": "0",
+            "address": "0x26ca86c781f04b06d1888896fc9d3100e62d254d",
+            "kind": "Settled",
+            "actor": "0x4cdd435d6eac25d7beb3ec715c5f854832ca88f4",
+            "amountWei": "125"
+          },
+          {
+            "height": "4",
+            "blockHash": "0x61361618dde7d81ca17e3c8679f92b453075c520dbed856650ad6632d411e46f",
+            "txHash": "0x23e1f2680209e9ff98962fa17febc21cda28b953e961309dc1edc2123038a072",
+            "logIndex": "0",
+            "address": "0x26ca86c781f04b06d1888896fc9d3100e62d254d",
+            "kind": "Withdrawn",
+            "actor": "0x4cdd435d6eac25d7beb3ec715c5f854832ca88f4",
+            "amountWei": "125"
+          }
+        ],
+        "_meta": {
+          "deployment": "QmQDeJXkVyPaKNPt8hAp9YVpxVEm9D8dScVSpqdqGmzP6Y",
+          "hasIndexingErrors": false,
+          "block": {
+            "number": 4,
+            "hash": "0x61361618dde7d81ca17e3c8679f92b453075c520dbed856650ad6632d411e46f"
+          }
+        }
+      },
+      "java": {
+        "cursor": {
+          "id": 1,
+          "chain_id": 31337,
+          "contract_address": "0x26ca86c781f04b06d1888896fc9d3100e62d254d",
+          "deploy_height": 1,
+          "deploy_hash": "0xab3704fae6c4f36574dd48f023d61ce952af215176722d4003671afa5a6e158b",
+          "height": 4,
+          "block_hash": "0x61361618dde7d81ca17e3c8679f92b453075c520dbed856650ad6632d411e46f"
+        },
+        "blockHash": "0x61361618dde7d81ca17e3c8679f92b453075c520dbed856650ad6632d411e46f",
+        "postings": [
+          {
+            "height": "2",
+            "blockHash": "0x6b73e8cb6314ab6bdbfb27901e52e7b8634c91746801fd0ba8eb7500db8efd1f",
+            "txHash": "0xb6c75c44614f21fd20e942695d21318734f889cffbdd78864e1765815ba7af8b",
+            "logIndex": "0",
+            "address": "0x26ca86c781f04b06d1888896fc9d3100e62d254d",
+            "kind": "Locked",
+            "actor": "0xc8a3dcd1c1edd6e9afc6f7fa8eb86db18a1fefc3",
+            "amountWei": "125"
+          },
+          {
+            "height": "3",
+            "blockHash": "0xdf0f08dcb3b24c374924c14b9bb7747174a953d76991c03410deaef7139f8639",
+            "txHash": "0xcb073436eb0f11a06800a9619e92bf3ab44ad1db9274fc8e74f957638a069ba9",
+            "logIndex": "0",
+            "address": "0x26ca86c781f04b06d1888896fc9d3100e62d254d",
+            "kind": "Settled",
+            "actor": "0x4cdd435d6eac25d7beb3ec715c5f854832ca88f4",
+            "amountWei": "125"
+          },
+          {
+            "height": "4",
+            "blockHash": "0x61361618dde7d81ca17e3c8679f92b453075c520dbed856650ad6632d411e46f",
+            "txHash": "0x23e1f2680209e9ff98962fa17febc21cda28b953e961309dc1edc2123038a072",
+            "logIndex": "0",
+            "address": "0x26ca86c781f04b06d1888896fc9d3100e62d254d",
+            "kind": "Withdrawn",
+            "actor": "0x4cdd435d6eac25d7beb3ec715c5f854832ca88f4",
+            "amountWei": "125"
+          }
+        ]
+      },
+      "receiptRows": [
+        {
+          "height": "2",
+          "blockHash": "0x6b73e8cb6314ab6bdbfb27901e52e7b8634c91746801fd0ba8eb7500db8efd1f",
+          "txHash": "0xb6c75c44614f21fd20e942695d21318734f889cffbdd78864e1765815ba7af8b",
+          "logIndex": "0",
+          "address": "0x26ca86c781f04b06d1888896fc9d3100e62d254d",
+          "kind": "Locked",
+          "actor": "0xc8a3dcd1c1edd6e9afc6f7fa8eb86db18a1fefc3",
+          "amountWei": "125"
+        },
+        {
+          "height": "3",
+          "blockHash": "0xdf0f08dcb3b24c374924c14b9bb7747174a953d76991c03410deaef7139f8639",
+          "txHash": "0xcb073436eb0f11a06800a9619e92bf3ab44ad1db9274fc8e74f957638a069ba9",
+          "logIndex": "0",
+          "address": "0x26ca86c781f04b06d1888896fc9d3100e62d254d",
+          "kind": "Settled",
+          "actor": "0x4cdd435d6eac25d7beb3ec715c5f854832ca88f4",
+          "amountWei": "125"
+        },
+        {
+          "height": "4",
+          "blockHash": "0x61361618dde7d81ca17e3c8679f92b453075c520dbed856650ad6632d411e46f",
+          "txHash": "0x23e1f2680209e9ff98962fa17febc21cda28b953e961309dc1edc2123038a072",
+          "logIndex": "0",
+          "address": "0x26ca86c781f04b06d1888896fc9d3100e62d254d",
+          "kind": "Withdrawn",
+          "actor": "0x4cdd435d6eac25d7beb3ec715c5f854832ca88f4",
+          "amountWei": "125"
+        }
+      ],
+      "match": true
+    }
+  ],
+  "afterReceipt4": {
+    "sourceHead": 4,
+    "firstGraphMeta": {
+      "deployment": "QmQDeJXkVyPaKNPt8hAp9YVpxVEm9D8dScVSpqdqGmzP6Y",
+      "hasIndexingErrors": false,
+      "block": {
+        "number": 3,
+        "hash": "0xdf0f08dcb3b24c374924c14b9bb7747174a953d76991c03410deaef7139f8639"
+      }
+    },
+    "firstJavaCursor": 3,
+    "graphLagBlocks": 1,
+    "javaLagBlocks": 1,
+    "graphObservedCaughtUpMs": 877,
+    "javaObservedCaughtUpMs": 1574
+  }
+}

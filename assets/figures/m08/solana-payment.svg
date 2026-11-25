@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="570" viewBox="0 0 640 570" role="img" xml:lang="zh-CN" aria-labelledby="title desc">
+  <title id="title">同一个 recent blockhash，两张不同的付款单</title>
+  <desc id="desc">两笔各付一百二十五万 lamports 的草稿使用同一付款人、同一个 recent blockhash，但收款地址不同，签名也不同。只提交 A，取得真实的成功回执。等确认块高越过有效上限，A 的旧回执仍可查；未送出的 B 用原哈希模拟报 BlockhashNotFound，不能首次执行。图中五千 lamports 手续费是验算示例。</desc>
+  <rect width="640" height="570" fill="#fffaf2"/>
+  <g font-family="system-ui, sans-serif" fill="#263331">
+    <text x="24" y="39" font-size="25" font-weight="700">过的是提交期限，不是收据的保质期</text>
+    <text x="24" y="69" font-size="16">同一回环节点 · 金额单位 lamports · 默认工单示意</text>
+    <rect x="24" y="88" width="592" height="79" rx="8" fill="#e9eeeb" stroke="#6a7f76"/>
+    <text x="40" y="119" font-size="19" font-weight="700">签名前：同一付款人，同一 blockhash 及有效上限 H</text>
+    <text x="40" y="147" font-size="17">不同的收款地址 → 两份不同的消息 → 分别保存 A、B 的签名</text>
+    <g fill="none" stroke="#616f69" stroke-width="2">
+      <path d="M320 167v18H164v18m-5-6 5 6 5-6M320 185h156v18m-5-6 5 6 5-6"/>
+    </g>
+    <rect x="24" y="208" width="289" height="114" rx="8" fill="#e2f1eb" stroke="#40755d"/>
+    <text x="40" y="238" font-size="20" font-weight="700">A　已提交一次</text>
+    <text x="40" y="269" font-size="17">付款人 → 商户 A：1,250,000</text>
+    <text x="40" y="298" font-size="17">按原签名找到成功回执。</text>
+    <rect x="327" y="208" width="289" height="114" rx="8" fill="#f5eadb" stroke="#97714a"/>
+    <text x="343" y="238" font-size="20" font-weight="700">B　已签名，扣住不发</text>
+    <text x="343" y="269" font-size="17">拟付商户 B：1,250,000</text>
+    <text x="343" y="298" font-size="17">没有提交，不会有入账凭条。</text>
+    <path d="M24 352h592" stroke="#4c6767" stroke-dasharray="4 4"/>
+    <rect x="128" y="335" width="384" height="32" rx="6" fill="#e5eded"/>
+    <text x="320" y="357" text-anchor="middle" font-size="17" font-weight="700">确认块高 &gt; H，原 blockhash 已失效</text>
+    <rect x="24" y="383" width="289" height="104" rx="8" fill="#e2f1eb" stroke="#40755d"/>
+    <text x="40" y="412" font-size="19" font-weight="700">仍可查 A，不再签</text>
+    <text x="40" y="444" font-size="17">同一签名、执行 slot、余额差。</text>
+    <text x="40" y="470" font-size="17">过期没有撤销这笔付款。</text>
+    <rect x="327" y="383" width="289" height="104" rx="8" fill="#f5eadb" stroke="#97714a"/>
+    <text x="343" y="412" font-size="19" font-weight="700">B 的原件不能再首次执行</text>
+    <text x="343" y="444" font-size="17">不换哈希模拟，不广播：</text>
+    <text x="343" y="470" font-size="17" font-family="monospace">BlockhashNotFound</text>
+    <text x="24" y="523" font-size="17">A 的账：若回执 fee = 5,000，付款人 −1,255,000，商户 +1,250,000。</text>
+    <text x="24" y="549" font-size="16">B 的判断还依赖「从未提交」；单凭查不到签名，不能得出同样结论。</text>
+  </g>
+</svg>

@@ -18,8 +18,14 @@ VOLUMES = (
     ('m05', 'M05 · Java：把链上事实变成业务流水', ('rpc', 'indexing', 'reorg', 'reconciliation')),
     ('m06', 'M06 · 钱包接入、代币与 DeFi', ('siwe', 'allowance', 'swap', 'health')),
     ('m07', 'M07 · L2、智能账户与跨层状态〔选修〕', ('rollup', 'l2-fees', 'userop', 'withdrawal')),
+    ('m08', 'M08 · Solana：换一种状态模型〔选修〕', ('rust-order', 'solana-payment', 'registry', 'spl-delivery')),
+    ('m09', 'M09 · 专项实验室〔按需选修〕', ('lightning', 'subgraph', 'preimage', 'move-ticket')),
+    ('m10', 'M10 · 从可运行的代码到可接手的项目', ('scope', 'payment-desk', 'operations', 'hackathon')),
 )
-LESSONS = tuple(slug for _, _, slugs in VOLUMES for slug in slugs)
+# Published lessons can skip elective volumes; position on the site is not a course number.
+LESSON_NUMBERS = {slug: (int(volume[1:]) - 1) * 4 + n
+                  for volume, _, slugs in VOLUMES for n, slug in enumerate(slugs, 1)}
+LESSONS = tuple(LESSON_NUMBERS)
 ASSET_URLS = {
     name: f'assets/{name}?v={sha256((ROOT / "assets" / name).read_bytes()).hexdigest()[:12]}'
     for name in ('site.css', 'site.js')
@@ -55,10 +61,16 @@ SPECIMENS = {
     'l2-fees': ('Base Sepolia · 块 22,000,000', 'L2 执行 / gwei', '116.809', '+', 'L1 数据 / gwei', '6.328', '分项四舍五入到 0.001 gwei；入账时按回执的整数 wei 相加'),
     'userop': ('27 号工单 · 本次不准盖章', '递单交易', '成功', '≠', '工单盖章', '失败', '代付方仍被扣费；谁花了钱，和事情有没有办成，要分别核对'),
     'withdrawal': ('0.3 测试 ETH · 领取前一块', '现在试算能否领取', '可以', '≠', '查到实际付款了吗', '没有', '试算没有发交易；下一块才有对应这笔提款的付款记录'),
+    'rust-order': ('513 号订单 · 报价字段缺了末字节', '格式要求', '12 字节', '≠', '交来的残件', '11 字节', '手工补零会把报价误读成 257 个最小单位；正确结果是不报金额'),
     'solana-payment': ('S-30 · 原付款单的有效期已过', '已提交的 A 单', '有回执', '≠', '扣住未发的 B 单', '未付款', '两单各拟付 0.00125 SOL；过期不会撤销 A，也不让 B 自动成交'),
     'registry': ('R-31 · A 申请把登记号改为 3109', '选自己的表，结果是', '3109', '≠', '错选 B 表，B 仍是', '7202', '两张表由同一程序管理，但甲不能凭自己的签字改动乙的表'),
     'spl-delivery': ('S-32 · 同一种代币的收发账', '仓库发出', '1.250001 枚', '→', '收货方实收', '1.250001 枚', '两边都数到 1,250,001 个最小单位；转账手续费在另一笔账里'),
+    'lightning': ('500,000 sat 通道 · A 向 B 付款', 'B 的已付发票', '50,000 sat', '≠', '逐笔链上交易', '没有', '链上能查到开通和关闭；这 50,000 sat 要用两端的支付哈希和发票核对'),
+    'subgraph': ('125 wei 托管 · B 从合约累计提走多少？', '块 3 结束', '0 wei', '→', '块 4 结束', '125 wei', '块 3 只记应领，块 4 才有提款事件；让子图和 Java 扫描器查同一个块哈希'),
     'preimage': ('同一份证明交给同一个核验人', '照原登记值核对', '通过', '≠', '只换登记值', '拒绝', '它能证明这项声明成立，不能拿来认定交件人的真实身份'),
+    'move-ticket': ('同一张工单 · 所有权已经交接', '原持有人再转', '被拒', '≠', '现持有人再转', '获准', '工单仍用同一对象 ID；谁能交接取决于当前所有权，而非谁创建了它'),
+    'scope': ('纸舟工坊 · 两份替代报价', '只读对账 / 元', '9,000', '或', '用户确认发起 / 元', '15,000', '后一份已经含对账；两份委托都不允许后台替客户签名'),
+    'payment-desk': ('DESK-SHORT · 人工核对单', '订单应收', '126 wei', '≠', '受益人应领', '125 wei', '结算回执成功，仍差 1 wei；不记流水，也不生成通知意图'),
     'operations': ('OPS-39 · 节点又能答话了', '账本最新一页', '第 4 块', '≠', '备份只读到', '第 1 块', '还差三块没补读；重新连上不代表可以恢复通知'),
     'hackathon': ('DESK-38 · 同一笔款，换个验收条件', '本轮实际确认', '2 次', '<', '评委现在要求', '3 次', '结算记在第 3 块，只查到第 4 块；再等一块，不要再付一次'),
 }
@@ -119,13 +131,23 @@ def reader(source, target, label):
         if source.stem not in slugs:
             continue
         i = LESSONS.index(source.stem)
-        crumb = f'<a href="../plan.html#{volume}">{volume_title}</a> / 第 {i + 1:02} 课'
-        previous = (f'<a rel="prev" href="{LESSONS[i - 1]}.html">上一课 · {i:02}</a>'
-                    if i else f'<a href="../plan.html#{volume}">本卷目录</a>')
-        following = (f'<a rel="next" href="{LESSONS[i + 1]}.html">下一课 · {i + 2:02}</a>'
-                     if i + 1 < len(LESSONS) else '<a href="../plan.html#m10">下一主线卷 · M10 计划</a>')
+        crumb = f'<a href="../plan.html#{volume}">{volume_title}</a> / 第 {LESSON_NUMBERS[source.stem]:02} 课'
+        previous = f'<a href="../plan.html#{volume}">本卷目录</a>'
+        following = '<a href="../plan.html#m09">按需选修 · 四个专项实验</a><a href="../plan.html#怎样判断已经出师">回到交付验收</a>'
+        if i:
+            prev_slug = LESSONS[i - 1]
+            previous = f'<a rel="prev" href="{prev_slug}.html">上一课 · {LESSON_NUMBERS[prev_slug]:02}</a>'
+        if i + 1 < len(LESSONS):
+            next_slug = LESSONS[i + 1]
+            following = f'<a rel="next" href="{next_slug}.html">下一课 · {LESSON_NUMBERS[next_slug]:02}</a>'
         if source.stem == 'health':
-            following = '<a rel="next" href="rollup.html">选修 · 25 Rollup</a><a href="../plan.html#m10">继续主线 · M10 计划</a>'
+            following = '<a rel="next" href="scope.html">继续主线 · 37 接需求与估价</a><a href="rollup.html">选修 · 25 Rollup</a>'
+        elif source.stem == 'withdrawal':
+            following = '<a rel="next" href="rust-order.html">下一选修课 · 29 Rust 订单</a><a href="scope.html">返回主线 · 37 接需求与估价</a>'
+        elif source.stem == 'spl-delivery':
+            following = '<a rel="next" href="lightning.html">下一选修课 · 33 Lightning</a><a href="scope.html">返回主线 · 37 接需求与估价</a>'
+        elif source.stem == 'scope':
+            previous = '<a rel="prev" href="health.html">上一主线课 · 24</a>'
         links = previous + following
         break
     zoom = '''<dialog class="figure-zoom" aria-label="配图放大视图">

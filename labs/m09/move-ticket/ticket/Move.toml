@@ -1,0 +1,9 @@
+[package]
+name = "Workshop"
+edition = "2024.beta"
+
+[dependencies]
+Sui = { local = "../framework/sui-framework" }
+
+[addresses]
+workshop = "0x0"

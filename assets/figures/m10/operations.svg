@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="470" viewBox="0 0 640 470" role="img" aria-labelledby="title desc" xml:lang="zh-CN">
+  <title id="title">OPS-39：节点恢复不等于账本恢复</title>
+  <desc id="desc">一笔订单应收 125 wei。备份时只有部署块 1。链在 2 锁款、3 结算、4 确认，游标仍在 1。RPC 真正超时时暂停放行；唤醒同一个节点后头为 4，仍挂起。空库还原并补扫到 4，足额才记一条应领和一条 outbox，差 1 wei 就两者都不写。</desc>
+  <rect width="640" height="470" rx="9" fill="#faf7ef"/>
+  <g fill="#21322d" font-family="system-ui,sans-serif">
+    <text x="24" y="37" font-size="24" font-weight="700">交接单 OPS-39　｜　谁可以亮绿灯？</text>
+    <text x="24" y="66" font-size="17">地址与部署块哈希固定；应收 125 wei；确认门槛 2 块。</text>
+    <rect x="24" y="87" width="592" height="60" rx="6" fill="#e7eee8" stroke="#729382"/>
+    <text x="38" y="111" font-weight="700" font-size="18">数据库备份　游标 1　｜　意图 1　流水 0　outbox 0</text>
+    <text x="38" y="135" font-size="16">付款人随后锁款 @2、结算 @3，节点管理员出空块 @4。</text>
+    <path d="M58 148v19m-5-6 5 7 5-7" fill="none" stroke="#596b62" stroke-width="2"/>
+    <rect x="24" y="171" width="592" height="60" rx="6" fill="#f9e7d6" stroke="#ab6943"/>
+    <text x="38" y="195" font-weight="700" font-size="18">值班员　RPC 无答复 → HTTP 503 → 冻结放行</text>
+    <text x="38" y="218" font-size="16">头高度未知，不填 0、不改订单；备份不是节点状态。</text>
+    <path d="M58 232v19m-5-6 5 7 5-7" fill="none" stroke="#596b62" stroke-width="2"/>
+    <rect x="24" y="255" width="592" height="69" rx="6" fill="#f5eedc" stroke="#9e8552"/>
+    <text x="38" y="279" font-weight="700" font-size="18">节点已通，仍不可放行　头 4 − 恢复库游标 1 = 3 块</text>
+    <text x="38" y="305" font-size="16">DBA 另建空库还原；索引员核锚后补扫 2..4，共 2 条日志。</text>
+    <path d="M320 325v17H165v14m155-14h139v14m-299-6 5 7 5-7m284 0 5 7 5-7" fill="none" stroke="#596b62" stroke-width="2"/>
+    <rect x="24" y="362" width="289" height="86" rx="6" fill="#e2eee6" stroke="#629179"/>
+    <rect x="327" y="362" width="289" height="86" rx="6" fill="#fae9da" stroke="#ab6943"/>
+    <text x="37" y="386" font-weight="700" font-size="17">实见 125 wei　｜　足额</text>
+    <text x="37" y="411" font-size="16">4 − 3 + 1 = 2 次确认</text>
+    <text x="37" y="434" font-size="16">回调两次：应领 1、outbox 1</text>
+    <text x="340" y="386" font-weight="700" font-size="17">另一轮实见 124 wei　｜　少付</text>
+    <text x="340" y="411" font-size="16">125 − 124 = 1 wei，转人工</text>
+    <text x="340" y="434" font-size="16">回调两次：应领流水 0、outbox 0</text>
+  </g>
+</svg>

@@ -324,7 +324,7 @@
 </tr>
 </tbody>
 </table>
-<p>完成后做<a href="labs/health.html#m06-checkout">卷末工单 D-624：核对登录、授权、成交与估值四联凭证</a>。继续主线请转 <a href="#m10">M10 交付计划</a>；M07–M09 是选修，不是门槛。</p>
+<p>完成后做<a href="labs/health.html#m06-checkout">卷末工单 D-624：核对登录、授权、成交与估值四联凭证</a>。继续主线请转<a href="labs/scope.html">第 37 课：把需求写成可验收的报价</a>；M07–M09 是选修，不是门槛。</p>
 <h2 id="m07">M07 · L2、智能账户与跨层状态〔选修〕</h2>
 <p>顾客在第二层网络看到了回执，收款员却在第一层查不到到账。两个人看的是什么？四课分别查执行记录、费用、代付和跨层领取。动手时会用到<a href="labs/receipts.html">回执与最终性</a>、<a href="labs/deployment.html">部署清单</a>和<a href="labs/siwe.html">签名与授权</a>。这里用 Base / OP Stack 举例，各网络的费率和等待期并不通用。</p>
 <table class="stackable">
@@ -358,106 +358,110 @@
 </tr>
 </tbody>
 </table>
-<p>四课完成后做<a href="labs/withdrawal.html#m07-checkout">卷末验收：跨层状态报告与代付预算</a>。完成这条选修不会代替 <a href="#m10">M10 的主线交付验收</a>。</p>
+<p>四课完成后做<a href="labs/withdrawal.html#m07-checkout">卷末验收：跨层状态报告与代付预算</a>。完成这条选修不会代替 <a href="labs/hackathon.html#m10-checkout">M10 的主线交付验收</a>。</p>
 <h2 id="m08">M08 · Solana：换一种状态模型〔选修〕</h2>
-<p>面向愿意投入 Rust 的读者。不是把 Solidity 语法翻译一遍，而是把「数据放在哪里、谁能写、谁必须签」重新走一遍。</p>
+<p>先修 <a href="labs/networks.html">M01 的签名与网络核对</a>，建议做过 <a href="labs/deployment.html">M04 的合约与部署</a>，不要求学过 M07。先从订单字节读出金额，再沿一笔付款、一份程序登记、一张代币收条分别回答：「数据放在哪里、谁能写、谁必须签？」原生 SOL 的余额差和 SPL 代币的余额差要分两本账。</p>
 <table class="stackable">
 <thead>
 <tr>
-<th>课次</th>
-<th>要讲透的问题</th>
-<th>动手与过关标准</th>
+<th>从这里读</th>
+<th>不用电脑，先作判断</th>
+<th>想动手时怎样过关</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td data-label="课次">29 Rust 最短路径</td>
-<td data-label="要讲透的问题">所有权、借用、枚举、Result、序列化；和 Java 引用语义、异常的差别只讲程序需要的部分</td>
-<td data-label="动手与过关标准">完成一个可序列化的订单结构；输入长度错误返回显式错误，不崩溃</td>
+<td data-label="从这里读"><a href="labs/rust-order.html">29 Rust 最短路径</a></td>
+<td data-label="不用电脑，先作判断">订货单应该有 12 个字节，只收到 11 个。补个零再读，可能报出什么错价？</td>
+<td data-label="想动手时怎样过关">完成一个可序列化的订单结构；输入长度错误返回显式错误，不崩溃</td>
 </tr>
 <tr>
-<td data-label="课次">30 账户与交易</td>
-<td data-label="要讲透的问题">program 与 data account、owner、signer、writable；指令、费用支付者、recent blockhash、确认级别</td>
-<td data-label="动手与过关标准">在本地 validator 发送付款，列出签名者和可写账户；区分 blockhash 过期与已经确认，不凭客户端超时断言失败</td>
+<td data-label="从这里读"><a href="labs/solana-payment.html">30 账户与交易</a></td>
+<td data-label="不用电脑，先作判断">付款凭据里的有效期过了。已经记账的 A 单和从没发出的 B 单，要作相同处理吗？</td>
+<td data-label="想动手时怎样过关">在本地 validator 发送付款，列出签名者和可写账户；区分 blockhash 过期与已经确认，不凭客户端超时断言失败</td>
 </tr>
 <tr>
-<td data-label="课次">31 Anchor、PDA 与 CPI</td>
-<td data-label="要讲透的问题">用 seeds/bump 定位数据，约束账户所属程序与授权者；跨程序调用与能力传递</td>
-<td data-label="动手与过关标准">写一个每人独立的登记程序，两个用户数据分开；错误的账户组合不能更改登记内容，保存日志及交易签名</td>
+<td data-label="从这里读"><a href="labs/registry.html">31 Anchor、PDA 与 CPI</a></td>
+<td data-label="不用电脑，先作判断">甲签字想改自己的登记号，却选了乙的登记表。这笔申请应该改动谁的表？</td>
+<td data-label="想动手时怎样过关">写一个每人独立的登记程序，两个用户数据分开；错误的账户组合不能更改登记内容，保存日志及交易签名</td>
 </tr>
 <tr>
-<td data-label="课次">32 SPL Token 与交付</td>
-<td data-label="要讲透的问题">mint、token account、ATA；mint authority、freeze authority 和钱包地址是不同角色</td>
-<td data-label="动手与过关标准">创建无价值本地 mint，向 ATA 转账；用最小单位复算两侧变化，交出部署 ID、账户结构与可复跑的客户端</td>
+<td data-label="从这里读"><a href="labs/spl-delivery.html">32 SPL Token 与交付</a></td>
+<td data-label="不用电脑，先作判断">仓库发出和收货人收到的数量相同。还要核对什么，才知道是约定的那种代币？</td>
+<td data-label="想动手时怎样过关">创建无价值本地 mint，向 ATA 转账；用最小单位复算两侧变化，交出部署 ID、账户结构与可复跑的客户端</td>
 </tr>
 </tbody>
 </table>
+<p>四课完成后做<a href="labs/spl-delivery.html#m08-checkout">卷末验收：交接一笔本地 SPL 收款</a>。接手人要能从自己的新账本找回签名；原作者的截图不是部署证明。</p>
 <h2 id="m09">M09 · 专项实验室〔按需选修〕</h2>
-<p>这些方向不是接第一单的前置条件。每课有独立出口：做钱包选 33，做数据服务选 34，感兴趣的竞赛只有明确需要时再选 35 或 36。</p>
+<p>按手上的工单选一课，不必从 33 顺读到 36：通道里的款查不到链上交易，查第 33 课；两套索引对不上，查第 34 课；要验证承诺而不收原文，查第 35 课；要把改工单的权利一并交给接手人，查第 36 课。</p>
 <table class="stackable">
 <thead>
 <tr>
-<th>课次</th>
-<th>先修与主题</th>
-<th>动手与过关标准</th>
+<th>从这里读</th>
+<th>不用电脑，先作判断</th>
+<th>想动手时怎样过关</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td data-label="课次">33 Bitcoin Lightning</td>
-<td data-label="先修与主题">M02；链上锁定、双向通道、发票、流动性方向与结算</td>
-<td data-label="动手与过关标准">在私有 regtest 的两个节点间开通道、支付测试发票、协作关通道；说明为什么链上找不到通道内每一笔支付</td>
+<td data-label="从这里读"><a href="labs/lightning.html">33 Bitcoin Lightning</a></td>
+<td data-label="不用电脑，先作判断">发票上显示收了钱，公开账本上却查不到这笔逐笔转账。应该去哪里核对？</td>
+<td data-label="想动手时怎样过关">在私有 regtest 的两个节点间开通道、支付测试发票、协作关通道；说明为什么链上找不到通道内每一笔支付</td>
 </tr>
 <tr>
-<td data-label="课次">34 专用索引与查询</td>
-<td data-label="先修与主题">M05；用 The Graph 的事件映射与自建 Java 索引对照；何时值得增加一份派生存储</td>
-<td data-label="动手与过关标准">同一测试数据按同一块高查询两份视图，解释延迟、索引边界和可追溯来源；记录重建耗时而不是比空查询延迟</td>
+<td data-label="从这里读"><a href="labs/subgraph.html">34 专用索引与查询</a></td>
+<td data-label="不用电脑，先作判断">两套报表里一份写已提走 125，另一份写零。它们看的是同一时刻吗？</td>
+<td data-label="想动手时怎样过关">同一测试数据按同一块高查询两份视图，解释延迟、索引边界和可追溯来源；记录重建耗时而不是比空查询延迟</td>
 </tr>
 <tr>
-<td data-label="课次">35 零知识应用入门</td>
-<td data-label="先修与主题">M01、M04；见证、公有输入、约束、证明与验证；可信设置与电路范围。只调用成熟工具，不自创密码算法</td>
-<td data-label="动手与过关标准">用现成教学电路证明自己知道某承诺的原像。更改公有输入，原证明不通过；能指出仍然公开了什么，以及这不是对真实身份的认证</td>
+<td data-label="从这里读"><a href="labs/preimage.html">35 零知识应用入门</a></td>
+<td data-label="不用电脑，先作判断">一份证明对原来的登记值有效。只改登记值，还能用原证明吗？它证明了提交人是谁吗？</td>
+<td data-label="想动手时怎样过关">用现成电路证明知道某承诺的原像；只改公开输入，原证明不通过。说明仍然公开了什么，为什么这不是身份认证</td>
 </tr>
 <tr>
-<td data-label="课次">36 Move 对象模型</td>
-<td data-label="先修与主题">M01；以 Sui 的对象所有权、能力与共享对象对照 EVM 存储</td>
-<td data-label="动手与过关标准">在本地网络创建可交接的工单对象；当前所有者能转移，非所有者不能。给出同一需求用 EVM、Solana、Move 各会怎样建模的取舍说明</td>
+<td data-label="从这里读"><a href="labs/move-ticket.html">36 Move 对象模型</a></td>
+<td data-label="不用电脑，先作判断">工单已经交给乙。甲曾创建这张单，现在还能凭同一个工单号把它交给别人吗？</td>
+<td data-label="想动手时怎样过关">在本地网络创建工单对象；当前所有者能转移，非所有者不能。比较 EVM、Solana、Move 如何表达同一需求</td>
 </tr>
 </tbody>
 </table>
+<p>用<a href="labs/move-ticket.html#m09-checkout">卷末工单 X-936</a>交接一份能由别人换输入复核的专项记录。回到主线时，按<a href="labs/hackathon.html#m10-checkout">毕业项目的交付标准</a>验收，不用协议实验代替项目。</p>
 <h2 id="m10">M10 · 从可运行的代码到可接手的项目</h2>
+<p>“帮我接一下钱包”可能只是查一张旧回执，也可能要求用户自己发起付款。先定谁能签、核销的是托管应领还是钱包实收，再从空库跑出能交给下一班的证据。先修 M01–M06，无需先做选修。</p>
 <table class="stackable">
 <thead>
 <tr>
-<th>课次</th>
-<th>要讲透的问题</th>
-<th>动手与过关标准</th>
+<th>从这里读</th>
+<th>不用电脑，先作判断</th>
+<th>想动手时怎样过关</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td data-label="课次">37 接需求与估价</td>
-<td data-label="要讲透的问题">哪条链、资产与合约地址，读还是写，谁签名，何谓完成；节点配额、运维和主网职责由谁承担</td>
-<td data-label="动手与过关标准">给「帮我接一下钱包」写两版范围：只读对账与非托管发起。分别列交付项、排除项、依赖、验收人、里程碑、变更与质保边界</td>
+<td data-label="从这里读"><a href="labs/scope.html">37 接需求与估价</a></td>
+<td data-label="不用电脑，先作判断">客户说「接个钱包」，是想查账，还是想自己确认付款？两份报价能相加吗？</td>
+<td data-label="想动手时怎样过关">给「帮我接一下钱包」写两版范围：只读对账与非托管发起。分别列交付项、排除项、依赖、验收人、里程碑、变更与质保边界</td>
 </tr>
 <tr>
-<td data-label="课次">38 毕业项目：收款对账台</td>
-<td data-label="要讲透的问题">串起 M04–M06 的测试合约、只读索引、订单库和前端；保留从订单回到链证据的路径</td>
-<td data-label="动手与过关标准">起新节点和空库，用户自己付款，后台确认，再在浏览器追到回执；重启重放不重复入账，差错进入人工核对队列</td>
+<td data-label="从这里读"><a href="labs/payment-desk.html">38 毕业项目：收款对账台</a></td>
+<td data-label="不用电脑，先作判断">成功回执里写着应领 125，订单要求 126。后台能通知发货吗？</td>
+<td data-label="想动手时怎样过关">起新节点和空库，用户自己付款，后台确认，再在浏览器追到回执；重启重放不重复入账，差错进入人工核对队列</td>
 </tr>
 <tr>
-<td data-label="课次">39 移交与事故演练</td>
-<td data-label="要讲透的问题">地址簿和权限表、交接密钥所有权而不是索取客户密钥；依赖许可、数据保留、告警、备份与恢复</td>
-<td data-label="动手与过关标准">接手人仅用交付包独立运行；模拟 RPC 断连，告警后补扫恢复；写明哪些链下步骤能撤回，哪些链上动作不可逆</td>
+<td data-label="从这里读"><a href="labs/operations.html">39 移交与事故演练</a></td>
+<td data-label="不用电脑，先作判断">节点又能连通了，但接手人手里的账还停在昨天。什么时候才能恢复通知？</td>
+<td data-label="想动手时怎样过关">接手人仅用交付包独立运行；模拟 RPC 断连，告警后补扫恢复；写明哪些链下步骤能撤回，哪些链上动作不可逆</td>
 </tr>
 <tr>
-<td data-label="课次">40 48 小时黑客松</td>
-<td data-label="要讲透的问题">选官方命题和允许的依赖，先做垂直切片，再留出复现和讲解时间；不靠预录成功掩盖现场失败</td>
-<td data-label="动手与过关标准">0–6h 明确问题和评审条件；6–24h 跑通链上核心；24–36h 整合与故障处理；36–48h 冻结、录演示、提交。用 3 分钟说明问题、交易证据、限制和下一步</td>
+<td data-label="从这里读"><a href="labs/hackathon.html">40 48 小时黑客松</a></td>
+<td data-label="不用电脑，先作判断">同一笔款已有两次确认，评委把要求改成三次。怎样当场演示新结论，而不再付一次？</td>
+<td data-label="想动手时怎样过关">0–6h 明确问题和评审条件；6–24h 跑通链上核心；24–36h 整合与故障处理；36–48h 冻结、录演示、提交。用 3 分钟说明问题、交易证据、限制和下一步</td>
 </tr>
 </tbody>
 </table>
 <p><strong>作品集要能被别人检查。</strong> 提交源码版本、锁定的工具版本、干净环境运行命令、部署清单、已脱敏的交易证据、正常/失败验收记录、简短演示。对账方向提交差异报表；合约方向提交角色表和不变量；参赛方向另附比赛授权、素材许可与规则核对。不用奖项或收益代替技术证据。</p>
+<p>主线收尾：请另一位接手人按<a href="labs/hackathon.html#m10-checkout">卷末工单</a>换输入复跑，再决定是否从<a href="labs/rust-order.html">第 29 课</a>进入 Solana 选修。</p>
 <h2 id="实验设计与安全边界">实验设计与安全边界</h2>
 <p>「真实」指真实密码库、节点、签名、矿块、回执和日志，不是必须花真币。以下实验都不要求真实助记词、水龙头或公共 RPC。每次实验先确认网络，再记录输入、执行命令、观察证据，最后关闭临时环境。提交作业不包含助记词、私钥、RPC 凭据、钱包文件或可识别客户的资料。</p>
 <table class="stackable">

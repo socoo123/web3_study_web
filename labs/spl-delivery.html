@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark"><title>第 32 课 · 收货的是哪个账户？用两个 ATA 核销一张交货单 · 链上开发手册</title>
+<link rel="stylesheet" href="../assets/site.css?v=2786ad38e29d"><script src="../assets/site.js?v=6dc390471c89" defer></script></head>
+<body><a class="skip" href="#main">跳至正文</a><header class="mast"><div class="mast-inner">
+<a class="brand" href="../index.html"><span class="mark" aria-hidden="true"></span>链上开发手册</a>
+<nav aria-label="全站导航"><a href="../plan.html">课程计划</a><a href="../index.html#labs">实验台</a><button type="button" id="theme" hidden>切换主题</button></nav>
+</div></header><main id="main" class="reading"><div class="crumb"><a href="../index.html">手册首页</a> / <a href="../plan.html#m08">M08 · Solana：换一种状态模型〔选修〕</a> / 第 32 课</div>
+<header class="lesson-opening"><h1 id="page-title">第 32 课 · 收货的是哪个账户？用两个 ATA 核销一张交货单</h1><figure class="specimen"><figcaption>S-32 · 同一种代币的收发账</figcaption><dl>
+<div><dt>仓库发出</dt><dd>1.250001 枚</dd></div>
+<div><dt>收货方实收</dt><dd>1.250001 枚</dd></div></dl>
+<span class="specimen-relation" aria-hidden="true">→</span><p>两边都数到 1,250,001 个最小单位；转账手续费在另一笔账里</p></figure><p>商户要签收 S-32：仓库应交 <strong>1.250001 枚本地测试券</strong>。订单写明了券种的地址，两边的收发账页都属于这个地址所指的券。成功的交货交易中，仓库账页从 2,500,000 减到 1,249,999，商户账页从 0 增到 1,250,001，单位都是这张券的最小单位。券有 6 位小数。签收栏该填多少枚？手续费需要从这个数里扣吗？</p></header><div class="reading-grid"><article aria-labelledby="page-title"><details class="mobile-toc"><summary>本页目录</summary><ol><li><a href="#先给交接单填对五种地址">先给交接单填对五种地址</a></li><li><a href="#用一张账页区分发券和交货">用一张账页区分「发券」和「交货」</a></li><li><a href="#在新创世上签五笔保留能离线复核的原件">在新创世上签五笔，保留能离线复核的原件</a></li><li><a href="#从签名字节和回执重算两本账">从签名字节和回执重算两本账</a></li><li><a href="#独立作业-有余额但没交货的是哪一张签名">独立作业 · 有余额但没交货的是哪一张签名？</a></li><li><a href="#卷末验收-工单-s-832接手人自己选择数量部署取证">卷末验收 · 工单 S-832：接手人自己选择数量、部署、取证</a></li><li><a href="#查证原文">查证原文</a></li></ol></details><p>签收 <strong>1.250001 枚</strong>。仓库少了 <code>2,500,000 − 1,249,999 = 1,250,001</code>，商户多了同样多，除以一百万就是订单的数。券种的地址叫 <strong>mint</strong>：同一个名字、同样的小数位都不能替代它。商户收到的是券；另一位费用支付者付的是 SOL，费用单位是 lamports，不能从券数里减。</p>
+<p>只改订单的一栏：假如商户原本订的是<strong>另一个 mint 的券</strong>，同样要 1.250001 枚，能拿眼前两张账页签收吗？不能。两边的数量依然对得上，但对上的是另一种券；交易可以成功而订单没有履行。不要只凭签名或日志中的「转账」字样盖章。</p>
+<p>只想读懂收货单，可以<a href="../plan.html#m09">到 M09 目录自选一项独立实验</a>。以下是选做的本地发券、查账与卷末交接。动手时会用到<a href="rust-order.html">从字节精确读整数</a>、<a href="solana-payment.html">按签名找本轮回执</a>、<a href="registry.html">区别推导地址与写入权限</a>。本地券没有价值、市价或兑付承诺；只用自建单节点账本，不用浏览器钱包、公共 RPC、水龙头或真实地址。</p>
+<h2 id="先给交接单填对五种地址">先给交接单填对五种地址</h2>
+<p>Solana 上的代币不是每人钱包账户里额外加了一个余额字段。可以把它想成两张 SQL 表：<code>Mint</code> 有一行定义<strong>这是什么资产、总共多少、谁能增发</strong>；<code>TokenAccount</code> 每一行记录<strong>哪个 mint、哪位持有人、多少最小单位</strong>。行本身都有地址。这个类比到此为止：能改数据的是运行时指定的程序，不是任意有表名、有主键的客户端。</p>
+<table class="stackable">
+<thead>
+<tr>
+<th>要填的东西</th>
+<th>本轮怎么认</th>
+<th>它不代表什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="要填的东西">mint 地址</td>
+<td data-label="本轮怎么认">新创建的 82 字节账户；数据里的 <code>decimals=6</code>，<code>supply</code> 是 <code>u64</code></td>
+<td data-label="它不代表什么">不是铸币人的地址，也不是把所有代币装在一起的钱包</td>
+</tr>
+<tr>
+<td data-label="要填的东西">mint authority、freeze authority</td>
+<td data-label="本轮怎么认"><code>mintAuthority</code> 是另一个临时公钥，可签增发；<code>freezeAuthority=None</code>，本 mint 没有冻结权限持有人</td>
+<td data-label="它不代表什么">允许增发不等于能从商户的代币账户取走券。这里<strong>保留</strong>增发权，不能宣传固定供应；没有冻结权也不能把它再启用</td>
+</tr>
+<tr>
+<td data-label="要填的东西">仓库与商户的钱包公钥</td>
+<td data-label="本轮怎么认">分别是 <code>sourceOwner</code>、<code>destinationOwner</code>，出现在两个代币账户<strong>数据内</strong>的 <code>owner</code> 字段</td>
+<td data-label="它不代表什么">不是这个 mint 的收付款账户地址。接收这笔转账商户不用签，但从自己的账户转出通常要由持有人或已授权的代理签</td>
+</tr>
+<tr>
+<td data-label="要填的东西">仓库与商户的 ATA</td>
+<td data-label="本轮怎么认">各自是一个已初始化的 165 字节经典代币账户，只装本 mint。RPC 外层的 <code>owner</code> 都是经典 Token Program</td>
+<td data-label="它不代表什么">不是钱包的 SOL 余额；也不是由 ATA Program 持续拥有。一个持有人还可有其他非 ATA 的代币账户，不能只凭持有人猜本次转入哪一个</td>
+</tr>
+<tr>
+<td data-label="要填的东西">费用支付者 <code>payer</code></td>
+<td data-label="本轮怎么认">独立的本地签名人，为建户提供 lamports，也支付交易费</td>
+<td data-label="它不代表什么">不是 mint authority、仓库或商户。可代别人创建 ATA，并不因此得到代币的支配权</td>
+</tr>
+</tbody>
+</table>
+<p>所谓 <strong>associated token account（ATA）</strong> 是「这一钱包、这一代币程序、这一 mint」约定的默认代币账户。把三个公钥的 <strong>32 字节原值</strong>依次作 seeds，在 <strong>Associated Token Account Program</strong> 的 ID 下找 PDA，才得到地址：</p>
+<pre><code class="language-python">address, bump = Pubkey.find_program_address(
+    [bytes(wallet), bytes(TOKEN), bytes(mint)], ATA_PROGRAM)
+</code></pre>
+<p>与 31 课相同，推得地址不等于该处已有数据。创建时 ATA Program 按同样的 seeds/bump 为自己的 PDA 发起 CPI，借助 System Program 建户、Token Program 初始化数据。创建结束后，能写这行代币数据的是 Token Program，它再按数据中的持有人/代理及指令签名检查能否转账。别把 Token-2022 的 ID 代进去：程序不同，同一钱包与 mint 的推导输入就不同；本课不处理扩展、转账税、转账钩子或包装 SOL。</p>
+<h2 id="用一张账页区分发券和交货">用一张账页区分「发券」和「交货」</h2>
+<p>先发行 <strong>2.500000</strong> 枚到仓库，再从仓库转给商户。<code>decimals=6</code> 表示显示时除以 <code>10^6</code>，链上并没有六位小数的浮点字段。增发时总供应和仓库各增 2,500,000；普通转账只在这两个代币账户间移动数量，不增加供应。本实验只有两户且没有其他写入者，所以两户合计正好是供应量；在一般项目里要核<strong>本次转账的两侧差额</strong>，不能声称某两户余额之和等于全网总量。</p>
+<figure class="lesson-figure"><a href="../assets/figures/m08/spl-delivery.svg"><img src="../assets/figures/m08/spl-delivery.svg" alt="同一笔 1250001 个最小单位的交货，错报精度 5 先在链上被拒，仓库 2500000、商户 0；按精度 6 成功后仓库 1249999、商户 1250001。费用支付者另用 lamports 付费。"></a><figcaption>S-32 默认输入的预期余额。两次指令都请求仓库向同一商户转同一数量，失败的一笔也能留下签名和日志。不要把日志里出现的指令名当作付款事件。</figcaption></figure>
+
+<h2 id="在新创世上签五笔保留能离线复核的原件">在新创世上签五笔，保留能离线复核的原件</h2>
+<p>从<strong>仓库根目录</strong>用同一个 Bash。宿主机 CPython <strong>3.11</strong>；<a href="m08/setup.sh">setup.sh</a> 安装 Agave <strong>2.3.13</strong> 和 <code>solders==0.26.0</code>；首次下载工具要联网。<code>source</code> 只为当前 shell 选择程序与 Python 虚拟环境。<a href="m08/localnet.py">localnet.py</a> 用 <code>solana-genesis</code>、<code>agave-validator</code> 和当轮随机测试身份建立私有创世、启动回环节点，不用已有钱包配置。创世预载经典 SPL Token <strong>3.5.0</strong> 与 ATA <strong>1.1.1</strong> 的官方程序；本课<strong>不是发布了两个新程序</strong>。输出目录放在私有账本之外，退出会停节点。</p>
+<pre><code class="language-bash">bash labs/m08/setup.sh
+source labs/m08/env.sh
+T=labs/m08/token
+WORK=$(mktemp -d)
+python &quot;$T/deliver.py&quot; --out &quot;$WORK/full&quot;
+# 此时 validator 已关。第二个命令不连 RPC，不再签也不再付：
+python &quot;$T/review.py&quot; &quot;$WORK/full/evidence.json&quot;
+</code></pre>
+<p><a href="m08/token/deliver.py">deliver.py</a> 的 <code>--out</code> 必填，父目录须存在，末级目录<strong>不能存在</strong>。<code>--issue-raw</code> 默认 <code>2500000</code>；<code>--due-raw</code> 默认 <code>1250001</code>，是订单要求；<code>--send-raw</code> 默认等于 <code>--due-raw</code>，是实际请求转的数。三个参数都填<strong>最小单位整数</strong>，不接受小数、负数；本练习要求 <code>0 &lt; send ≤ issue &lt; 2^64</code>，<code>0 &lt; due &lt; 2^64</code>。始终使用经典 mint、精度 6，失败对照固定传 5。安全起见没有钱包或 RPC URL 参数。</p>
+<p>按 <a href="m08/token/deliver.py">客户端</a> 的发送顺序检查 <code>evidence.json</code> 中 <code>receipts</code> 的五个键；同一轮<strong>共用一个</strong>节点、mint 和双方 ATA。</p>
+<ol>
+<li><strong><code>mint</code>：建户与初始化同一笔。</strong> 先查 <code>getMinimumBalanceForRentExemption(82)</code>，让费用支付者提供免租最低余额，System Program 新建由经典 Token Program 拥有的账户；新 mint 的临时 keypair 也签建户。紧跟 <code>InitializeMint2</code>，一并确定精度、增发权和无冻结权；两条指令原子生效。新户的建户签名不是日后的增发授权。</li>
+<li><strong><code>accounts</code>：建两户。</strong> 对仓库和商户各发一条 ATA <code>Create</code>。传入的账户顺序是出资者、待建 ATA、钱包、mint、System Program、Token Program。两户都已存在后，在同一份 <code>getMultipleAccounts</code> 回复里看 mint 与两个 ATA，三项数量此时全是 0。</li>
+<li><strong><code>issue</code>：真的增发一次。</strong> <code>MintToChecked</code> 的可写账户是 mint 和仓库 ATA；授权签名人是 <code>mintAuthority</code>。发行完拿一组快照：供应 <code>2500000</code>、仓库 <code>2500000</code>、商户 <code>0</code>。这张成功回执不能叫「商户收货」。</li>
+<li><strong><code>rejected</code>：把预期精度写成 5。</strong> 仓库签的数量仍是 <code>1250001</code>，源账户余额足够；本地仅为留下失败原件，关闭<strong>这一笔</strong>的客户端预检。链上照常执行 Token Program 的精度检查，预期 <code>meta.err={"InstructionError":[0,{"Custom":18}]}</code>（经典程序的 <code>MintDecimalsMismatch</code>）。这不是绕过程序检查，也不是默认给线上客户多付一次失败费的策略。</li>
+<li><strong><code>delivery</code>：传真实精度 6。</strong> 同一个仓库持有人为正确指令签名；收货 ATA 加 <code>1250001</code>，仓库减同数。正常使用预检。两次签的是不同消息、应有不同签名。若发送应答中断，按 30 课在<strong>原节点</strong>查原签名，不以重签或新开节点猜前一笔是否成功。</li>
+</ol>
+<p>对应的转账构造很短。<code>AccountMeta</code> 是给程序看的权限清单，不是拼在 <code>data</code> 后面的账户字节：</p>
+<pre><code class="language-python">accounts = [meta(src, writable=True), meta(mint), meta(dst, writable=True),
+            meta(src_owner, signer=True)]
+transfer = Instruction(TOKEN, struct.pack(&quot;&lt;BQB&quot;, 12, sent, decimals), accounts)
+</code></pre>
+<p><code>12</code> 是 <code>TransferChecked</code> 的指令标签；<code>&lt;Q</code> 是 8 字节小端无符号金额，最后一字节才是客户端预期的精度，一共 10 字节。这里 mint 是<strong>只读</strong>，两个 ATA <strong>可写</strong>，源持有人<strong>只读且签名</strong>；付款手续费的签名人另列在交易消息中。程序从已初始化账户检查 mint 一致、精度一致、账户状态与余额允许，并核对授权。检查不会替你判断「这个 mint 是不是客户点的那一种券」或「数量是否达到订单应付」。Java 服务从十进制文本收单，可用 <code>new BigDecimal(text).movePointRight(decimals).toBigIntegerExact()</code>，再正数和 <code>u64</code> 范围检查；拒绝超精度金额，不要经过 <code>double</code> 或对多出的一位四舍五入。</p>
+<h2 id="从签名字节和回执重算两本账">从签名字节和回执重算两本账</h2>
+<p><code>deliver.py</code> 在本轮活节点按<strong>同一签名</strong>再取 <code>getTransaction(encoding="base64", commitment="confirmed")</code>，把带完整签名的交易字节、<code>meta.err</code>、日志和余额数组一起归档。<code>accountOrder</code> 记下多户查询的实参顺序；每份回复带 <code>context.slot</code>，并要求不早于相应交易 slot。<code>minContextSlot</code> 是下界，不是指定槽位的历史查询。我们能把前后快照归因于这一笔，是因为账本新建、地址唯一且只有实验在写；更一般的归因应看<strong>这笔交易自己的</strong> <code>preTokenBalances</code> 和 <code>postTokenBalances</code>，多指令交易还须区分针对该订单的指令与其他资金流。</p>
+<table class="stackable">
+<thead>
+<tr>
+<th>经典账户数据偏移（字节，左闭右开）</th>
+<th>怎么读</th>
+<th>应和哪一栏对上</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="经典账户数据偏移（字节，左闭右开）">Mint <code>[0:36]</code>；<code>[36:44]</code>；<code>44</code>；<code>45</code>；<code>[46:82]</code></td>
+<td data-label="怎么读">可选增发公钥、<code>u64 LE</code> 供应、精度、初始化标记、可选冻结公钥。账户数据里的可选公钥为 4 字节小端标签加 32 字节；<code>None</code> 看标签 0，不把空载荷解成授权地址</td>
+<td data-label="应和哪一栏对上">记录长度 <code>82</code>；标签 <code>1</code> 后的增发公钥须对；精度 <code>6</code>、初始化 <code>1</code>、冻结标签 <code>0</code></td>
+</tr>
+<tr>
+<td data-label="经典账户数据偏移（字节，左闭右开）">Token account <code>[0:32]</code>；<code>[32:64]</code>；<code>[64:72]</code>；<code>108</code></td>
+<td data-label="怎么读">mint 公钥、代币持有人公钥、<code>u64 LE</code> 余额、账户状态。余下字段还包括委托、原生代币标志等</td>
+<td data-label="应和哪一栏对上">记录长度 <code>165</code>；两个 mint 相同，两个持有人分别匹配，状态为已初始化 <code>1</code>；RPC 外层 <code>owner</code> 都是 Token Program ID</td>
+</tr>
+<tr>
+<td data-label="经典账户数据偏移（字节，左闭右开）"><code>meta.pre/postTokenBalances</code></td>
+<td data-label="怎么读">用每行 <code>accountIndex</code> 在<strong>本交易</strong>的消息公钥数组里定位 ATA，核对 <code>programId</code>、<code>mint</code>、<code>owner</code>、<code>uiTokenAmount.decimals</code>，数量取<strong>字符串</strong> <code>uiTokenAmount.amount</code> 转整数</td>
+<td data-label="应和哪一栏对上">不按数组行号猜源、目标，不用 <code>uiAmount</code> 浮点字段算差</td>
+</tr>
+<tr>
+<td data-label="经典账户数据偏移（字节，左闭右开）"><code>meta.pre/postBalances</code> 与 <code>meta.fee</code></td>
+<td data-label="怎么读">同一交易付款人是索引 0；这些数是 <strong>lamports</strong>，<code>10^9 lamports = 1 SOL</code></td>
+<td data-label="应和哪一栏对上">单纯转券时付款人的 lamports 减额等于 <code>fee</code>；建 mint/ATA 时还要加转进新账户的存储余额，不把后者报作交易费</td>
+</tr>
+</tbody>
+</table>
+<p><a href="m08/token/review.py">review.py</a> 先从本轮钱包、代币程序和 mint 重算两端 ATA，再读账户原件确认各自属于谁。具体核 <code>delivery</code> 时，拿<strong>商户 ATA 的完整公钥</strong>去交易消息的公钥表找位置，记下索引。到 <code>preTokenBalances</code> 和 <code>postTokenBalances</code> 各找 <code>accountIndex</code> 等于它的那一行：先验 mint 和持有人，再把 <code>uiTokenAmount.amount</code> 当整数相减，得到商户实收。照样查仓库那一行，改用「转前减转后」，应得相同数量；两个数组的第一行不一定都是商户。这样算的是<strong>这次交易</strong>的变化，而不是商户账户最后有多少。</p>
+<p>复核器还验消息签名、解两笔转账指令，把交易内的变化与账户快照对读；逐笔另列付费签名、slot、<code>feeLamports</code> 和 <code>storageLamports</code>。下表是默认输入的<strong>预期整数</strong>，不是固定签名、slot 或收费表：</p>
+<table class="stackable">
+<thead>
+<tr>
+<th>截面</th>
+<th style="text-align: right;"><code>supplyRaw</code></th>
+<th style="text-align: right;"><code>sourceRaw</code></th>
+<th style="text-align: right;"><code>destinationRaw</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="截面"><code>accounts</code> 建好空户</td>
+<td data-label="supplyRaw" style="text-align: right;">0</td>
+<td data-label="sourceRaw" style="text-align: right;">0</td>
+<td data-label="destinationRaw" style="text-align: right;">0</td>
+</tr>
+<tr>
+<td data-label="截面"><code>issue</code> 增发</td>
+<td data-label="supplyRaw" style="text-align: right;">2500000</td>
+<td data-label="sourceRaw" style="text-align: right;">2500000</td>
+<td data-label="destinationRaw" style="text-align: right;">0</td>
+</tr>
+<tr>
+<td data-label="截面"><code>rejected</code> 错报精度</td>
+<td data-label="supplyRaw" style="text-align: right;">2500000</td>
+<td data-label="sourceRaw" style="text-align: right;">2500000</td>
+<td data-label="destinationRaw" style="text-align: right;">0</td>
+</tr>
+<tr>
+<td data-label="截面"><code>delivery</code> 正确转账</td>
+<td data-label="supplyRaw" style="text-align: right;">2500000</td>
+<td data-label="sourceRaw" style="text-align: right;">1249999</td>
+<td data-label="destinationRaw" style="text-align: right;">1250001</td>
+</tr>
+</tbody>
+</table>
+<p>手头没有运行中的节点时，可以先下载<a href="m08/evidence/token/evidence.json">随课的本地原件</a>，或在仓库根目录运行 <code>python labs/m08/token/review.py labs/m08/evidence/token/evidence.json</code>。这份归档里，slot 5 和 6 的交易各付 10,000 lamports；只有后一笔改变了两个 ATA 的代币余额。它不替代读者新建 mint 的作业。</p>
+<p>只有最后一张会报 <code>ORDER MATCH_LOCAL dueRaw=1250001 receivedRaw=1250001 differenceRaw=0</code>，退出 0。拒绝轮要能展示失败签名、对应日志和三个账户<strong>数据字节</strong>前后一致；不是节点没有处理，费用支付者的 SOL 账仍按该笔 <code>meta.fee</code> 结。要取未经摘要化的失败日志：</p>
+<pre><code class="language-bash">python - &quot;$WORK/full/evidence.json&quot; &lt;&lt;'PY'
+import json, sys
+from solders.transaction import VersionedTransaction
+from base64 import b64decode
+with open(sys.argv[1]) as f: e = json.load(f)
+r = e['receipts']['rejected']; tx = VersionedTransaction.from_bytes(b64decode(r['transaction'][0]))
+print(e['genesisHash'], tx.signatures[0], r['slot'], r['meta']['err'], r['meta']['fee'])
+print(*r['meta']['logMessages'], sep='\n')
+PY
+</code></pre>
+<p><strong>改变一个输入。</strong> 应收不动，只把实际转账减 1 个最小单位，再开一个<strong>新目录、新节点</strong>：</p>
+<pre><code class="language-bash">rc=0; python &quot;$T/deliver.py&quot; --out &quot;$WORK/short&quot; --send-raw 1250000 || rc=$?
+test &quot;$rc&quot; -eq 3
+</code></pre>
+<p>预期 <code>delivery.meta.err=null</code>，两户各有 <code>1250000</code>，合计仍等于供应。可订单 <code>dueRaw − receivedRaw = +1</code>，必须 <code>HOLD_AMOUNT</code>，不能因动作成功就放货。这里金额不符时退出 3 仍会保留完整证据；关掉节点后用 <code>review.py</code> 离线重读一样应退出 3，不会重复转账。两个目录的数字可对比，创世、mint、ATA、签名不可拼接。</p>
+<h2 id="独立作业-有余额但没交货的是哪一张签名">独立作业 · 有余额但没交货的是哪一张签名？</h2>
+<p>不使用 <code>review.py</code> 的最后一行作答。打开少付轮的 <code>evidence.json</code>，在 <code>issue</code> 与 <code>delivery</code> 各找一条成功签名。用上述账户布局分别解 <code>snapshots.issue.value[2]</code> 和 <code>snapshots.delivery.value[2]</code>：先从 <code>accountOrder</code> 确认索引 2 是商户 ATA；再从 <code>data</code> 的 base64 原文取 <code>[0:32]</code>、<code>[32:64]</code> 和 <code>[64:72]</code>。把两个公钥解为 base58，金额按小端整数读。写一张四行收据：谁的哪种券、哪张签名只入了仓库、哪张签名才入商户、实收是否达标。用 <code>delivery.meta.preTokenBalances</code> 与 <code>postTokenBalances</code> 的<strong>目标 ATA</strong>行独立重算。</p>
+<p><strong>答案判据：</strong> 商户数据内 mint 与本轮 <code>roles.mint</code> 相同，内部 owner 与 <code>destinationOwner</code> 相同，外层 owner 是经典程序。发行后商户仍为 0；普通转账后商户实收 <code>1250000</code>，仓库同减 <code>1250000</code>，一张应收 <code>1250001</code> 的单差 <code>+1</code>。提交本轮 <code>genesisHash</code>、两张完整签名、两份目标数据和差额。发行签名、SOL 手续费或 UI 的 <code>1.25</code> 字样都不能补上那 1 个最小单位。</p>
+<p><span id="m08-checkout"></span></p>
+<h2 id="卷末验收-工单-s-832接手人自己选择数量部署取证">卷末验收 · 工单 S-832：接手人自己选择数量、部署、取证</h2>
+<p>需求单：给 <strong>832 号单</strong>登记一笔 <strong>9,007,199,254,741,019 个券的最小单位</strong>的应收；只为此次演示发行 <strong>9,007,199,254,741,153</strong>。同时演示一笔 <strong>2,000,032 lamports 的 SOL 付款</strong>和一项每人独立的程序登记。四联用的是同一个工单编号，不是同一笔交易：订单文件不含公钥与链身份，登记的 <code>ticket</code> 不是代币数量，SOL 演示不抵券款。另一位同事必须从源码运行，不能粘贴原作者上一次的签名。</p>
+<p>从根目录另开干净工作目录。先按 <a href="rust-order.html">29 的工具说明</a>准备宿主 <code>rustc</code> 和 <code>rustup</code>、Cargo，按上文安装工具并 <code>source labs/m08/env.sh</code>。<a href="registry.html">31 的构建说明</a>给出锁文件摘要和隔离工具链的 <code>build.sh</code>；完整预热后可用 <code>CARGO_NET_OFFLINE=true bash "$ROOT/registry/build.sh" --offline</code>。下面各个 <code>--out</code> 都是第一次使用，链上各联各启自己的创世。</p>
+<pre><code class="language-bash">CHECK=$(mktemp -d)
+ROOT=labs/m08
+DUE=9007199254741019
+ISSUE=9007199254741153
+rustc --edition=2021 -O &quot;$ROOT/order/main.rs&quot; -o &quot;$CHECK/order&quot;
+&quot;$CHECK/order&quot; encode 832 open &quot;$DUE&quot; &gt; &quot;$CHECK/832.bin&quot;
+&quot;$CHECK/order&quot; decode &lt; &quot;$CHECK/832.bin&quot; &gt; &quot;$CHECK/832.txt&quot;
+head -c 11 &quot;$CHECK/832.bin&quot; &gt; &quot;$CHECK/832-short.bin&quot;
+rc=0; &quot;$CHECK/order&quot; decode &lt; &quot;$CHECK/832-short.bin&quot; 2&gt; &quot;$CHECK/832-reject.txt&quot; || rc=$?
+test &quot;$rc&quot; -eq 2
+python &quot;$ROOT/payment/run.py&quot; --out &quot;$CHECK/payment&quot; --lamports 2000032 --wait-expiry
+bash &quot;$ROOT/registry/build.sh&quot;
+python &quot;$ROOT/registry/run.py&quot; --out &quot;$CHECK/registry&quot; --actor B --ticket 832
+python &quot;$ROOT/token/deliver.py&quot; --out &quot;$CHECK/token&quot; --issue-raw &quot;$ISSUE&quot; --due-raw &quot;$DUE&quot;
+python &quot;$ROOT/token/review.py&quot; &quot;$CHECK/token/evidence.json&quot; &gt; &quot;$CHECK/token-review.txt&quot;
+</code></pre>
+<p><strong>逐联签收，不相互代证。</strong> 用以下白名单交接；带数字的结论都是对上述输入的判据。版本、地址、签名、slot、费用填<strong>本轮运行值</strong>，不预填样例值：</p>
+<table class="stackable">
+<thead>
+<tr>
+<th>联</th>
+<th>要交的原件与客户端</th>
+<th>接手人应该能推翻哪一种误判</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="联">29 · 输入</td>
+<td data-label="要交的原件与客户端"><code>832.bin</code>、<code>832.txt</code>、<code>832-short.bin</code>、<code>832-reject.txt</code> 与 <code>m08/order/{main.rs,order.rs}</code></td>
+<td data-label="接手人应该能推翻哪一种误判">完整 12 字节须解出 <code>id=832 status=Open units=9007199254741019</code>；只给 11 字节，报长度错误退出 2，不给报价。第 29 课的 <code>units</code> 只是约定计数，本单另行约定计的是哪种券</td>
+</tr>
+<tr>
+<td data-label="联">30 · 原签名</td>
+<td data-label="要交的原件与客户端"><code>payment/</code> 的 <code>A-intent.json</code>、<code>A-receipt.json</code>、<code>A-audit.json</code>、<code>B-held.json</code>、<code>expiry.json</code> 与 <code>m08/payment/run.py</code></td>
+<td data-label="接手人应该能推翻哪一种误判">接收方实增 <code>2000032 lamports</code>。有效期过后，A 的<strong>原签名</strong>仍能定位那次成功付款；B 是已签未送的独立草稿，无 B 回执。解释为何过期不等于 A 失败</td>
+</tr>
+<tr>
+<td data-label="联">31 · 部署与账户结构</td>
+<td data-label="要交的原件与客户端"><code>registry/manifest.json</code>（本轮 genesis、program ID、<code>.so</code>/锁文件摘要、两个 authority/PDA/bump）；两张 <code>register</code> 回执、<code>revise.json</code>、<code>refused.json</code>、拒绝前后两份数据。交第 31 课的程序源码、锁文件和客户端</td>
+<td data-label="接手人应该能推翻哪一种误判">以本轮 program ID 加 <code>entry</code> 与持有人公钥重算 PDA。按 8 字节 discriminator、32 字节 authority、8 字节小端 ticket、1 字节 bump 解出独立两户 A=<code>3101</code>、B=<code>832</code>；用 B 的签名配 A 的数据账户被拒，日志、失败签名、两户前后数据证明无串写。程序预装于私有创世，不能捏造一笔公开部署交易</td>
+</tr>
+<tr>
+<td data-label="联">32 · 交货与失败账</td>
+<td data-label="要交的原件与客户端"><code>token/evidence.json</code>、<code>token-review.txt</code>、本课两个 Python 文件。交接单分别抄经典 Token/ATA 程序 ID、本轮 mint 地址及两户地址；附上本节的 82/165 字节布局，不能用 mint 地址填「部署的登记程序 ID」</td>
+<td data-label="接手人应该能推翻哪一种误判">两户合计保持 <code>9007199254741153</code>。商户应实收 <code>9007199254741019</code>，仓库应余 <strong>134</strong>；精度错报 5 时同一数量应被拒，失败签名和日志可查，三项代币数据不变。实付 lamports 另列。若用 JavaScript <code>Number</code> 接收原始整数，这种奇数在 <code>2^53</code> 以上会丢精度</td>
+</tr>
+</tbody>
+</table>
+<p><strong>让接手人裁决一个新输入。</strong> 发行量、精度和应收都不改，只把本轮计划实转改成 <code>9007199254741018</code>。不要重写归档或借原签名查另一条链，另起一轮：</p>
+<pre><code class="language-bash">rc=0; python &quot;$ROOT/token/deliver.py&quot; --out &quot;$CHECK/token-minus-one&quot; \
+    --issue-raw &quot;$ISSUE&quot; --due-raw &quot;$DUE&quot; --send-raw 9007199254741018 || rc=$?
+test &quot;$rc&quot; -eq 3
+</code></pre>
+<p>接手人要交两种相反签收：上一轮足额；新轮交货交易仍成功但应 <code>HOLD_AMOUNT</code>，仓库余 <strong>135</strong>、商户少 <strong>1</strong> 个最小单位。两轮都需要保留独立创世与签名；不能互相抵扣。四联之外，共享的 <a href="m08/setup.sh">setup.sh</a>、<a href="m08/env.sh">env.sh</a>、<a href="m08/localnet.py">localnet.py</a> 和四课的运行说明也须随源码版本交给接手人。只拿列出的公开证据，不打包整个临时目录、验证节点 ledger、缓存、<code>target/</code>、钱包配置、环境变量或 keypair JSON。</p>
+<p>为免把 SBF 工具自动生成的 keypair 文件也拖进交付包，用<strong>逐项列名</strong>而非递归归档。以下在同一个 Bash、从仓库根目录执行；先收源码和四份 Markdown 操作单，再收刚跑的白名单证据。这个包用于命令行复跑，不是整个课程网站的镜像。</p>
+<pre><code class="language-bash">PKG=$(mktemp -d)
+tar -cf &quot;$PKG/S-832.tar&quot; \
+  labs/{rust-order,solana-payment,registry,spl-delivery}.md \
+  labs/m08/{setup.sh,env.sh,localnet.py} labs/m08/order/{main.rs,order.rs} \
+  labs/m08/payment/run.py labs/m08/registry/{build.sh,Cargo.toml,Cargo.lock,src/lib.rs,run.py} \
+  labs/m08/token/{deliver.py,review.py}
+tar -rf &quot;$PKG/S-832.tar&quot; -C &quot;$CHECK&quot; \
+  832.bin 832.txt 832-short.bin 832-reject.txt \
+  payment/{A-intent,A-receipt,A-audit,B-held,expiry}.json \
+  registry/{manifest,register-A,register-B,revise,refused,before-refusal,after-refusal}.json \
+  token/evidence.json token-review.txt token-minus-one/evidence.json
+(cd &quot;$PKG&quot; &amp;&amp; tar -tf S-832.tar &amp;&amp; shasum -a 256 S-832.tar &gt; S-832.sha256)
+</code></pre>
+<p>接手人在收到的 <code>S-832.tar</code>、<code>S-832.sha256</code> 所在目录执行 <code>shasum -a 256 -c S-832.sha256</code>，来源和成员清单另行确认。解到空目录，从解包根目录 <code>bash labs/m08/setup.sh</code>、<code>source labs/m08/env.sh</code>；先用 <code>python labs/m08/token/review.py token/evidence.json</code> 重看旧证据，再按工单用新的 <code>CHECK</code> 从源码复编、换数、签自己的测试交易。<strong>摘要相同</strong>只说明收到的包与该摘要相符，不鉴定作者，更不是共识证明。</p>
+<p><strong>验收边界：</strong> 这里验证的是合成本地订单与单节点 <code>confirmed</code> 观察。离线验签说明谁授权了<strong>消息字节</strong>，不认证提供者提供的余额、日志、slot 或创世标签；原始回执与快照仍是节点报告。生产还须由可信订单端独立约定链、具体资产和目标、确认政策并防重复入账。不能拿同事自填的 mint、数量与自造账本作真实收款证明。</p>
+<h2 id="查证原文">查证原文</h2>
+<ul>
+<li>Solana 官方：<a href="https://solana.com/docs/tokens/basics/create-mint">创建 mint</a>、<a href="https://solana.com/docs/tokens/basics/create-token-account">创建代币账户与 ATA 推导</a>、<a href="https://solana.com/docs/tokens/basics/transfer-tokens">TransferChecked 怎样检查 mint 和精度</a>。教程示例的公钥不是本地地址。</li>
+<li>本卷固定程序：<a href="https://github.com/anza-xyz/agave/blob/v2.3.13/program-test/src/programs.rs">Agave 2.3.13 的 SPL 程序版本清单</a>、<a href="https://github.com/solana-labs/solana-program-library/blob/token-v3.5.0/token/program/src/state.rs">经典 Token 3.5.0 账户打包布局</a>、<a href="https://github.com/solana-labs/solana-program-library/blob/token-v3.5.0/token/program/src/instruction.rs">指令标签</a>、<a href="https://github.com/solana-labs/solana-program-library/blob/token-v3.5.0/token/program/src/processor.rs">转账处理器</a>与<a href="https://github.com/solana-labs/solana-program-library/blob/token-v3.5.0/token/program/src/error.rs">程序错误枚举</a>。不要把这些固定长度移植成对所有代币程序的假设。</li>
+<li>Solana RPC：<a href="https://solana.com/docs/rpc/http/getmultipleaccounts">getMultipleAccounts</a>、<a href="https://solana.com/docs/rpc/json-structures">JSON 返回结构</a>。对比同槽上下文的账户快照与一笔交易自己的 <code>pre/postTokenBalances</code>。</li>
+</ul>
+<nav class="end-links" aria-label="阅读导航"><a rel="prev" href="registry.html">上一课 · 31</a><a rel="next" href="lightning.html">下一选修课 · 33 Lightning</a><a href="scope.html">返回主线 · 37 接需求与估价</a></nav></article>
+<aside class="rail"><nav aria-label="本页目录"><b>本页目录</b><ol><li><a href="#先给交接单填对五种地址">先给交接单填对五种地址</a></li><li><a href="#用一张账页区分发券和交货">用一张账页区分「发券」和「交货」</a></li><li><a href="#在新创世上签五笔保留能离线复核的原件">在新创世上签五笔，保留能离线复核的原件</a></li><li><a href="#从签名字节和回执重算两本账">从签名字节和回执重算两本账</a></li><li><a href="#独立作业-有余额但没交货的是哪一张签名">独立作业 · 有余额但没交货的是哪一张签名？</a></li><li><a href="#卷末验收-工单-s-832接手人自己选择数量部署取证">卷末验收 · 工单 S-832：接手人自己选择数量、部署、取证</a></li><li><a href="#查证原文">查证原文</a></li></ol></nav></aside></div><dialog class="figure-zoom" aria-label="配图放大视图">
+<form method="dialog"><a>打开 SVG 原图</a><button autofocus>收起大图</button></form>
+<div class="zoom-scroll" tabindex="0" role="region" aria-label="放大的配图，可滚动"><img alt=""></div></dialog></main><footer><span>链上开发手册</span><a href="../index.html">课程首页</a><a href="spl-delivery.md">Markdown 原稿</a></footer></body></html>

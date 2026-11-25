@@ -1,0 +1,12 @@
+{
+  "cli": "sui 1.53.2-0cfc71d63bae",
+  "chainIdentifier": "840be9bf",
+  "addresses": {
+    "A": "0x3397be0131896c77c88b612cd18b697c63a96862cd7ecc0526500d446faeddd0",
+    "B": "0xe8e928423772f1c358fd2fa3ca50122a0b4a913a33cad0ff592ec0a112213e93"
+  },
+  "reverse": true,
+  "number": "936",
+  "package": "0x5148633e17c4396e0a0d2fceb9d7d204d2f6cf70da6518107cbc5411025c43f5",
+  "object": "0xdf3ed4c2692ff38505324fe51d08615d29ae401ce0222ecf04c3a0a07b7d9831"
+}

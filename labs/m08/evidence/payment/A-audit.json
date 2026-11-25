@@ -1,0 +1,37 @@
+{
+  "state": "MATCH_CONFIRMED_OR_BETTER",
+  "signature": "2r8WrFwPNUw21MenSPeXa2zfRaTumcbz51BecHZndQLMFMAN9ztpi4VZT1wmrw5xW1dY8RrDUu1yYV5RiqaETxrm",
+  "receiptSlot": 2,
+  "ownerReadSlot": 2,
+  "feeLamports": 5000,
+  "transferLamports": 1250000,
+  "roles": [
+    {
+      "index": 0,
+      "pubkey": "3zUGdTZDfc3YXw28AowPRL7YqXAgSFkLLcmmZoeKvXPV",
+      "signer": true,
+      "writable": true,
+      "owner": "11111111111111111111111111111111",
+      "executable": false,
+      "delta": -1255000
+    },
+    {
+      "index": 1,
+      "pubkey": "Gt3ruBkxh7Ra4QTZMnAqHAHhDMefAnAe25MzHDYg6bgv",
+      "signer": false,
+      "writable": true,
+      "owner": "11111111111111111111111111111111",
+      "executable": false,
+      "delta": 1250000
+    },
+    {
+      "index": 2,
+      "pubkey": "11111111111111111111111111111111",
+      "signer": false,
+      "writable": false,
+      "owner": "NativeLoader1111111111111111111111111111111",
+      "executable": true,
+      "delta": 0
+    }
+  ]
+}

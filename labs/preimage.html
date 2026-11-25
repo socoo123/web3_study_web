@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark"><title>第 35 课 · 不交原像，怎样验一张凭条？ · 链上开发手册</title>
+<link rel="stylesheet" href="../assets/site.css?v=2786ad38e29d"><script src="../assets/site.js?v=6dc390471c89" defer></script></head>
+<body><a class="skip" href="#main">跳至正文</a><header class="mast"><div class="mast-inner">
+<a class="brand" href="../index.html"><span class="mark" aria-hidden="true"></span>链上开发手册</a>
+<nav aria-label="全站导航"><a href="../plan.html">课程计划</a><a href="../index.html#labs">实验台</a><button type="button" id="theme" hidden>切换主题</button></nav>
+</div></header><main id="main" class="reading"><div class="crumb"><a href="../index.html">手册首页</a> / <a href="../plan.html#m09">M09 · 专项实验室〔按需选修〕</a> / 第 35 课</div>
+<header class="lesson-opening"><h1 id="page-title">第 35 课 · 不交原像，怎样验一张凭条？</h1><figure class="specimen"><figcaption>同一份证明交给同一个核验人</figcaption><dl>
+<div><dt>照原登记值核对</dt><dd>通过</dd></div>
+<div><dt>只换登记值</dt><dd>拒绝</dd></div></dl>
+<span class="specimen-relation" aria-hidden="true">≠</span><p>它能证明这项声明成立，不能拿来认定交件人的真实身份</p></figure><p>活动登记台保存着一串数，末四位是 3530。登记规则是把两个数按顺序算成这一个结果，原来的两个数不交给客服。现在有人递来一份证明，客服用登记台自己的验证密钥、自己保存的完整数值去验，结果是「通过」。交接时该写「证明与这条登记相符」，还是「眼前这个人就是登记人，可以发券」？</p></header><div class="reading-grid"><article aria-labelledby="page-title"><details class="mobile-toc"><summary>本页目录</summary><ol><li><a href="#验证方究竟要验哪句话">验证方究竟要验哪句话？</a></li><li><a href="#从一道约束读懂见证">从一道约束读懂「见证」</a></li><li><a href="#先搭一次本地验证台再开两张单">先搭一次本地验证台，再开两张单</a></li><li><a href="#a-单别把拒绝测成-json-语法错误">A 单：别把「拒绝」测成 JSON 语法错误</a></li><li><a href="#公开了什么能拿来批准什么">公开了什么，能拿来批准什么？</a></li><li><a href="#独立作业两张正确单能否互换附件">独立作业：两张正确单能否互换附件？</a></li><li><a href="#对照原件">对照原件</a></li></ol></details><p><strong>只能写前一句。</strong> 两个原数叫「原像」，公开登记的结果叫「承诺」。在电路和验证密钥可信的前提下，通过表示这是一份与该承诺相符的原像知识证明。验证时没查姓名，也没查领券记录；别人拿来同一份证明，结果不会因换了提交人而改变。这里只摘末四位方便阅读，不是只核四位。</p>
+<p>保留同一把验证密钥和同一份证明，只把待验的完整数值加 1，末尾变成 3531。还能给新登记打勾吗？不能，验证结果应是「拒绝」：原证明不能替改过的数作证。这并不是说没人能找到产生新数的原像。</p>
+<p>这是独立选修，到这里就可以收起工单；想换个问题再看，可选读<a href="move-ticket.html">第 36 课：工单交接后谁还能改它</a>，两课互不为先修。以下选做离线实验。要区分「数值对得上」与「谁签了名」，可回看<a href="crypto.html">第 02 课</a>；要理解为何另记「是否已领」，可回看<a href="escrow.html">第 14 课的状态转移</a>。实验用现成的 Circom 电路和 snarkjs，不部署合约、不连接节点、不用钱包。输入来自公开测试向量，不是真实秘密。</p>
+<h2 id="验证方究竟要验哪句话">验证方究竟要验哪句话？</h2>
+<p>先把需求写成一个能判真假的关系：<strong>对于指定的 <code>C</code>，存在两个有序域元素 <code>x, y</code>，使得 <code>Poseidon(x, y) = C</code>，而证明的生成者知道这样一组输入。</strong> 这里的 <code>Poseidon</code> 特指 circomlib 2.0.5 的 <code>Poseidon(2)</code>，即初始状态为零、输入两项、输出一项的那套参数。<code>(1, 2)</code> 是两个域元素，不是 UTF-8 文本 <code>"12"</code>，也不是把两个 Java <code>long</code> 的字节拼起来再做 SHA-256。这里把登记的哈希值简称为「承诺」；这个称呼本身不保证隐藏性。</p>
+<p>可把验证接口想成 <code>verify(固定的验证密钥, 登记台要验的公有信号, 交来的证明)</code>。密钥决定验哪套电路与设置；公有信号决定验哪个实例；证明交由密码库检验。<strong>不能让证明方替登记台选题。</strong> 如果对方随便挑一对数，算出自己的 <code>C</code>，再把这个 <code>C</code> 连同证明一起交来，数学验证也可以通过。业务端还必须用自己事先保存的完整承诺来验，或先查明提交的公有信号与该记录完全一致。本课的独立对照物是库作者发布的已知答案，不是证明脚本自己算出的另一个「预期值」。</p>
+<figure class="lesson-figure"><a href="../assets/figures/m09/preimage.svg"><img src="../assets/figures/m09/preimage.svg" alt="证明方只交证明和公开承诺；教学见证留在本地。验证方对同一验证密钥和同一证明，验末四位 3530 的原承诺通过，验末四位 3531 的新承诺拒绝。"></a><figcaption>A 单的受控对照。图中只写末四位以便阅读；真正验证的是完整域元素，不是四位后缀。两次调用都没有把见证发给验证方。</figcaption></figure>
+
+<h2 id="从一道约束读懂见证">从一道约束读懂「见证」</h2>
+<p>库中自带的<a href="https://github.com/iden3/circomlib/blob/cff5ab6288b55ef23602221694a6a38a0239dcc0/test/circuits/poseidon3_test.circom">入口电路</a>只有三句有效代码；实验复制并编译这一原件和它引用的两个源文件，不另写哈希函数：</p>
+<pre><code class="language-text">pragma circom 2.0.0;
+include &quot;../../circuits/poseidon.circom&quot;;
+component main = Poseidon(2);
+</code></pre>
+<p>第一句声明 Circom 语法版本；第二句引入库；第三句把<strong>两个输入</strong>的模板设为主组件。文件名里的 <code>3</code> 是内部状态宽度（三个域元素），不是让你再交一个输入。主组件的 <code>inputs[0]</code>、<code>inputs[1]</code> 没被声明为公开输入，因此是私有输入；主组件的输出 <code>out</code> 按 Circom 规则总是公开。于是编译统计会显示 <strong>2 个 private inputs、0 个 public inputs、1 个 output</strong>，而交给 snarkjs 验证器的 <code>public.json</code> 却有 <strong>1 项</strong>。不矛盾：从电路看是输出，从验证器接口看它是公有信号，也就是调用方的输入。</p>
+<p>验证的不是「某段 JS 顺利返回」；验证的是一组算术等式能同时成立。看库中 <code>Sigma</code> 的三行即可，不必手推整个哈希：<code>in2 &lt;== in * in</code>、<code>in4 &lt;== in2 * in2</code>、<code>out &lt;== in4 * in</code>。例如<strong>单看这个部件</strong>，若线上的值是 2，就须分别填 4、16、32；最后填 33 即使是合法数字，也不能满足最后一条等式。<code>&lt;==</code> 既计算赋值，又把等式加入约束。编译器把关系表示为 R1CS（秩一约束系统）；一份完整的<strong>见证</strong>是使约束成立的赋值，包含私有输入、公开值以及编译后需要的中间值。<code>.wtns</code> 因此不是一张可公开的证明。<code>.wasm</code> 负责算赋值；<code>groth16 prove</code> 读见证与证明密钥才产生可交接的 <code>proof.json</code>。</p>
+<p>这些等式做的是<strong>模素数 <code>p</code></strong> 的算术。本实验默认 BN254 标量域的模数是 <code>21888242871839275222246405745257275088548364400416034343698204186575808495617</code>。域中 <code>(p−1)+1 = 0</code>；<code>x</code> 和整数 <code>x+p</code> 不是两个不同的域元素。电路没有验证 <code>x</code> 是合法的手机号、正金额或不超过 <code>Long.MAX_VALUE</code>。应用如需这些条件，要有相应的编码、范围约束和数据来源，不能从哈希等式倒推。交接文件以规范十进制<strong>字符串</strong>写 <code>[0,p)</code> 的值；Java 可用 <code>BigInteger</code> 读取并检查上下界，不用 <code>double</code>，脚本给 <code>C</code> 加一也用 <code>BigInt</code>。</p>
+<h2 id="先搭一次本地验证台再开两张单">先搭一次本地验证台，再开两张单</h2>
+<p>工具基线：Bash、Node.js 24 LTS（可用 24.22.0）、npm 11（可用 11.19.1）。<a href="m09/preimage/package.json">依赖表</a>和<a href="m09/preimage/package-lock.json">锁文件</a>固定 circomlib 2.0.5、snarkjs 0.7.6、circom2 0.2.23 及传递依赖。最后一个包是第三方封装的 Circom 2.2.3 WASM 编译器，不是官方原生二进制；实验不要求 Rust、Docker 或全球安装的 <code>circom</code>。首次安装须能从 npm registry 获取锁定的软件包。所有命令在<strong>仓库根目录、同一个 Bash 会话</strong>执行：</p>
+<pre><code class="language-bash">export ZK35_TOOLS=&quot;${XDG_CACHE_HOME:-$HOME/.cache}/web3-study/m09-preimage&quot;
+bash labs/m09/preimage/prepare.sh
+# 安装目录如上，下载包缓存见 npm config get cache；缓存齐全才可用 prepare.sh --offline。
+WORK=$(mktemp -d)
+printf '本轮工作目录：%s\n' &quot;$WORK&quot;
+bash labs/m09/preimage/setup.sh &quot;$WORK/keys&quot;
+bash labs/m09/preimage/prove.sh &quot;$WORK/keys&quot; A &quot;$WORK/A&quot;
+</code></pre>
+<p><a href="m09/preimage/prepare.sh">prepare.sh</a> 把两份 npm 清单放进专用缓存，执行 <code>npm ci --ignore-scripts</code>，不写全局工具。<a href="m09/preimage/setup.sh">setup.sh</a> 只接收一个<strong>尚不存在</strong>的目录。它按下述顺序运行；备妥依赖后，设置、证明和验证都无需联网：</p>
+<table class="stackable">
+<thead>
+<tr>
+<th>工序</th>
+<th>读入 → 写出</th>
+<th>你要核对什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td data-label="工序">编译</td>
+<td data-label="读入 → 写出">库内 <code>poseidon3_test.circom</code> → <code>.r1cs</code> 与见证计算器 <code>.wasm</code></td>
+<td data-label="你要核对什么"><code>keys/circuit-info.log</code> 的私有输入、公有输入与输出数量；不是合约字节码</td>
+</tr>
+<tr>
+<td data-label="工序">第一阶段</td>
+<td data-label="读入 → 写出"><code>powersoftau new bn128 10</code>、本机一次 <code>contribute</code>、<code>prepare phase2</code> → <code>prepared.ptau</code></td>
+<td data-label="你要核对什么"><code>10</code> 是容量指数（2 的 10 次方），不是业务字段；<code>ptau-check.log</code> 来自工具对文件的验证</td>
+</tr>
+<tr>
+<td data-label="工序">第二阶段</td>
+<td data-label="读入 → 写出">该电路的 R1CS 和 <code>prepared.ptau</code> → 初始 zkey；本机再贡献 → <code>proving.zkey</code></td>
+<td data-label="你要核对什么"><code>key-check.log</code> 记录 <code>zkey verify</code>；不能拿零次贡献的初始文件当成正式参数</td>
+</tr>
+<tr>
+<td data-label="工序">导出</td>
+<td data-label="读入 → 写出">从本轮 <code>proving.zkey</code> 导出 <code>verification_key.json</code>（VK）</td>
+<td data-label="你要核对什么">验证方应从自己信任的发布渠道固定 VK；不是证明方发来哪把就用哪把</td>
+</tr>
+</tbody>
+</table>
+<p><strong>为什么在一台电脑上跑两阶段，还叫「不可信设置」？</strong> Groth16 的可靠性依赖生成参数时的秘密没有被保留、相应的贡献和电路绑定可核验。第一阶段与容量及曲线有关，第二阶段绑定具体电路；改电路不能沿用旧的一套密钥。实际仪式把贡献分给独立参与方，各相关阶段需要有诚实贡献者安全销毁自己的秘密。文件校验能检查代数关系，不能证明操作者销毁过秘密，也不能排除恶意工具或编译错了电路。本例同一人、同一机完成全部步骤，<code>-e=teaching-only</code> 是公开的教学参数，不为仪式提供独立信任。<strong>可以演练流程，不能把这套本地密钥用来发放有价值的权益。</strong> <code>proving.zkey</code> 是证明材料，不是用户私钥或见证；无需让验证方持有它。</p>
+<h2 id="a-单别把拒绝测成-json-语法错误">A 单：别把「拒绝」测成 JSON 语法错误</h2>
+<p><a href="m09/preimage/prove.sh">prove.sh</a> 的 A 单把 <code>{"inputs":["1","2"]}</code> 写进临时目录。<code>wtns calculate</code> 生成见证；<code>wtns check</code> 对同一电路本地核对；<code>groth16 prove</code> 一次生成 <code>A/proof.json</code> 与 <code>A/public.json</code>。脚本要求公开数组只有一项，且等于<a href="https://github.com/iden3/circomlib/blob/cff5ab6288b55ef23602221694a6a38a0239dcc0/test/poseidoncircuit.js">上游测试向量</a>的 A 答案：</p>
+<pre><code class="language-text">C   = 7853200120776062878684798364095072458815029376092732009249414926327459813530
+C+1 = 7853200120776062878684798364095072458815029376092732009249414926327459813531
+</code></pre>
+<p>第二个数没越过 <code>p</code>，仍是一个合法域元素。脚本把它放入<strong>另一份</strong>合法的单项数组 <code>A/changed.json</code>；没有改曲线、VK、证明文件、数组长度或序列化类型。你可以扮演接手方，在另一进程中只读公开文件再验，不接触证明端的输入和见证：</p>
+<pre><code class="language-bash">S=&quot;$ZK35_TOOLS/node_modules/.bin/snarkjs&quot;
+VK=&quot;$WORK/keys/verification_key.json&quot;
+P=&quot;$WORK/A/proof.json&quot;
+&quot;$S&quot; groth16 verify &quot;$VK&quot; &quot;$WORK/A/public.json&quot; &quot;$P&quot;
+rc=0
+&quot;$S&quot; groth16 verify &quot;$VK&quot; &quot;$WORK/A/changed.json&quot; &quot;$P&quot; || rc=$?
+printf '改承诺后的退出状态 = %s\n' &quot;$rc&quot;
+cat &quot;$WORK/A/receipt.txt&quot;
+</code></pre>
+<p>读这两次命令时，对齐三个文件位置：验证密钥 <code>"$VK"</code> 和证明 <code>"$P"</code> 始终没换，只把中间的 <code>public.json</code> 换成 <code>changed.json</code>。先看诊断再看退出码：第一行应为 <code>OK!</code>（0）；第二次应为 <code>Invalid proof</code>（1）。两个公开数都合法，说明第二次不是「文件读不出来」，而是验证等式用上了新的公有信号，同一证明不再满足。它拒绝的是这份证明与这个数的<strong>组合</strong>，不判断新数是否有别的证明。</p>
+<p>若是找不到文件、JSON 解析错误或进程中断，同样可能非零退出，不能算这道负例做对。脚本只在拒绝原因和退出码都对时签收；此时脚本自身退出 0，说的是「对照做成了」，不是「第二张单通过」。</p>
+<p><strong>交件白名单：</strong> <code>A/public.json</code>、<code>A/changed.json</code>、<code>A/proof.json</code>、<code>A/accept.log</code>、<code>A/reject.log</code>、<code>A/receipt.txt</code>。另由设置方提供本轮 VK。<code>receipt.txt</code> 记录同一 VK、同一 proof 文件的 SHA-256 以及两次判断；这两个文件摘要是交接用的字节指纹，不是 Poseidon 承诺，也不是发布者签名。接手人可以移走整份 <code>keys/</code>，只留下从可信处取得的 VK 副本仍能验。不要打包工作目录、<code>.wtns</code> 或私有输入。脚本退出时删除临时见证，不承诺介质上的安全擦除。重新设置会产生另一套材料；重新证明也使用随机性。请比较<strong>结论与公开承诺</strong>，不要把某次的证明字节当作黄金快照。</p>
+<p><strong>只接手验证，不做设置：</strong> 仓库已收录一轮的<a href="m09/evidence/preimage/verification_key.json">验证密钥</a>、<a href="m09/evidence/preimage/A/proof.json">A 的证明</a>、<a href="m09/evidence/preimage/A/public.json">原承诺</a>和<a href="m09/evidence/preimage/A/changed.json">加一后的承诺</a>。备好上面的 npm 工具，在仓库根目录执行：</p>
+<pre><code class="language-bash">D=labs/m09/evidence/preimage
+S=&quot;$ZK35_TOOLS/node_modules/.bin/snarkjs&quot;
+&quot;$S&quot; groth16 verify &quot;$D/verification_key.json&quot; &quot;$D/A/public.json&quot; &quot;$D/A/proof.json&quot;
+rc=0; &quot;$S&quot; groth16 verify &quot;$D/verification_key.json&quot; &quot;$D/A/changed.json&quot; &quot;$D/A/proof.json&quot; || rc=$?
+test &quot;$rc&quot; = 1
+</code></pre>
+<p>这套公开材料不含见证。不要拿自己新跑 <code>setup.sh</code> 得到的 VK 来验这份旧证明。</p>
+<h2 id="公开了什么能拿来批准什么">公开了什么，能拿来批准什么？</h2>
+<ul>
+<li><strong>仍然公开：</strong>验证的关系、验证密钥、承诺 <code>C</code> 和证明本身。若同一承诺出现在两次请求，观察者可以把它们关联；若通过 API 或链提交，还有时间、网络或交易发送方等电路外的线索。本实验没有模拟这些外部身份，也没有链上记录。</li>
+<li><strong>没有直接交付不等于不可推断。</strong> 零知识针对的是证明相对于公有陈述不额外披露见证，不会增强公有陈述自身的保密性。若两项都来自 <code>0..9</code>，有序候选总共 <code>10 × 10 = 100</code> 对，确定性哈希可以逐一比对，不需要破解证明。这里上游甚至直接刊出了两对测试输入。真实业务若需要不可猜测性，应评估高熵秘密与承诺方案，不能把手机号、短信码或小额金额直接当作安全秘密。</li>
+<li><strong>不是身份，也不是一次性授权。</strong> 拿到证明副本的人可以原样提交；<code>verify</code> 仍回答「这份证明与这条陈述相符」，不回答「当前请求者就是原证明者」。电路没有验证发行人签名、名单成员资格、时效或支付状态，也没有记录「已用」。若产品要求某人一次领取，要另行定义身份或持有条件、场景绑定与防重复核销的状态转移，再评估满足那些要求的协议；本例不能充当登录或支付接口。</li>
+</ul>
+<h2 id="独立作业两张正确单能否互换附件">独立作业：两张正确单能否互换附件？</h2>
+<p>登记员保留 A 单，再建 B 单：B 对应库作者的另一组 <code>(3,4)</code>。不要再跑 <code>setup.sh</code>；在同一把 VK 下生成 B 的证据。把 B 的证明交给另一位接手人，不给任何 <code>.wtns</code>。在一张交接表上填 <strong>三行</strong>：B 承诺＋B 证明、B 承诺＋A 证明、A 承诺＋B 证明。记录各次的 VK 和 proof 字节摘要、公有信号的完整值、退出状态及 CLI 的原话。两次交叉验证只换指定附件，不临时生成新证明。</p>
+<pre><code class="language-bash">bash labs/m09/preimage/prove.sh &quot;$WORK/keys&quot; B &quot;$WORK/B&quot;
+# S、VK 的定义见上；先验证 B 原件，再自行替换下列其中一条输入路径。
+&quot;$S&quot; groth16 verify &quot;$VK&quot; &quot;$WORK/B/public.json&quot; &quot;$WORK/B/proof.json&quot;
+</code></pre>
+<p><strong>过关线：</strong> B 的公开数应为 <code>14763215145315200506921711489642608356394854266165572616578112107564877678998</code>；B 原件通过，两次交叉提交都报 <code>Invalid proof</code>，不能用 B 的证明签收 A 工单。另用同一个 B 证明和 B 承诺重放一次，说明为何密码验证仍通过，却不能据此重复发券。把白名单证据与交接表放在一起；若不小心换了 VK、只比较末四位，或把数字相等写成「已验证真实身份」，不能签收。</p>
+<h2 id="对照原件">对照原件</h2>
+<ul>
+<li><a href="https://github.com/iden3/circom/blob/master/mkdocs/docs/circom-language/signals.md">Circom：信号与可见性</a>、<a href="https://github.com/iden3/circom/blob/master/mkdocs/docs/circom-language/basic-operators.md">域元素与算术</a>：分别核对主组件输出、公私输入与模数。</li>
+<li><a href="https://github.com/iden3/circomlib/blob/cff5ab6288b55ef23602221694a6a38a0239dcc0/circuits/poseidon.circom">circomlib：本课实际调用的 Poseidon 电路</a>、<a href="https://unpkg.com/circom2@0.2.23/README.md">WASM 编译器封装的版本说明</a>：辨认模板和编译器来源。</li>
+<li><a href="https://github.com/iden3/snarkjs/blob/9a8f1c0083d18b9b5e18f526cfd729e7259423be/README.md">snarkjs 0.7.6：两阶段设置与证明命令</a>、<a href="https://github.com/iden3/snarkjs/blob/9a8f1c0083d18b9b5e18f526cfd729e7259423be/src/groth16_verify.js">Groth16 验证器源码</a>、<a href="https://eprint.iacr.org/2016/260">Groth 的原论文</a>：核对公有信号进入验证的方式、返回条件和安全假设。</li>
+</ul>
+<nav class="end-links" aria-label="阅读导航"><a rel="prev" href="subgraph.html">上一课 · 34</a><a rel="next" href="move-ticket.html">下一课 · 36</a></nav></article>
+<aside class="rail"><nav aria-label="本页目录"><b>本页目录</b><ol><li><a href="#验证方究竟要验哪句话">验证方究竟要验哪句话？</a></li><li><a href="#从一道约束读懂见证">从一道约束读懂「见证」</a></li><li><a href="#先搭一次本地验证台再开两张单">先搭一次本地验证台，再开两张单</a></li><li><a href="#a-单别把拒绝测成-json-语法错误">A 单：别把「拒绝」测成 JSON 语法错误</a></li><li><a href="#公开了什么能拿来批准什么">公开了什么，能拿来批准什么？</a></li><li><a href="#独立作业两张正确单能否互换附件">独立作业：两张正确单能否互换附件？</a></li><li><a href="#对照原件">对照原件</a></li></ol></nav></aside></div><dialog class="figure-zoom" aria-label="配图放大视图">
+<form method="dialog"><a>打开 SVG 原图</a><button autofocus>收起大图</button></form>
+<div class="zoom-scroll" tabindex="0" role="region" aria-label="放大的配图，可滚动"><img alt=""></div></dialog></main><footer><span>链上开发手册</span><a href="../index.html">课程首页</a><a href="preimage.md">Markdown 原稿</a></footer></body></html>
