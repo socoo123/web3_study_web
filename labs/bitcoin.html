@@ -9,12 +9,36 @@
 <header class="lesson-opening"><h1 id="page-title">第 06 课 · 亲手核对一笔付款：Bob 收到 1.25 BTC，为什么 Alice 少了更多？</h1><figure class="specimen"><figcaption>regtest 付款单</figcaption><dl>
 <div><dt>付款方</dt><dd>Alice</dd></div>
 <div><dt>收款方</dt><dd>Bob</dd></div></dl>
-<span class="specimen-relation" aria-hidden="true">→</span><p>付款金额：1.25 BTC</p></figure><p>Alice 说她付了 <code>1.25 BTC</code>。Bob 的订单应收 <code>125000000 sat</code>，钱包也收到这么多；Alice 的钱包却少了 <code>125001000 sat</code>。客服问：「差的 <code>1000 sat</code> 是不是从货款里扣的？现在能发货了吗？」先把这笔钱对平，再把付款凭证与订单相对：即使一笔交易合法、已入块，只要订单多要 1 sat，也不能按足额付款放行。</p></header><div class="reading-grid"><article aria-labelledby="page-title"><details class="mobile-toc"><summary>本页目录</summary><ol><li><a href="#一笔钱进来几笔钱出去">一笔钱进来，几笔钱出去？</a></li><li><a href="#准备环境四课共用的-core-工具">准备环境：四课共用的 Core 工具</a></li><li><a href="#从一笔区块奖励找到能花的钱">从一笔区块奖励找到能花的钱</a></li><li><a href="#从签名后的输入倒查它到底值多少">从签名后的输入，倒查它到底值多少</a></li><li><a href="#谁拿了找零费率又是多少">谁拿了找零？费率又是多少？</a></li><li><a href="#跟同一笔付款看两个钱包的回执">跟同一笔付款，看两个钱包的回执</a></li><li><a href="#不改交易只改订单会改哪一行">不改交易，只改订单，会改哪一行？</a></li><li><a href="#故障定位先找最后一条证据">故障定位：先找最后一条证据</a></li><li><a href="#独立作业少付一聪账是不是仍然平">独立作业：少付一聪，账是不是仍然平？</a></li><li><a href="#官方资料">官方资料</a></li></ol></details><p>先修 M01 与第 05 课的确认数。沿用上一课的本地 regtest，但这次不盯链尖，改做一张能回到前序交易的付款凭证。金额全程用整数聪（sat）：<code>1 BTC = 100000000 sat</code>。Alice、Bob 是两个钱包，不是两个节点验证者；<code>miner</code> 是第三个专收后续奖励的钱包，不参加买卖。没有真实资金。</p>
+<span class="specimen-relation" aria-hidden="true">→</span><p>付款金额：1.25 BTC</p></figure><p>Bob 的店在本地测试链（regtest）接了一张 1.25 BTC 的订单。Alice 出示付款记录，说她的钱包少了 125,001,000 聪；Bob 的收款明细却只有 125,000,000 聪。客服该让 Alice 补钱，还是通知仓库发货？先把订单和收款明细放在一起看，不必安装钱包。</p></header><div class="reading-grid"><article aria-labelledby="page-title"><details class="mobile-toc"><summary>本页目录</summary><ol><li><a href="#一笔钱进来几笔钱出去">一笔钱进来，几笔钱出去？</a></li><li><a href="#准备环境四课共用的-core-工具">准备环境：四课共用的 Core 工具</a></li><li><a href="#从一笔区块奖励找到能花的钱">从一笔区块奖励找到能花的钱</a></li><li><a href="#从签名后的输入倒查它到底值多少">从签名后的输入，倒查它到底值多少</a></li><li><a href="#谁拿了找零费率又是多少">谁拿了找零？费率又是多少？</a></li><li><a href="#跟同一笔付款看两个钱包的回执">跟同一笔付款，看两个钱包的回执</a></li><li><a href="#不改交易只改订单会改哪一行">不改交易，只改订单，会改哪一行？</a></li><li><a href="#故障定位先找最后一条证据">故障定位：先找最后一条证据</a></li><li><a href="#独立作业少付一聪账是不是仍然平">独立作业：少付一聪，账是不是仍然平？</a></li><li><a href="#官方资料">官方资料</a></li></ol></details><p>聪（sat）是这里记账的单位：1 BTC = 100,000,000 sat。下面只看同一条测试链，没有真实资金。判断时要用到<a href="confirmations.html">第 05 课的确认数</a>：包含付款的块算第一次确认，再接一个块才有第二次。等几次才发货，是商户定的。</p>
 <h2 id="一笔钱进来几笔钱出去">一笔钱进来，几笔钱出去？</h2>
-<p>假设你在 Java 里建账：不要先给 Alice 写一行 <code>UPDATE balance</code>。先用一行列出她将花掉的旧输出，再给这次交易的每项新输出各开一行。原来的 50 BTC 整项消耗：不是只剪下 1.25 BTC，其余继续留在原行。</p>
+<table>
+<thead>
+<tr>
+<th>谁留下的记录</th>
+<th>这笔付款的证据</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bob 的订单</td>
+<td>应收 125,000,000 sat，必须正好付到订单地址，至少两次确认才发货。</td>
+</tr>
+<tr>
+<td>付款记录</td>
+<td>Alice 花掉一项 5,000,000,000 sat 的旧款；其中 125,000,000 sat 给订单地址，4,874,999,000 sat 找回 Alice 自己的钱包。没有第三项。</td>
+</tr>
+<tr>
+<td>Bob 的钱包</td>
+<td>在订单地址认出这笔 125,000,000 sat 的收款。付款记录在第 102 块，当前链尖是接在它后面的第 103 块。</td>
+</tr>
+</tbody>
+</table>
+<p>先自己判：Alice 多花的 1,000 sat 是不是 Bob 少收的货款？哪一行能证明钱确实给了这张订单，哪一行让你数出确认次数？</p>
 <figure class="lesson-figure"><a href="../assets/figures/m02/06-payment-ledger.svg"><img src="../assets/figures/m02/06-payment-ledger.svg" alt="Alice 的旧输出 5,000,000,000 sat 整项花掉；Bob 收 125,000,000 sat，Alice 找回 4,874,999,000 sat，差额 1,000 sat 不是输出。"></a><figcaption>按默认订单绘制。横向两格才是新输出；下方是对它们求和后算出的差额。谁是 Bob，要用他的订单收款脚本认，不能按格子大小认。</figcaption></figure>
 
-<p>这个账页只解开了第一问：Bob 拿足货款，Alice 的减少额还包括矿工可领取的费用。下面用真实的 RPC 回答更难的三问：输入金额不是自己编的吗？哪一项真属于 Bob？两个钱包是不是在说同一个区块里的同一笔付款？</p>
+<p><strong>可以按这张订单发货。</strong> Bob 的地址收到整笔货款，而且已有两次确认。Alice 不是从旧款上划掉 1.25 BTC、剩下的留在原处；旧款整项花掉，找零另记一项。用旧款减去这两项新款，剩下 1,000 sat，就是这笔交易的手续费，由 Alice 承担。仅凭 Alice 的钱包少了多少钱，看不出谁收了钱，更不能决定发货。</p>
+<p><strong>只改订单金额，再判一次。</strong> 如果下单时应收写的是 125,000,001 sat，地址、付款记录、确认数都不变，还能发货吗？不能。订单地址实收比应收少 1 sat；再等一个块也补不上这 1 sat。拦下的是订单，不是这笔交易。</p>
+<p>只想读懂付款凭证，可以直接<a href="scripts.html">翻到第 07 课：谁能花掉这笔收款？</a>。下面是<strong>选做实操</strong>：用两个测试钱包查回原始记录，亲手证明哪项是货款、哪项是找零。</p>
 <p><a id="bitcoin-tools"></a></p>
 <h2 id="准备环境四课共用的-core-工具">准备环境：四课共用的 Core 工具</h2>
 <p>使用 macOS、Linux 或 WSL2 的 Bash、Python <strong>3.11</strong>（仅标准库）和带钱包支持的 Bitcoin Core <strong>30.5</strong>。本节命令都从<strong>仓库根目录</strong>开始。<code>labs/</code> 中必须同时有<a href="bitcoin.sh">安全入口 bitcoin.sh</a>、<a href="bitcoin_payment.py">付款逻辑 bitcoin_payment.py</a>、<a href="regtest.py">临时节点与单位换算 regtest.py</a>；只有网页时，在一个空目录下建 <code>labs/</code> 并把三份原文件放进去，该空目录就是这里的根目录。<strong>不能只下载 <code>.sh</code>。</strong></p>
@@ -63,16 +87,17 @@ fi
 <p>找 <code>UTXO</code> 行。<code>listunspent</code> 是钱包的选币候选；<code>gettxout(txid, vout)</code> 是节点的当前未花费输出查询。脚本让两者的金额、旧主键对上，并检查 <code>coinbase=True</code> 和原收款地址确实是 Alice 的。记录自己的<strong>奖励</strong> <code>txid:vout</code> 和 <code>input_sat</code>，别抄作稍后的<strong>付款</strong>交易号。付款一旦确认，旧输出就不能再从当前 UTXO 集查到了。</p>
 <h2 id="从签名后的输入倒查它到底值多少">从签名后的输入，倒查它到底值多少</h2>
 <p>这笔交易恰好只有一个输入。<code>createrawtransaction</code> 用旧主键作 <code>vin</code>；Bob 的货款和 Alice 的找零写进新的 <code>vout</code>。它不签名、不广播，也不会自动补找零。不设找零又保持 Bob 的输出不变，巨大差额就成了所构造交易的费用，而不是钱包里没动的钱（节点或钱包的高费用保护可能会拦住提交）。</p>
-<p>现在看交易，先盖住 Alice 的余额。<strong>输入 <code>vin</code> 给你的是索引，不是金额</strong>；用签名后实际解码的 <code>vin.txid</code> 找前一笔交易，再用 <code>vin.vout</code> 选它的特定输出：</p>
+<p>先别看余额。签名后的交易在 <code>vin</code>（输入）里记的是「花了以前哪一笔的哪一项」，不写那一项值多少钱。把 <code>SIGNED.prev_txid</code> 当作旧账单的编号，把 <code>SIGNED.prev_vout</code> 当作那张旧账单上的行号（从 0 数）。先找单，再找行：</p>
 <pre><code class="language-python">vin, = tx['vin']  # 这里已用 decoderawtransaction 解码真正的签名结果
 parent = rpc('getrawtransaction', vin['txid'], 1, reward_block)
 prev = parent['vout'][vin['vout']]
 prev_sat = sat(prev['value'])
 </code></pre>
-<p><code>1</code> 是详细程度；<code>reward_block</code> 是第一次出块时记录的区块哈希，所以无需 <code>txindex</code>，也不需要上网找浏览器。<code>PREVOUT</code> 给出这个块哈希、前序交易号、输出序号、前序金额和脚本；和先前 <code>UTXO</code>、稍后 <code>SIGNED</code> 的引用逐项连起来。旧 UTXO 被花掉不会抹掉包含它的历史交易。换成多输入，必须对<strong>每个</strong> <code>vin</code> 重做这次连接，再对金额求和；不能拿其中某个钱包的余额代替。</p>
+<p>这里 <code>1</code> 表示要解码后的交易详情；<code>reward_block</code> 是脚本挖出奖励时留存的块哈希，不用开全局交易索引或去网上搜索。读日志时，把 <code>SIGNED</code> 里的<strong>前序</strong>编号和行号与 <code>PREVOUT.txid</code>、<code>PREVOUT.vout</code> 两项对齐，再读同一行的 <code>value_sat</code>：本例是 <strong>5,000,000,000 sat</strong>。这才是本次输入的金额，不是 Bob 的收款额。回看付款前查到的 <code>UTXO.input_sat</code> 应是同一个数。旧输出现在不能再花，但创建它的历史记录没有消失。若有两个输入，就分别沿各自的编号和行号查金额再相加，不能只取第一项。</p>
 <p>旧输出的条件是原生 P2WPKH（第 07 课展开脚本）。<code>signrawtransactionwithwallet</code> 让 Alice 在钱包里签名；解码后的 <code>scriptSig</code> 是空的，<code>txinwitness</code> 才有两项：签名（含签名哈希类型字节）和公钥。<code>SIGNED</code> 记录它们的字节数，脚本还把第二项与 Alice 原收款地址的公钥相对。节点会检查公钥哈希是否匹配旧输出，再用公钥校验签名。两个栈项不是“两份签名”，一串公开的 <code>txid:vout</code> 也不是花费授权。此时 <code>complete=True</code>，Bob 还没有任何确认。</p>
 <h2 id="谁拿了找零费率又是多少">谁拿了找零？费率又是多少？</h2>
-<p>本实验先由 Bob 自己生成订单地址，再由 Alice 调 <code>getrawchangeaddress</code> 取内部找零地址。<code>getaddressinfo</code> 给出各自地址对应的输出脚本，Alice 的钱包还告诉你 <code>ischange=True</code>。拿 <code>OWNERSHIP</code> 两个脚本与两条 <code>OUTPUT.script_hex</code> 逐字节匹配，不按位置、重复出现的地址或金额大小猜。陌生人若只有原始交易，看不到 Alice 钱包里的“内部找零”标记。拿到实测的 <code>n</code> 后，Bob 的收款凭证应指向<strong>付款 txid:n</strong>，不是旧奖励的主键。</p>
+<p>Bob 先为订单生成收款地址；Alice 另用 <code>getrawchangeaddress</code> 取自己的找零地址。地址对应的<strong>输出脚本</strong>写明以后要满足什么条件才能花这项钱。脚本由 <code>getaddressinfo</code> 查得，程序打印在 <code>OWNERSHIP</code> 行。先取这一行的 <code>bob_receive_script</code>，逐个对照付款记录里两行 <code>OUTPUT</code> 的 <code>script_hex</code>。整串字节相同的那一行，才把它的 <code>n</code>（这笔新交易中的行号）和 <code>value_sat</code> 抄到 Bob 的收款凭证上。用<strong>付款交易号和这个 <code>n</code></strong> 就能找回这项收款；用奖励交易号找回的是 Alice 花掉的旧款。</p>
+<p>另一行也要有证据：它的 <code>script_hex</code> 与 <code>alice_change_script</code> 相同，而且 Alice 的钱包报告 <code>alice_ischange=True</code>，所以是找零，不是给 Bob 的第二笔收入。这个找零标记不是交易自带的；如果手上只有原始交易，就不能凭输出大小或先后顺序认领找零。</p>
 <table class="stackable">
 <thead>
 <tr>

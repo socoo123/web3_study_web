@@ -4,6 +4,31 @@
 
 主线 M01–M06 及本次指定的选修 M07 已完成。可从[第 25 课的 Rollup 回执](labs/rollup.html)开始，或直接接手[卷末工单 X-728](labs/withdrawal.html#m07-checkout)。当前无进行中批次；下一批回到主线 M10（37–40 课），不以 M08、M09 为先修。
 
+## 全站零基础返修（已完成 · 40/40）
+
+本次授权的一批是首页、计划页与全书 01–40 课，不是新写一卷。目标：读者不用安装软件，就能用一份具体记录作出判断，换一个条件再判断；想学开发时能继续做原实验。M01 复用已验收的入口。其余按 M02 → M03 → M04 → M05 → M06 → M10 → M07 → M08 → M09 连续推进，不逐卷等待读者确认。
+
+M01 保留已验收的 4 课；四位作者完成 M02，后续每卷仍由四位作者分课，改完 05–40 共 36 份 `labs/*.md`。主编合并[首页](index.html)、[40 课问题目录](plan.html#m01)和各课首屏。第 07 课初稿仍要求先读十六进制，验收时退回：成品先问「只有收款地址，能不能替钱包把钱转走」，字节和签名格式留到选做区。本轮结束，不再滚动返修。
+
+**读者实际看到的页面。** `python3 tools/build.py` 构建成功。离线 Chrome 在 1280 和 375 px 分别从首页打开计划、首课；逐课点过 40 个正文中的只读出口，均在首个代码块之前。主线 24→37、40 结课转选修，专项课不互设门槛。42 页均无整页横向溢出；正文 47 幅图在两种宽度下均能打开、收起并回到原链接。首页凭单能切换 BTC/sat，代码块在明暗两种主题下均达到 4.5:1 对比度。全站 1,710 处本地引用可解析，返修前 468 个页面 ID 均保留。浏览核验不等于已做真人学习效果测试。
+
+### 本轮复跑记录（不是把旧验收算作新实测）
+
+以下从仓库根目录运行。Bitcoin Core 用缓存的 30.5；EVM 工具按[第 13 课](labs/abi.html#m04-tools)导出 `PATH` 与 `FOUNDRY_SOLC`。所有节点写操作在新建的本地练习链。
+
+| 卷 | 本轮运行的入口 | 实际看到的判断依据 |
+| --- | --- | --- |
+| M01 | 沿用下方入口返修记录 | 原来的纸上题、正常/边界实验和源文件不重写、不重复计作新实验。 |
+| M02 | `bash labs/bitcoin.sh`；`python3 labs/psbt.py --short-pay` | 到第 103 块、两次确认后，Bob 实收 125,000,000 sat，手续费 1,000 sat。另一张待签单 59,999 ≠ 60,000，停在签名前、未广播。 |
+| M03 | `python3 labs/accounts.py`，再加 `--value-wei 124` | B 收 125 wei，发送序号仍是 0；少付一单位的交易也执行成功，却报 `HOLD_AMOUNT`。 |
+| M04 | `python3 labs/m04/abi_lab.py`；在 `labs/m04` 执行 `forge test --offline --match-path 'test/*Escrow*.t.sol'` | 模拟后存储为 0，入块后登记 9,007,199,254,740,993，合约实收仍为 0；截止时刻、角色、重复领取等两套测试共 12 项通过。 |
+| M05 | 按[17 课](labs/rpc.html)部署后，`bash labs/m05/run.sh ReceiptApi raw "$LOCK"` | 活节点在块 2 的锁款日志里给出 9,007,199,254,740,993 wei；同一接口查全零交易号得到 `null`，不是金额零。Docker 守护进程未启动，本轮未复跑 PostgreSQL 重组与恢复演练。 |
+| M06 | `python3 labs/m06/health.py`，再加 `--coll-age 301` | 正常健康度 1.2、余量 10 Q，不是可执行报价；价格超时得到 `HOLD_STALE`，没有估值。 |
+| M10 | [37 课](labs/scope.html)的 `awk` 核价命令 | 两份单分别是 6 人日 / 9,000 元、10 人日 / 15,000 元；只改一项使总额变为 9,100，核对拒绝。 |
+| M07 | `python3 labs/m07/rollup/replay.py`，再加 `--omit parent` | 归档可沿 44 条父链接追到安全头，但观察当时未最终化。隐藏父链接后得到 `HOLD SAFE_PATH_MISSING`，不再声称查证了整条路径。 |
+| M08 | [29 课](labs/rust-order.html)的 `rustc`、`order encode` 和 `order decode` | 513 号单完整还原金额 9,223,372,036,854,776,065；只提供 11 个字节报 `REJECT LENGTH expected=12 bytes_seen=11`，不报价。 |
+| M09 | `python3 labs/m09/move-ticket/review.py labs/m09/evidence/X-936 --expect-number 936 --expect-final B`，再只改为 `A` | 归档的最终持有人 B 得 `MATCH_LOCAL`；换预期持有人得 `HOLD: wrong final holder`。这是离线复核，不是重新部署。 |
+
 ## 零基础入口返修（已完成）
 
 [首页](index.html)和[入门四课目录](plan.html#m01)从同一张「应收 2 张券、凭条只有 1 张」的订单起步。四位作者分别修订 `labs/ledger.md`、`labs/crypto.md`、`labs/wallet.md`、`labs/networks.md`。每课在第一个代码块前给出可以独立判断的例子、改变条件后的答案和下一课入口；原理、实验与卷末工单保留。只调整入门卷，不增课。

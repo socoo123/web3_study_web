@@ -9,17 +9,19 @@
 <header class="lesson-opening"><h1 id="page-title">第 05 课 · 链、工作量与确认</h1><figure class="specimen"><figcaption>Bob 的放货单</figcaption><dl>
 <div><dt>块高 102</dt><dd>1 次确认</dd></div>
 <div><dt>链尖 103</dt><dd>2 次确认</dd></div></dl>
-<span class="specimen-relation" aria-hidden="true">→</span><p>同一笔 1.25 BTC；订单门槛为 2 次确认</p></figure><p>Bob 有一张应收 <strong>125,000,000 sat</strong> 的订单，约定「至少 2 次确认才放货」。客服在高度 102 的区块里找到了付款，问能不能发货。还差一块：付款所在块本身算第 1 次确认；同一条链延伸到 103，这笔付款才有第 2 次。可如果仓库把门槛改成 3，同一张回执就应该给出另一个答案。</p></header><div class="reading-grid"><article aria-labelledby="page-title"><details class="mobile-toc"><summary>本页目录</summary><ol><li><a href="#先取证用同一次运行留下四组读数">先取证：用同一次运行留下四组读数</a></li><li><a href="#已经挖到的-50-btc怎么会余额有却选不到">已经挖到的 50 BTC，怎么会「余额有、却选不到」？</a></li><li><a href="#谁有权把-bob-的付款写进第-102-块">谁有权把 Bob 的付款写进第 102 块？</a></li><li><a href="#两个矿工都找到了块凭什么相信其中一个">两个矿工都找到了块，凭什么相信其中一个？</a></li><li><a href="#从内存池包含块走到放货门槛">从内存池、包含块，走到放货门槛</a></li><li><a href="#若第-102-块不再是活动链的一部分">若第 102 块不再是活动链的一部分</a></li><li><a href="#独立作业替接班人判一张延迟放货单">独立作业：替接班人判一张延迟放货单</a></li><li><a href="#协议与-rpc-原文">协议与 RPC 原文</a></li></ol></details><p>先修是 M01，特别是<a href="networks.html">第 04 课的网络核验</a>。这次只连本机的 Bitcoin Core。我们要追两笔不同的交易：先看 Alice 从第 1 块拿到的<strong>奖励</strong>什么时候能花，再看用这笔钱付给 Bob 的<strong>货款</strong>什么时候能放行。不要把奖励的 100 次确认抄到货款的回执上。</p>
+<span class="specimen-relation" aria-hidden="true">→</span><p>同一笔 1.25 BTC；订单门槛为 2 次确认</p></figure><p>Bob 的仓库约定：这张订单要收到 <strong>1.25 BTC（125,000,000 sat）</strong>，而且至少有 <strong>2 次确认</strong>才发货。收款员已核对收款地址和金额：货款记在第 102 块。放货单左栏是刚出第 102 块时的记录，右栏是同一条链又接上第 103 块时的记录。仓库第一次能发货吗？第二次呢？</p></header><div class="reading-grid"><article aria-labelledby="page-title"><details class="mobile-toc"><summary>本页目录</summary><ol><li><a href="#先取证用同一次运行留下四组读数">先取证：用同一次运行留下四组读数</a></li><li><a href="#已经挖到的-50-btc怎么会余额有却选不到">已经挖到的 50 BTC，怎么会「余额有、却选不到」？</a></li><li><a href="#谁有权把-bob-的付款写进第-102-块">谁有权把 Bob 的付款写进第 102 块？</a></li><li><a href="#两个矿工都找到了块凭什么相信其中一个">两个矿工都找到了块，凭什么相信其中一个？</a></li><li><a href="#从内存池包含块走到放货门槛">从内存池、包含块，走到放货门槛</a></li><li><a href="#若第-102-块不再是活动链的一部分">若第 102 块不再是活动链的一部分</a></li><li><a href="#独立作业替接班人判一张延迟放货单">独立作业：替接班人判一张延迟放货单</a></li><li><a href="#协议与-rpc-原文">协议与 RPC 原文</a></li></ol></details><p><strong>第一次等，第二次可以发。</strong> 付款所在的块就算第 1 次确认；沿同一条链，在它后面再接一块，才到第 2 次。右栏的「2 次确认」不是 Bob 收了两笔钱，也不保证这笔记录以后绝不会变。</p>
+<p><strong>只改订单：</strong>仓库如果要求 <strong>3 次确认</strong>，拿右栏同一张记录，还能发吗？不能。收款金额没变，但眼下只有 2 次，还差一次。门槛由商户约定，不是比特币规定每个仓库都等几块。</p>
+<p>只想读懂放货单，可以直接去<a href="bitcoin.html">第 06 课：怎么核对这笔钱确实付给了 Bob</a>。以下是选做实操。先用<a href="networks.html">第 04 课的方法判断节点是不是本机的练习链</a>，再分别观察第 1 块给 Alice 的奖励何时能花、Bob 收到的货款何时能放行。这是两笔交易，不共用一个确认数。</p>
 <h2 id="先取证用同一次运行留下四组读数">先取证：用同一次运行留下四组读数</h2>
 <p>在仓库根目录打开 Bash。需要带钱包的 Bitcoin Core <strong>30.5</strong>（<code>bitcoind</code>、<code>bitcoin-cli</code> 都在 <code>PATH</code>）、Python <strong>3.11</strong> 标准库和 <code>grep</code>；缺 Core 可先看<a href="bitcoin.html#bitcoin-tools">工具准备</a>。<a href="bitcoin.sh">启动入口 bitcoin.sh</a> 调用<a href="bitcoin_payment.py">双钱包付款实验</a>，其<a href="regtest.py">临时节点启动器</a> 使用新的数据目录，RPC 只走回环，断开 P2P。不要传自己的地址、钱包或数据目录。装好工具以后可以断网做。</p>
 <pre><code class="language-bash">bitcoind --version
 bitcoin-cli --version
 python3 --version
 log=$(mktemp &quot;${TMPDIR:-/tmp}/btc-05.XXXXXX&quot;)
-bash labs/bitcoin.sh &gt; &quot;$log&quot; &amp;&amp; grep -E '^(NODE|MATURITY|MEMPOOL|BLOCK|DEPTH|PASS) ' &quot;$log&quot;
+bash labs/bitcoin.sh &gt; &quot;$log&quot; &amp;&amp; grep -E '^(NODE|MATURITY|MEMPOOL|BLOCK|RECEIPT|DEPTH|PASS) ' &quot;$log&quot;
 printf '实验日志：%s\n' &quot;$log&quot;
 </code></pre>
-<p>只在脚本成功、日志末有 <code>PASS</code> 时继续；若中断，留下的是不完整的运行，不是「零确认」的证据。保持这个终端开着，后面的 <code>$log</code> 就是刚才那份文件。先核对 <code>NODE</code>：是全新的 <code>regtest</code>、没有对等连接；再看四种行名。<code>MATURITY</code> 的主语是 Alice 的奖励；<code>MEMPOOL</code>、<code>BLOCK</code> 和 <code>DEPTH</code> 跟的是 Bob 的同一笔付款。以你的日志为准；下文给的是默认输入的<strong>预期读数</strong>，不是供复制提交的实跑记录。</p>
+<p>只在脚本成功、日志末有 <code>PASS</code> 时继续；若中断，留下的是不完整的运行，不是「零确认」的证据。保持这个终端开着，后面的 <code>$log</code> 就是刚才那份文件。先核对 <code>NODE</code>：是全新的 <code>regtest</code>、没有对等连接。<code>MATURITY</code> 的主语是 Alice 的奖励；从 <code>MEMPOOL</code> 到 <code>DEPTH</code> 跟的是 Bob 的同一笔货款，两行 <code>RECEIPT</code> 是双方钱包各自查到的记录。下文给的是默认输入的<strong>预期读数</strong>，提交作业时用你自己的日志。</p>
 <h2 id="已经挖到的-50-btc怎么会余额有却选不到">已经挖到的 50 BTC，怎么会「余额有、却选不到」？</h2>
 <p>区块的第一笔交易叫 <strong>coinbase</strong>，它没有用普通输入去花某人的旧钱。它的输出可以领取两部分：<strong>补贴</strong>是按该链规则和块高允许新发行的钱，<strong>手续费</strong>是本块普通交易的输入金额减输出金额的差额之和，来自已有的钱。矿工可以少领，不能超领。一个没有普通交易的块照样需要 coinbase，能领补贴，手续费是零。</p>
 <p>脚本用 <code>generatetoaddress</code> 出第 1 块，把奖励指定给 Alice；从第 2 块起奖励都去独立的 <code>miner</code> 钱包。于是 Alice 此时只有一笔待跟踪的收入：第 1 块补贴 <code>50 BTC = 5,000,000,000 sat</code>，没有别的付款混在里面。为什么不让她收到它立刻去付钱？如果第 1 块被另一条分支取代，这笔凭它产生的奖励就没有了。让 coinbase 输出先等一段，避免刚产生的奖励立即带出一串依赖它的付款；等待不保证这个块永远不会被替换。</p>
@@ -61,7 +63,12 @@ printf '实验日志：%s\n' &quot;$log&quot;
 <p>为什么在 100 这一行看到 100 次确认，仍然没有可选的输出？先分清题目里的两个高度：<strong>钱包</strong>读的是链尖上已经发生的历史；<strong>共识规则</strong>是在检查「把花费写进某个候选块行不行」。下面的右栏只检查成熟度，还没代替签名等其他检查。</p>
 <figure class="lesson-figure"><a href="../assets/figures/m02/05-maturity.svg"><img src="../assets/figures/m02/05-maturity.svg" alt="第 1 块奖励在链尖 100 时，钱包仍显示未成熟，但它与下一候选块 101 的高度差已达 100；实验等链尖 101 时才选出奖励，实际放入块 102。"></a><figcaption>横着读同一行：左边已经出块，右边还在问下一块可以写什么。右栏的 101 是最早可能的花费块高，不是本次实际付款块高。</figcaption></figure>
 
-<p>对奖励所在高度 <code>b</code>，包含花费的候选块高度 <code>s</code> 必须满足 <code>s − b ≥ 100</code>。在本例，写进 100 号块只差 <code>100 − 1 = 99</code>，共识不许；写进 101 号块差 <code>101 − 1 = 100</code>，这一条规则准许。可是脚本在链尖 100 调 <strong>Core 钱包默认查询</strong>时，奖励深度是 <code>100 − 1 + 1 = 100</code>，仍列在未成熟项。实验没有往 101 号块里塞花费：先出完这块，钱包在深度 101 才列出那枚输出，Alice 随后签普通付款，实际进入 <strong>102 号块</strong>。共识的最早高度、钱包何时给出候选输入、这次付款在哪块，是三个不同答案。普通付款的收款输出没有这条 coinbase 专属成熟期。</p>
+<p>先用<strong>第 1 块的奖励</strong>回答两个问题：</p>
+<ul>
+<li><strong>矿工最早能把这笔奖励的花费写进哪一块？</strong> 用候选花费块高减奖励块高，至少要相差 100。想写进第 100 块，<code>100 − 1 = 99</code>，不行；想写进第 101 块，<code>101 − 1 = 100</code>，就成熟度这一条而言，可以。</li>
+<li><strong>这次 Alice 的钱包什么时候列出了它？</strong> 看 <code>MATURITY height=100</code>：奖励自己已有 <code>100 − 1 + 1 = 100</code> 次确认，但 <code>selectable=0</code>。再读 <code>height=101</code>：<code>trusted_sat=5000000000</code>、<code>selectable=1</code>，脚本这时才从钱包选出这笔钱。第 101 块已经出了，所以 Alice 随后签的付款实际进了 <strong>第 102 块</strong>。</li>
+</ul>
+<p>前一问查规则，后一问读钱包。拿钱包的 <code>selectable=0</code> 不能断言候选块不合法；拿规则算出的最早高度也不能当作实际付款的块高。Bob 收到的是普通付款，不必再等 coinbase 的成熟期。</p>
 <h2 id="谁有权把-bob-的付款写进第-102-块">谁有权把 Bob 的付款写进第 102 块？</h2>
 <p>Alice 的付款用未花费输出（UTXO，相当于凭 <code>txid</code> 和输出序号能找到的一笔旧款）作输入。签完后，脚本先预检，再用 <code>sendrawtransaction</code> 交给节点。此刻 <code>getmempoolentry</code> 能按付款 <code>txid</code> 查到本节点内存池中的记录；Bob 的 <code>gettransaction</code> 却是 <code>confirmations=0</code>。这两项并不矛盾。把它们交给三个不同的人问：</p>
 <table class="stackable">
@@ -96,7 +103,8 @@ printf '实验日志：%s\n' &quot;$log&quot;
 <p>做个<strong>纸上缩小模型</strong>：假设一次哈希均匀落在 <code>0..255</code>。目标 31，合格值有 32 个，每试一次成功概率 <code>32/256</code>，平均要试 8 次；目标 15 只剩 16 个，平均要试 16 次。即使某个矿工第一次就成功，块的工作量仍取决于<strong>目标</strong>，不是实际耗时，也不是哈希碰巧小到什么程度。Bitcoin 用 256 位哈希，原理相同。把各块由目标折算的工作量累加，就有了 <code>getblock</code> 返回的 <code>chainwork</code>（十六进制）。</p>
 <p>节点在自己验证为有效的分支中选择<strong>累计工作量最大</strong>的，而不数支持的机器、也不单比块高；累计工作相等时，不同节点可能暂时采用不同链尖。相同难度下分支多一块意味着多一份工作，所以在本课简单场景里数块是有用的。regtest 把找块变得容易，<code>generatetoaddress</code> 才能按实验节奏得到块；同一台机器等到了两块，并不能量出主网重组概率或推算准确等待分钟数。</p>
 <h2 id="从内存池包含块走到放货门槛">从内存池、包含块，走到放货门槛</h2>
-<p>现在把注意力从奖励交易换回 <code>MEMPOOL.txid</code> 指出的<strong>付款交易</strong>。对于仍在活动链中、收录于高度 <code>h</code> 的那一笔，在观察到的链尖高度 <code>H</code>，确认数是 <code>H − h + 1</code>。只有先证明「那块现在还在这条链上」才能代数；仅给一串高度，不给块哈希，算式不成立。</p>
+<p>在日志里找到 <code>MEMPOOL</code> 的 <code>txid</code>（付款交易号）。拿它与 <code>RECEIPT wallet=bob</code> 的 <code>txid</code> 对照，再把这行的 <code>blockhash</code> 与 <code>BLOCK</code> 的 <code>hash</code> 对照：交易号相同、块哈希相同，且 <code>BLOCK</code> 有 <code>includes_tx=True</code>，才把这张收款记录认到这个 102 号块。只对高度不够：不同分支都可能有自己的第 102 块。</p>
+<p>出第 103 块后，脚本又拿<strong>原交易号</strong>查双方钱包：它们报的包含块仍须是原块哈希，已经处理到的链尖则须是新块哈希；不一致，脚本便停止。这样才可以用链尖高度 <code>H</code> 和包含块高度 <code>h</code> 算确认数 <code>H − h + 1</code>，对照 Bob 钱包报的 <code>confirmations</code>。</p>
 <table class="stackable">
 <thead>
 <tr>

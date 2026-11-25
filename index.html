@@ -10,8 +10,8 @@
     <section class="intro">
       <h1>链上开发手册</h1>
       <p class="premise">店里有两张券，就能说明小陈付了两张吗？</p>
-      <p class="lead">你在店里帮忙发货。这单要收两张券，小陈说付清了，可他的付款凭条上只写着一张。我们从这笔账说起。前四课不用写代码，也不用开钱包。</p>
-      <div class="intro-actions"><a class="primary" href="labs/ledger.html">从第 1 课开始查这笔账</a><a class="under" href="plan.html#m01">看入门四课</a></div>
+      <p class="lead">你在店里帮忙发货。这单要收两张券，小陈说付清了，可他的付款凭条上只写着一张。先查清这笔账。往后每课都有一个不用装软件就能判断的例子，想验证时再动手。</p>
+      <div class="intro-actions"><a class="primary" href="labs/ledger.html">从第 1 课开始查这笔账</a><a class="under" href="plan.html#m01">按问题挑一课</a></div>
     </section>
     <section class="plate" aria-labelledby="plate-title">
       <div class="plate-head"><h2 id="plate-title">顾客给小店的付款凭条</h2><span>第 18 号</span></div>
@@ -24,7 +24,7 @@
     </section>
   </div>
   <section class="lab-section" id="labs" aria-labelledby="lab-title">
-    <div class="section-head"><h2 id="lab-title">想动手时，再来做实验</h2><p>下面三个实验在自己电脑上做，不用真币。只想先读懂前四课，可以跳过这里。</p></div>
+    <div class="section-head"><h2 id="lab-title">想动手时，再来做实验</h2><p>下面三个实验在自己电脑上做，不用真币。只想先看懂例子，可以跳过这里。</p></div>
     <div class="lab-list">
       <a class="lab" href="labs/crypto.html"><span class="lab-type">JDK · 离线实验</span><h3>签名不等于加密</h3><p>把订单金额改动一位，比较验签与解密的结果。</p><span class="lab-link">打开实验 02</span></a>
       <a class="lab" href="labs/bitcoin.html"><span class="lab-type">Bitcoin Core · regtest</span><h3>追一笔比特币找零</h3><p>建两个交易钱包，从旧输出追到 Bob 的第一笔收款。</p><span class="lab-link">打开实验 06</span></a>
@@ -39,8 +39,8 @@
       </div>
     </details>
   </section>
-  <section class="atlas" id="atlas" aria-labelledby="atlas-title"><div class="section-head"><h2 id="atlas-title">课程地图</h2><p>主线 01–24 课与选修 25–28 课已开放。L2 有回执，L1 就到账了吗？从<a href="labs/rollup.html">第 25 课的排序器回执</a>读起，再用<a href="labs/withdrawal.html#m07-checkout">卷末工单</a>交出跨层状态报告和代付预算。只走主线可直接看<a href="plan.html#m10">M10 交付计划</a>。</p></div>
-    <div class="atlas-grid"><div><h3>主线 <small>28 课 · 约 200 小时</small></h3><ul class="volumes"><li><a href="plan.html#m01"><span class="volume-no">M01</span><span>账本、钱包与密码学</span></a></li><li><a href="plan.html#m02"><span class="volume-no">M02</span><span>比特币：从 UTXO 到收款凭证</span></a></li><li><a href="plan.html#m03"><span class="volume-no">M03</span><span>以太坊：账户、Gas 与回执</span></a></li><li><a href="plan.html#m04"><span class="volume-no">M04</span><span>Solidity：写得出，更要证明做对了</span></a></li><li><a href="plan.html#m05"><span class="volume-no">M05</span><span>Java：把链上事实变成业务流水</span></a></li><li><a href="plan.html#m06"><span class="volume-no">M06</span><span>钱包接入、代币与 DeFi</span></a></li><li><a href="plan.html#m10"><span class="volume-no">M10</span><span>从可运行的代码到可接手的项目</span></a></li></ul></div><div><h3>选修 <small>12 课 · 约 90 小时</small></h3><ul class="volumes"><li><a href="plan.html#m07"><span class="volume-no">M07</span><span>L2、智能账户与跨层状态</span></a></li><li><a href="plan.html#m08"><span class="volume-no">M08</span><span>Solana：换一种状态模型</span></a></li><li><a href="plan.html#m09"><span class="volume-no">M09</span><span>专项实验室</span></a></li></ul><p class="atlas-note">先交付一个完整的 Java 项目，再按实际兼职需求或比赛赛道选一条链深入。</p><a class="under" href="plan.html#怎样判断已经出师">查看出师验收</a></div></div>
+  <section class="atlas" id="atlas" aria-labelledby="atlas-title"><div class="section-head"><h2 id="atlas-title">课程地图</h2><p>主线从一张付款凭条，走到能让同事接手的<a href="labs/payment-desk.html">收款对账台</a>。接到委托要先定价，可以直接看<a href="labs/scope.html">两份不同的报价单</a>；想看看别人怎么验收，打开<a href="labs/hackathon.html#m10-checkout">毕业工单</a>。三卷选修按需要挑，不必全部读完。</p></div>
+    <div class="atlas-grid"><div><h3>主线 <small>28 课 · 含实验约 200 小时</small></h3><ul class="volumes"><li><a href="plan.html#m01"><span class="volume-no">M01</span><span>账本、钱包与密码学</span></a></li><li><a href="plan.html#m02"><span class="volume-no">M02</span><span>比特币：从 UTXO 到收款凭证</span></a></li><li><a href="plan.html#m03"><span class="volume-no">M03</span><span>以太坊：账户、Gas 与回执</span></a></li><li><a href="plan.html#m04"><span class="volume-no">M04</span><span>Solidity：写得出，更要证明做对了</span></a></li><li><a href="plan.html#m05"><span class="volume-no">M05</span><span>Java：把链上事实变成业务流水</span></a></li><li><a href="plan.html#m06"><span class="volume-no">M06</span><span>钱包接入、代币与 DeFi</span></a></li><li><a href="plan.html#m10"><span class="volume-no">M10</span><span>从可运行的代码到可接手的项目</span></a></li></ul></div><div><h3>选修 <small>12 课 · 含实验约 90 小时</small></h3><ul class="volumes"><li><a href="plan.html#m07"><span class="volume-no">M07</span><span>L2、智能账户与跨层状态</span></a></li><li><a href="plan.html#m08"><span class="volume-no">M08</span><span>Solana：换一种状态模型</span></a></li><li><a href="plan.html#m09"><span class="volume-no">M09</span><span>专项实验室</span></a></li></ul><p class="atlas-note">想查<a href="labs/rollup.html">第二层网络的回执</a>，想读<a href="labs/rust-order.html">缺一个字节的订单</a>，或想核对<a href="labs/lightning.html">没有逐笔上链的闪电网络付款</a>？直接从手上的问题开始，其他<a href="plan.html#m09">专项实验</a>可以跳过。</p><a class="under" href="plan.html#怎样判断已经出师">查看出师验收</a></div></div>
   </section>
 </main>
 <footer><span>链上开发手册</span><a href="index.html">课程首页</a><a href="PLAN.md">Markdown 原稿</a></footer></body></html>

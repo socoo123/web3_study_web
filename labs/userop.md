@@ -1,8 +1,12 @@
 # 第 27 课 · 打包交易成功，为什么工单还没盖章？
 
-工单 U-27：活动方只肯替一个测试账户的 **27 号工单**付一次盖章费，最多 **800000000000000 wei**。客服收到一条 `status=1` 的回执，准备同时勾选「盖章成功」「用户免费」。请先给出两份证据：**哪次用户操作被装进了哪笔交易；谁的存款实际少了多少**。如果业务把工单冻结，外层交易仍可能成功、活动方仍要付费，章却没盖上；如果代付存款差 **1 wei**，本实验甚至不会提交这笔外层交易。
+活动方出手续费，用户要给 27 号工单盖章。工单被冻结。客服拿到三行记录：「整包已处理（状态 1）」「本次盖章操作失败（false）」「工单台记录 0，代付存款比刚才少了」。该告诉用户「已盖章」，还是告诉活动方「没盖成，所以没花钱」？
 
-先修：[10 · 交易序号](nonce.html)、[11 · Gas 与费用](evm.html)、[12 · 回执与确认](receipts.html)、[13 · ABI](abi.html)、[18 · 日志索引](indexing.html)、[21 · 消息签名](siwe.html)。这里没有真钱、公共钱包或收费服务。用标准 EVM 上的 **ERC-4337 参考实现 v0.7.0** 做可重复的本机实验；它能在具备相应基础设施的 L2 上使用，不是 OP Stack 特有的系统交易，也不演示 L2 的数据发布费或跨层最终性。
+**两句都不对：没有盖章，活动方仍花了钱。** 打包人提交的外层交易负责把请求交给入口合约；入口可以如实记下其中一项失败，而不撤销整包。要查这笔工单，看的是它自己的操作结果和工单台的读数，不是外层的 1。要报销，看代付存款前后差了多少；券上限 800,000,000,000,000 wei 不是实付金额。
+
+回到提交前，其他都一样，只把 27 号工单从冻结改为开放。这回外层仍是 1，客服还需要看什么才肯勾「已盖章」？看这次操作是否成功、同块的工单台读数是否从 0 变为 27；两项都对，才记「已盖章，由活动方代付」。这是比较两种初始条件，不是让用户把已经用过的请求再发一遍。
+
+只想读懂谁办事、谁付费，可以转到[第 28 课：可领取与已经到账有什么区别](withdrawal.html)。以下选做本机实验。判断执行结果用[第 12 课的回执](receipts.html)，核费用用[第 11 课的余额差](evm.html)；还会用到[序号](nonce.html)、[ABI 字段](abi.html)、[按来源找日志](indexing.html)和[消息签名](siwe.html)。实验采用 ERC-4337 参考实现 v0.7.0，不用真钱、公共钱包或收费服务。具备相应设施的 L2 也可采用它；它不是 OP Stack 专用交易，本课不测 L2 数据发布费或跨层最终性。
 
 ## 别让一个 `txHash` 列承担两种承诺
 
@@ -66,7 +70,9 @@ python3 labs/m07/userop/run.py > "$WORK/open.txt" && cat "$WORK/open.txt"
 3. `trace()` 在准备块上先用 `eth_call` 演算完整 `handleOps([op], beneficiary)`。拒绝时没有提交；通过后才调用 `eth_sendTransaction`。**这里只代做组包、预检和提交，不运行 bundler 服务**，没有操作池、广播、信誉/质押检查、竞争排序或公共 RPC 接纳保证。该 `eth_call` 也不会提交或持久化业务的写入；如果业务回退被入口捕获，它仍可能成功返回。
 4. 查日志时以 `address=本次入口`、`topics[0]=keccak256(UserOperationEvent(bytes32,address,address,uint256,bool,uint256,uint256))`、`topics[1]=U` 定位。读出这条日志的 **`transactionHash`（T）**再调 `eth_getTransactionReceipt(T)`；核对同一块哈希、`logIndex`、其余两个索引地址和数据。非索引数据恰好四个 32 字节字，依次是 `nonce, success, actualGasCost, actualGasUsed`。最后读回回执所在块的代付存款和工单状态。若使用支持 4337 的 bundler，可用 `eth_getUserOperationReceipt(U)`，其中 `receipt` 仍然是整包的交易回执；普通 `eth_getTransactionReceipt(U)` 查不到不是「交易已失败」。
 
-默认输出的**判据**（不预填本轮哈希、块号、实际消耗）：`LINK` 的两个哈希不同；在 `RAW_RECEIPT` 留存的原始 JSON 里查得到 T，且日志第一项索引参数正是 U。`FEE` 满足 `depositBeforeWei − depositAfterWei = actualGasCostWei > 0`。`RESULT RECORDED outerStatus=1 opSuccess=true nonceAfter=1 recorded=27` 才能给本单勾选「已盖章，由活动方代付」。本次 L2 网络最终性不是实验观察项。
+可以把默认运行的输出当一张查件单，先盖业务章再核费用。输入是用户授权的那次操作编号 U；`LINK` 指向另一编号 T，即打包人发出的交易。打开 T 的 `RAW_RECEIPT`，别停在最上面的状态 1。顺着入口地址和索引参数 U 找到**那一项操作**，读它的 `success`。只有 `opSuccess=true` 且同块的工单读数 `recorded=27`，这张单才办成。即使只装了一项，也不能用 T 顶替 U。
+
+费用另查 `FEE`：`depositBeforeWei − depositAfterWei` 应等于 U 那条事件的 `actualGasCost`（以 wei 计）且大于 0。前者说明谁的钱少了，后者把费用对回这次操作。默认预期汇总是 `RESULT RECORDED outerStatus=1 opSuccess=true nonceAfter=1 recorded=27`；哈希、块号和实际费用请取本轮记录。本实验不据此判断 L2 最终性。
 
 ## 换一个输入：是拒单，还是付了费没盖成？
 

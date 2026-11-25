@@ -6,16 +6,37 @@
 <a class="brand" href="../index.html"><span class="mark" aria-hidden="true"></span>链上开发手册</a>
 <nav aria-label="全站导航"><a href="../plan.html">课程计划</a><a href="../index.html#labs">实验台</a><button type="button" id="theme" hidden>切换主题</button></nav>
 </div></header><main id="main" class="reading"><div class="crumb"><a href="../index.html">手册首页</a> / <a href="../plan.html#m02">M02 · 比特币：从 UTXO 到收款凭证</a> / 第 07 课</div>
-<header class="lesson-opening"><h1 id="page-title">第 07 课 · 两个地址，两种花费条件</h1><figure class="specimen"><figcaption>两笔 50 BTC 奖励</figcaption><dl>
-<div><dt>脚本以 00 14 开头</dt><dd>20 字节</dd></div>
-<div><dt>脚本以 51 20 开头</dt><dd>32 字节</dd></div></dl>
-<span class="specimen-relation" aria-hidden="true">≠</span><p>比较后续见证程序的长度；两个地址来自同一个钱包</p></figure><p>归集工单上有两笔各 <code>50 BTC</code> 的本地测试奖励：第一笔输出的脚本以 <code>00 14</code> 开头，第二笔以 <code>51 20</code> 开头。值班同事据此在「持有人」栏填了两个人，还说第二个人花钱时不用出示公钥，所以不用签名。两处判断都没有依据。我们让同一个临时钱包分别花掉这两笔钱，看看节点到底凭什么放行。</p></header><div class="reading-grid"><article aria-labelledby="page-title"><details class="mobile-toc"><summary>本页目录</summary><ol><li><a href="#先看输出这两个字节不是户号">先看输出：这两个字节不是户号</a></li><li><a href="#寄给付款人的地址与写进交易的字节">寄给付款人的地址，与写进交易的字节</a></li><li><a href="#再看输入谁出示了什么">再看输入：谁出示了什么？</a></li><li><a href="#在临时链上留下两张花费回执">在临时链上留下两张花费回执</a></li><li><a href="#同一笔花费为什么回执有两个-id">同一笔花费，为什么回执有两个 ID？</a></li><li><a href="#只改一个签名选项65-字节还能通过吗">只改一个签名选项：65 字节还能通过吗？</a></li><li><a href="#独立作业修一份把长度当户名的交班单">独立作业：修一份把长度当户名的交班单</a></li><li><a href="#对照原文">对照原文</a></li></ol></details><p>你在<a href="bitcoin.html">第 06 课</a>已经用 <code>txid:vout</code> 找过前序输出。这次沿同一条引用多走一步：<strong>把旧输出的条件，与新交易那个输入交来的证据配成一对。</strong> 读输出只能说将来要满足什么；读了有效的花费，才能说这一次怎样满足。两步都不能替你填写真实姓名。</p>
+<header class="lesson-opening"><h1 id="page-title">第 07 课 · 两个地址，两种花费条件</h1><figure class="specimen"><figcaption>同一个钱包的两笔奖励</figcaption><dl>
+<div><dt>第一笔</dt><dd>50 BTC</dd></div>
+<div><dt>第二笔</dt><dd>50 BTC</dd></div></dl>
+<span class="specimen-relation" aria-hidden="true">=</span><p>金额相同，花钱时要交的证明不同；光看地址不能替别人签字</p></figure><p>同一个测试钱包收了两笔奖励，每笔 50 BTC，现在都已可花。你负责把它们转到一个归集地址。交班的同事手里只有两个收款地址，没有签名权。他说：「第二笔不用再交公钥，把它转走应该没问题。」先读工单的两行要求，判断他说得对不对。</p></header><div class="reading-grid"><article aria-labelledby="page-title"><details class="mobile-toc"><summary>本页目录</summary><ol><li><a href="#先看输出这两个字节不是户号">先看输出：这两个字节不是户号</a></li><li><a href="#寄给付款人的地址与写进交易的字节">寄给付款人的地址，与写进交易的字节</a></li><li><a href="#再看输入谁出示了什么">再看输入：谁出示了什么？</a></li><li><a href="#在临时链上留下两张花费回执">在临时链上留下两张花费回执</a></li><li><a href="#同一笔花费为什么回执有两个-id">同一笔花费，为什么回执有两个 ID？</a></li><li><a href="#只改一个签名选项65-字节还能通过吗">只改一个签名选项：65 字节还能通过吗？</a></li><li><a href="#独立作业修一份把长度当户名的交班单">独立作业：修一份把长度当户名的交班单</a></li><li><a href="#对照原文">对照原文</a></li></ol></details><table>
+<thead>
+<tr>
+<th>奖励</th>
+<th>这次转出要交什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>甲 · 50 BTC</td>
+<td>出示一把和原记录匹配的公钥，还要用对应的私钥给这笔转账签名。</td>
+</tr>
+<tr>
+<td>乙 · 50 BTC</td>
+<td>原记录已经写了验签用的公钥。这次用对应的私钥签名即可，不必再交公钥。</td>
+</tr>
+</tbody>
+</table>
+<p><strong>同事能转走哪一笔？</strong> 两笔都不能。公钥是给别人核对签名用的，可以公开；私钥才是生成签名的秘密。收款地址告诉别人怎样付给这个钱包，并不会把签名权给知道地址的人。乙行省掉的是「再交公钥」，不是「签名」。</p>
+<p><strong>只改签名权。</strong> 假如同事现在确实能让这个钱包给两笔转账签名，工单其他条件不变，能申请花费哪一笔？两笔都能：甲交匹配的公钥和签名，乙按本单的方式只交签名。但「能签」还不是「已转走」：要勾选「已归集」，得找到实际花了这两笔奖励、付到归集地址的交易。我们知道两笔来自同一钱包，是因为有钱包的记录；两种要求里都没有客户姓名。</p>
+<p>只想读懂工单，可以到<a href="psbt.html">第 08 课：签名前核对收款、找零和手续费</a>。以下是选做的技术拆解和本地实验。会用<a href="bitcoin.html">第 06 课的交易号与输出序号</a>找到原来那笔钱，就能逐项核对：旧输出写了什么要求，新交易为它交了什么材料（见证）。</p>
 <h2 id="先看输出这两个字节不是户号">先看输出：这两个字节不是户号</h2>
 <p>每个输出都有金额和一段字节，后者叫 <code>scriptPubKey</code>，即锁定脚本。付款时把条件写进新输出；它还没被花掉，不需要签收人当场签字。以后谁想把它当作输入，验证节点就按这个旧条件检查。名字里虽然有 <code>PubKey</code>，里面却<strong>不一定直接放公钥</strong>。</p>
 <figure class="lesson-figure"><a href="../assets/figures/m02/07-output-bytes.svg"><img src="../assets/figures/m02/07-output-bytes.svg" alt="两段脚本从左到右分别是版本操作码、推入字节数、见证程序：00 14 后有 20 字节公钥哈希，51 20 后有 32 字节输出公钥。"></a><figcaption>先读版本，再把第二个十六进制数换算成长度，最后真的数一遍后面有多少字节。只有开头相似不算匹配。</figcaption></figure>
 
 <p>拿第一笔来说。<code>00</code> 是脚本操作码 <code>OP_0</code>，在这个位置表示见证版本 0；<code>14</code> 是十六进制的 <code>0x14</code>，意思是推入后面 <strong>20 字节</strong>，不是 14 字节。实际正好有 20 字节，整段长 <code>1 + 1 + 20 = 22</code> 字节，才认作原生 <strong>P2WPKH</strong>（Pay to Witness Public Key Hash）。这 20 字节是公钥的 <code>HASH160</code>：先 SHA-256，再 RIPEMD-160。有人只交一个公钥哈希能花吗？不能，花费时还得交匹配的公钥，并用对应私钥签出有效签名。</p>
-<p>第二笔的 <code>51</code> 是 <code>OP_1</code>，表示版本 <strong>1</strong>，不是版本 51；<code>0x20</code> 表示 32 字节。<code>51 20</code> 后紧跟 32 字节，整段 34 字节，才是原生 <strong>P2TR</strong>（Pay to Taproot）。这 32 字节是 Taproot <strong>输出公钥</strong>的 x 坐标编码，不是前一例那样的公钥哈希，也不等于钱包尚未调整的内部公钥。它已经给了验证者一把验签用的钥匙，<strong>没有给花费者一把签名用的私钥</strong>。反过来，看到 32 字节也不能直接填 Taproot：若前面是 <code>00 20</code>，那是 v0 的 P2WSH，承诺的是脚本哈希，验证规则又不同。</p>
+<p>第二笔的 <code>51</code> 是 <code>OP_1</code>，表示版本 <strong>1</strong>，不是版本 51；<code>0x20</code> 表示 32 字节。<code>51 20</code> 后紧跟 32 字节，整段 34 字节，才是原生 <strong>P2TR</strong>（Pay to Taproot）。这里存的是可以用来验签的输出公钥（取其 x 坐标编码，并非钱包调整前的内部公钥）。所以本例若用这把钥匙对应的私钥签名，只须交签名，不用再交一份公钥。第一笔要公钥和签名，第二笔走这条路径只要签名；<strong>没有哪一行写了客户姓名</strong>。我们知道地址来自同一钱包，靠的是钱包的生成记录。也别勾选「已归集」：还没有看到哪笔新交易真的花了它们。</p>
+<p><strong>只改一个字节，再判一次。</strong> 如果第二行的 <code>51</code> 换成 <code>00</code>，后面的 <code>20</code> 和全部 32 字节原样不动，还能把这 32 字节当公钥，等钱包交一枚签名吗？不能。<code>00 20</code> 是另一种条件（P2WSH）：这次记录的是一段脚本的 SHA-256 哈希。花费者得交出与哈希相符的脚本，并满足那段脚本的要求；只看哈希，不知道脚本究竟要几枚签名。</p>
 <h2 id="寄给付款人的地址与写进交易的字节">寄给付款人的地址，与写进交易的字节</h2>
 <p>地址是传递这些条件的一种文本格式，不是另一个链上字段。打开 regtest 的有效见证地址，<code>bcrt</code> 是人可读的网络前缀，<code>1</code> 是分隔符；后面编码了版本和见证程序，还带六个校验字符。版本 0 的地址使用 <strong>Bech32</strong>；版本 1 至 16 使用校验常数不同的 <strong>Bech32m</strong>。本例的地址分别以 <code>bcrt1q</code> 和 <code>bcrt1p</code> 开头。编码与版本要配套，不能给 v1 套 v0 的校验规则。交易输出里没有 <code>bcrt</code>，也不保存这串地址或它的校验字符。</p>
 <p>前缀只能帮你找位置，不能代替校验。稍后实验会把有效地址的<strong>最后一个字符</strong>换成另一个合法字母：看起来还是那个前缀，Core 却报 <code>isvalid=False</code>。此时应该停止使用抄错的地址，让来源方重新提供并核对全串；不要帮对方猜最后一位。反面也成立：校验通过，只说明它是本网络的有效地址，<strong>不证明它是工单约定的那一个</strong>。要核销，仍需从可信订单记录取出收款目标和金额，与链上实际输出核对。</p>
@@ -41,7 +62,7 @@ python3.11 labs/scripts.py &gt; &quot;$evidence/default.log&quot; &amp;&amp; cat
 <li><strong>从地址找到条件。</strong> <code>getnewaddress</code> 向同一个 <code>script-desk</code> 临时钱包分别要求 <code>bech32</code>、<code>bech32m</code>。<code>validateaddress</code> 回传 <code>scriptPubKey</code>；<code>reward</code> 函数把十六进制解成字节，读操作码和长度，比较剩余数据与 RPC 的 <code>witness_program</code>。两条 <code>ADDRESS</code> 分别应有 <code>version=0 program_bytes=20</code>、<code>version=1 program_bytes=32</code>。<code>COPY</code> 是故意抄错的对照，两次 <code>isvalid=False</code>，不会付给错误地址。<strong>我们知道这两个地址来自同一钱包，是因为亲自向同一钱包要了它们，并非编码泄露了归属。</strong></li>
 <li><strong>从条件找到钱。</strong> <code>generatetoaddress</code> 把第 1、2 块的奖励分别给这两个地址；<code>getblock(hash, 2)</code> 读取块中 coinbase 交易，按完整的脚本找输出，不假定输出下标。两条 <code>PREV</code> 应各有一个 <code>outpoint</code>、相应脚本类型、<code>value_sat=5000000000</code>。再出 100 块，让两笔奖励都成熟。实验只取这两笔指定输入，不叫钱包自动选币。</li>
 <li><strong>配对旧输出与新输入。</strong> 对每笔奖励单独构造一笔交易：输入是该 <code>PREV</code>，唯一的新输出给同一个本地归集地址，固定为 P2WPKH。每笔输出 <code>5,000,000,000 − 500 = 4,999,999,500 sat</code>；没有找零，差额 <code>500 sat</code> 是手续费。金额运算全用整数聪，只在 RPC 边界写八位小数 BTC。<code>signrawtransactionwithwallet</code> 用钱包签名后，<code>decoderawtransaction</code> 把字节解开；脚本检查 <code>vin</code> 引用与旧输出完全一致。<code>WITNESS</code> 行同时打印本次实际 <code>items</code> 和各项长度 <code>stack_bytes</code>（按字节，不是十六进制字符数）。第一笔应有两项，末项长 33；第二笔默认只有一项，长 64。</li>
-<li><strong>不要把解码当验签。</strong> <code>testmempoolaccept</code> 才让节点按当前共识与内存池策略预检。两条 <code>RECEIPT</code> 都应是 <code>fee_sat=500 allowed=True</code>。预检不会提交；脚本还要 <code>sendrawtransaction</code> 交给本地节点，再出一个块。对每条 <code>IN_BLOCK</code>，拿 <code>prev</code> 回找原来的 <code>PREV</code>，再用这笔花费的 <code>txid</code> 和 <code>wtxid</code> 核对哪一份回执实际进块。最后 <code>BLOCK</code> 应报高度 103、<code>spends=2 id_pairs_match=True</code>。这里证明的是本轮私链确实收下两笔花费，不是公网付款或客户身份验证。</li>
+<li><strong>从回执核到区块。</strong> 先取印有 <code>kind=P2TR</code> 的 <code>PREV</code>，抄下 <code>outpoint</code>（奖励交易号和输出序号）。<code>WITNESS</code> 只说明钱包交了什么；它有一项 64 字节，说明外形符合预期，还不等于签名有效。<code>testmempoolaccept</code> 拿到的是整笔已签交易：在对应的 <code>RECEIPT</code> 上读到 <code>fee_sat=500 allowed=True</code>，才表示这个节点按当前规则预检通过，尚未提交。脚本随后提交交易并出块。找 <code>IN_BLOCK</code> 中 <strong><code>prev</code> 等于刚才 <code>outpoint</code></strong> 的那行，再将它的 <code>txid</code>、<code>wtxid</code> 与 <code>RECEIPT</code> 逐一对齐：这才说明花掉的恰是那笔 50 BTC、进块的也恰是刚才预检的签名版本。对另一笔重复核对，最后应见 <code>BLOCK</code> 报高度 103、<code>spends=2 id_pairs_match=True</code>。这是本轮私链的花费回执，不是公网付款或客户身份证明。</li>
 </ol>
 <h2 id="同一笔花费为什么回执有两个-id">同一笔花费，为什么回执有两个 ID？</h2>
 <p>把交易想成两种精确的字节视图。传统序列化有版本、输入、输出、锁定时间；对它做两次 SHA-256 得 <strong>txid</strong>。带见证的序列化还包括 marker、flag 和各输入的见证；对完整字节做同样运算得 <strong>wtxid</strong>。在 <code>decoderawtransaction</code> 里，后者字段叫 <code>hash</code>，不是块哈希。没有见证的普通交易两者相同。本课两笔有见证，两者不同。以后要花某个新输出，用的是 <strong>txid</strong> 加 <code>vout</code>，不是 wtxid。</p>
@@ -85,7 +106,7 @@ python3.11 labs/scripts.py --explicit-all &gt; &quot;$evidence/all.log&quot; &am
 </tr>
 </tbody>
 </table>
-<p>显式指定的类型也参与签名摘要计算，不是给旧签名随手贴一个字节。多出的 1 B 在本交易里跨过了整除边界。相同的基础字节产生同一个 <code>txid</code>，不同的见证产生不同的 <code>wtxid</code>，你应看到 <code>COMPARE same_base_txid=True same_wtxid=False submit=ALL</code>。监控若只认 64 字节，会拒绝第二笔有效的密钥路径见证；若只认 64 或 65 字节就放行，又把长度检查当成了验签。既不可由地址猜人，也不可由签名外形判授权。</p>
+<p>显式的类型参与签名摘要计算，不是给旧签名随手贴一个字节。多出的 1 B 使重量从 396 变成 397 WU，除以四后向上取整，算费率的分母就从 99 变成 100 vB。再看 <code>COMPARE same_base_txid=True same_wtxid=False submit=ALL</code>：同一份草稿的输入和输出没变，不看见证的 <code>txid</code> 就没变。<strong>仅按 <code>txid</code> 查块，两张回执都能对上，该认哪张？</strong> 拿 <code>IN_BLOCK</code> 里含见证的 <code>wtxid</code> 去比，只有 <code>ALL</code> 那张相符；<code>DEFAULT</code> 也通过预检，却没有被提交。监控若只认 64 字节，会误报这次有效花费；若只认 64 或 65 字节就放行，又把长度检查当成了验签。</p>
 <h2 id="独立作业修一份把长度当户名的交班单">独立作业：修一份把长度当户名的交班单</h2>
 <p>同事新交来三条记录，和上面钱包的具体密钥无关。甲：<code>00 20</code> 后整整 32 字节；乙：<code>51 20</code> 后只剩 31 字节，原始记录到此结束；丙：有效 P2TR 前序输出，见证只有一项、65 字节、尾字节 <code>01</code>，还未查询节点。他给三条都写了「同一位 Taproot 客户已签」。请逐条改成链上证据真正支持的判断，并说明还缺什么。再从<strong>你自己的</strong> <code>--explicit-all</code> 日志找一张可以举证的回执，为丙示范怎样把「外形相符」升级到「本地节点接受」。</p>
 <p>交一页文本：保留该次 <code>NODE</code>、对应 <code>PREV</code>、两条 P2TR 的 <code>WITNESS</code> 与 <code>RECEIPT</code>、<code>COMPARE</code>、匹配的 <code>IN_BLOCK</code> 和 <code>BLOCK</code>，附上用整数手算的显式 <code>ALL</code> 的 WU、vB 及费率。不要交钱包文件、RPC cookie、私钥或任何真实客户记录。</p>

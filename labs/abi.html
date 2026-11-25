@@ -6,10 +6,13 @@
 <a class="brand" href="../index.html"><span class="mark" aria-hidden="true"></span>链上开发手册</a>
 <nav aria-label="全站导航"><a href="../plan.html">课程计划</a><a href="../index.html#labs">实验台</a><button type="button" id="theme" hidden>切换主题</button></nav>
 </div></header><main id="main" class="reading"><div class="crumb"><a href="../index.html">手册首页</a> / <a href="../plan.html#m04">M04 · Solidity：托管与合约测试</a> / 第 13 课</div>
-<header class="lesson-opening"><h1 id="page-title">第 13 课 · 从 JVM 切到 EVM：少掉的 1 wei 在哪一步？</h1><figure class="specimen"><figcaption>金额登记单 · set(uint256)</figcaption><dl>
-<div><dt>调用数据</dt><dd>36 字节</dd></div>
-<div><dt>返回数据</dt><dd>32 字节</dd></div></dl>
-<span class="specimen-relation" aria-hidden="true">→</span><p>多出的 4 字节选择函数；这笔交易附带 0 wei</p></figure><p>联调单 R-13 要登记 <strong>9007199254740993 wei</strong>，不收款。Java 后台导出的单据末位是 <code>3</code>，同事把金额放进网页的 <code>Number</code> 再导出，末位成了 <code>2</code>。合约回执还显示成功。谁登记了哪个数？先不要查付款方余额：要核对的是客户端发出的 <strong>36 字节</strong>、合约按什么类型读它，以及入块后读回的整数。回执不会替你核对单据。</p></header><div class="reading-grid"><article aria-labelledby="page-title"><details class="mobile-toc"><summary>本页目录</summary><ol><li><a href="#先把工单写成两个入口">先把工单写成两个入口</a></li><li><a href="#拆开两端都必须同意的-36-字节">拆开两端都必须同意的 36 字节</a></li><li><a href="#哪一份数据会留到下一次调用">哪一份数据会留到下一次调用？</a></li><li><a href="#全卷工具准备先下载并核验随后断网构建">全卷工具准备：先下载并核验，随后断网构建</a></li><li><a href="#先不启节点两套编解码器交叉读">先不启节点：两套编解码器交叉读</a></li><li><a href="#发同一份字节先模拟再入块读槽">发同一份字节：先模拟，再入块读槽</a></li><li><a href="#只改金额超出一个字还能登记吗">只改金额：超出一个字，还能登记吗？</a></li><li><a href="#独立作业最高位是-1不是负号">独立作业：最高位是 1，不是负号</a></li><li><a href="#查证原文">查证原文</a></li></ol></details><p>先修是<a href="accounts.html">第 09 课的账户状态</a>和<a href="evm.html">第 11 课的交易与回执</a>：会区分交易的 <code>to</code>、<code>value</code>、<code>input</code> 和回执的 <code>status</code> 即可。这里 <code>wei</code> 是单据的约定单位，1 ETH = 10¹⁸ wei；<code>uint256</code> 本身并不附带单位。全课只用自己启动的本地链，不使用钱包文件、私钥或公网 RPC。</p>
+<header class="lesson-opening"><h1 id="page-title">第 13 课 · 从 JVM 切到 EVM：少掉的 1 wei 在哪一步？</h1><figure class="specimen"><figcaption>给金额登记簿填一个数</figcaption><dl>
+<div><dt>送进去的指令</dt><dd>36 字节</dd></div>
+<div><dt>模拟返回的数</dt><dd>32 字节</dd></div></dl>
+<span class="specimen-relation" aria-hidden="true">→</span><p>多出的 4 字节用来选操作；这张指令没有附带转账</p></figure><p>联调单 R-13 要求登记员把 <strong>9007199254740993 wei</strong> 填进合约的金额栏，并没有要他付款。他备好 <strong>36 字节</strong>的指令，让节点先试算；节点回了 <strong>32 字节</strong>，解开恰是原数。财务现在能勾「已登记」或「已收款」吗？少掉的 4 字节又是什么？</p></header><div class="reading-grid"><article aria-labelledby="page-title"><details class="mobile-toc"><summary>本页目录</summary><ol><li><a href="#先把工单写成两个入口">先把工单写成两个入口</a></li><li><a href="#拆开两端都必须同意的-36-字节">拆开两端都必须同意的 36 字节</a></li><li><a href="#哪一份数据会留到下一次调用">哪一份数据会留到下一次调用？</a></li><li><a href="#全卷工具准备先下载并核验随后断网构建">全卷工具准备：先下载并核验，随后断网构建</a></li><li><a href="#先不启节点两套编解码器交叉读">先不启节点：两套编解码器交叉读</a></li><li><a href="#发同一份字节先模拟再入块读槽">发同一份字节：先模拟，再入块读槽</a></li><li><a href="#只改金额超出一个字还能登记吗">只改金额：超出一个字，还能登记吗？</a></li><li><a href="#独立作业最高位是-1不是负号">独立作业：最高位是 1，不是负号</a></li><li><a href="#查证原文">查证原文</a></li></ol></details><p>两格都先别勾。36 字节的前 4 字节是在选「填金额」这个操作，后 32 字节才是要填的数；试算只返回数，不用再报操作名。试算完查登记栏仍是 0。等<strong>同一份指令</strong>真正入块，再查当块登记栏是原数，才勾「已登记」。看另一栏：随交易转入的金额是 <strong>0 wei</strong>，所以这次登记不是收款。</p>
+<p><strong>只改填进去的数。</strong> 工单原文不变，网页把整数先转成浮点数，指令末字节从 <code>01</code> 变为 <code>00</code>。若执行成功，能签「按单登记」吗？不能。读回的是 <strong>9007199254740992</strong>，比工单少 1 wei；转入额依然是 0。成功回执不会替财务核对这两个栏位。</p>
+<p>只阅读可<a href="escrow.html">去第 14 课看一笔钱什么时候才真正锁入托管</a>。以下是选做实操：检查指令字节、比较试算结果，再查入块后的登记栏。</p>
+<p>先修是<a href="accounts.html">第 09 课的账户状态</a>和<a href="evm.html">第 11 课的交易与回执</a>：会区分交易的 <code>to</code>、<code>value</code>、<code>input</code> 和回执的 <code>status</code> 即可。这里 <code>wei</code> 是单据的约定单位，1 ETH = 10¹⁸ wei；<code>uint256</code> 本身并不附带单位。全课只用自己启动的本地链，不使用钱包文件、私钥或公网 RPC。</p>
 <h2 id="先把工单写成两个入口">先把工单写成两个入口</h2>
 <p><a href="m04/src/AmountRegister.sol">AmountRegister.sol</a> 只有一个持久状态 <code>uint256 private amountWei</code>，部署后默认为 0。它是可被下一次写入覆盖的实验登记栏，不是历史流水，也不是任何人的欠款余额。</p>
 <pre><code class="language-solidity">function set(uint256 nextWei) external returns (uint256) {
@@ -114,7 +117,7 @@ SIMULATION stored_wei=0
 MINED tx=… block=2 block_hash=… status=1 value_wei=0
 STATE get_wei=9007199254740993 slot0=0x0000000000000000000000000000000000000000000000000020000000000001 contract_balance_wei=0
 </code></pre>
-<p>对不上时，先核 <code>CALLDATA</code> 两行的前四字节、长度和末字节，再核 <code>INPUT</code> 与工单原文。<code>RETURN</code> 对而 <code>SIMULATION</code> 为零是预期；<code>MINED</code> 缺失则没有入块依据。最后才核 <code>STATE</code> 所读的合约地址、回执块和单位，不要通过改成浮点显示来「修正」差异。</p>
+<p>排查「少 1 wei」从原单而不是从回执开始：对准 <code>CALLDATA</code> 两行，前 4 字节决定是不是同一个填表操作；即使两行逐字节相同，也要把 <code>INPUT</code> 解出的整数与<strong>工单原文</strong>比。若两端都读成末位 2，错数在上链前就已进入指令。若 <code>RETURN</code> 是原数而 <code>SIMULATION stored_wei=0</code>，这不叫丢数据：前者是试算答案，后者是试算后未改变的登记栏。只有拿 <code>MINED</code> 的块号和本次部署地址定位 <code>STATE</code>，才能核对真正存下来的数；<code>contract_balance_wei</code> 才是合约当时持有的原生金额。</p>
 <h2 id="只改金额超出一个字还能登记吗">只改金额：超出一个字，还能登记吗？</h2>
 <p>把 <code>--amount-wei</code> 从原单改成 <strong>2²⁵⁶</strong>；这是超上界一个单位，不是可编码的 32 字节零。其余条件不动：</p>
 <pre><code class="language-bash">n=$(python3 -c 'print(1 &lt;&lt; 256)')

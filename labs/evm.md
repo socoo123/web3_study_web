@@ -1,12 +1,12 @@
 # 第 11 课 · Gas 与收支平衡：用 Java 核对一笔 ETH 转账
 
-财务收到两张费用单：钱包为一笔 **0.01 测试 ETH** 的付款预留了 **90,000 gwei** 手续费，结算同事却只报 **42,000 gwei**。Bob 没有少收。这 48,000 gwei 是漏记、退款，还是本来就不该入账？用 Java 取同一笔 Type 2 交易、它的回执和区块，再对两端余额；你要交的是能解释差额的付款凭证，而不是交易哈希截图。
+财务要给 Alice 报销一笔手续费。她给 Bob 付了 0.01 测试 ETH；钱包写着「手续费最多 90,000 gwei」，这笔付款的回执却只算出 42,000 gwei。两行用的是同一种金额单位。该按哪一行报销？还要找谁退回差的 48,000 吗？
 
-先修：[第 04 课：认出本地链](networks.html)、[第 09 课：账户状态](accounts.html)、[第 10 课：发送序号](nonce.html)。付过 [Bitcoin 的 UTXO 订单](bitcoin.html)更容易对照，但这次不选输入、不建找零输出。环境为 macOS 或常见的 glibc Linux（Windows 可用 WSL2），需要 Bash、curl、tar、OpenSSL、两个终端和完整 JDK。已有 JDK 17 或 21 即可；固定复现版本为 OpenJDK 21.0.2+13。首次下载工具需要联网，对账时不访问公网；不需要 Maven、Docker、钱包或 Solidity。
+看凭据是怎么来的：钱包允许最多用 30,000 份工作量（gas），每份最多 3 gwei；回执记的是实际用了 21,000 份，每份实付 2 gwei。**报销 `21,000 × 2 = 42,000 gwei`。** 另一行是花钱前的上限，不是已经扣过的款，没有一笔 48,000 gwei 的退款要追。单凭这张费用单还不能证明 Bob 收足货款，要另外核对收款账户。
 
-**边界**：只在自己刚启动的 Anvil 内存链上工作。不导入助记词，不连接浏览器钱包，不充值；交易程序的地址固定为 `127.0.0.1:18545`，只接受 Anvil、链 ID 31337、两个测试账户和创世块。关掉节点即丢弃账本。每轮只提交一次，不要把重新运行当作支付重试。
+只把总单价上限从 3 提到 4 gwei/gas，本块基础价仍是 1、小费最多也是 1，每份实付会涨吗？不会。买一份工作量仍只需 `1 + 1 = 2 gwei`；预算升到 120,000 gwei，实际仍报 42,000。Bob 的应收额也不变。
 
-[获取完整 Java 源码](EvmTransfer.java)
+能分清「获准花多少」与「实际花多少」，只想读懂的读者可以转到[第 12 课：拿到交易编号后，何时算付款完成](receipts.html)。以下是选做的本地对账实验；需要用到[第 04 课的链号核对](networks.html)、[第 09 课的同块余额比较](accounts.html)和[第 10 课的发送序号判断](nonce.html)。
 
 ## 哪一张单上的数可以结账？
 
@@ -30,13 +30,17 @@
 
 ## 从 Alice 的扣款追到三处归属
 
-先做**默认输入的预测**：每 gas 总价上限 3 gwei，小费上限 1 gwei；我们在自有 Anvil 指定下一块的基础费为 1 gwei/gas，方便每次复算。小费取 `min(1, 3 − 1) = 1`，实际单价是 **2 gwei/gas**。执行费上限 `30,000 × 3 = 90,000 gwei`，但结算 `21,000 × 2 = 42,000 gwei`。差的 48,000 是预算还有余量，**不是需要寻找的链上退款交易**。
+现在把凭据拆成两份收入和支出：本地实验把下一块基础费固定为 1 gwei/gas，算出每 gas 小费 `min(1, 3 − 1) = 1 gwei`。Bob 应收 10,000,000 gwei，Alice 应扣 `10,000,000 + 42,000 = 10,042,000 gwei`。图中最后两格解释这 42,000 的去向，不是 Bob 要承担的费用。
 
 <figure class="lesson-figure"><a href="../assets/figures/m03/evm-fee-ledger.svg"><img src="../assets/figures/m03/evm-fee-ledger.svg" alt="默认订单的预计账页：Alice 扣一千零四万二千 gwei，Bob 收一千万，另四万二千执行费平分为销毁和出块方小费。"></a><figcaption>读图时先从 Alice 减去 Bob 的收款，再核右边两个去向。gwei 在这里是总金额，不是每 gas 的价格。图是按默认参数推算的，下面用自己的块和回执查证。</figcaption></figure>
 
 这是一笔成功的普通 L1 Type 2 付款：其中 `gasUsed × baseFeePerGas` 由协议**销毁**（burn），不是转给某个销毁地址；`gasUsed × 每 gas 小费` 归本块费用接收地址（fee recipient，块的 RPC 字段沿用 `miner`）。**Bob 并非本块的费用接收者**，因此只增收 `value`。两端的余额净变化不为零，并不意味着少了一笔交易；差额既不全给出块方，也不全被销毁。图不涉及发行、提现或其他交易。
 
 ## 准备两个工具和一份源文件
+
+环境为 macOS 或常见的 glibc Linux（Windows 可用 WSL2），需要 Bash、curl、tar、OpenSSL、两个终端和完整 JDK。已有 JDK 17 或 21 即可；固定复现版本为 OpenJDK 21.0.2+13。首次下载工具需要联网，对账时不访问公网；不需要 Maven、Docker、钱包或 Solidity。
+
+**边界**：只在自己刚启动的 Anvil 内存链上工作。不导入助记词，不连接浏览器钱包，不充值；[Java 程序](EvmTransfer.java)只连 `127.0.0.1:18545`，要求 Anvil、链 ID 31337、两个测试账户和创世块。关掉节点即丢弃账本。每轮只提交一次，不要把重新运行当作支付重试。
 
 以下准备工作都在**终端 A**。在课程项目根目录操作。如果只有网页，先在空目录下建立 `labs` 子目录，右键保存[程序源文件](EvmTransfer.java)为 `labs/EvmTransfer.java`，再从这个空目录开始。先单独输入 `bash` 回车进入子 shell；后续命令在这个 shell 里逐段执行。
 
@@ -117,7 +121,7 @@ curl --noproxy '*' -fsS --max-time 3 -H 'Content-Type: application/json' \
 1. `before` 固定创世块号及哈希，按块号读双方 `eth_getBalance` 和 `eth_getTransactionCount`。同时查询付款账户的 `pending` nonce，要求与创世 nonce 都为 0。这是本地独占实验的起点，不把 `pending` 当锁，也不把后来会移动的 `latest` 当快照。
 2. `submit once` 之前，用本地控制方法 `anvil_setNextBlockBaseFeePerGas` 将**下一块**的 base 设为 1 gwei/gas。它不替任何人付钱；公网上的钱包不能指定区块基础费。交易显式给出 `type=0x2`、两项单价上限、`gas`、`value` 和 `nonce`，不夹带旧式 `gasPrice`。`eth_sendTransaction` 让本机 Anvil 用解锁测试账户签名，只调用一次。
 3. `txHash` 还不是回执。`awaitReceipt` 只读轮询同一 hash；RPC 响应的 `id` 是这一次调用的编号，不是交易号。出现非空回执后，程序把回执的块哈希与节点按该高度返回的块相对照。要求它是创世块的直接子块，**块中只有这一笔**；再从交易核对发送方、收款方、链、类型、nonce、金额及签过的上限。
-4. `split` 用**入块交易的**两项上限和**该块的** `baseFeePerGas` 算实际小费，每 gas 实价须与回执的 `effectiveGasPrice` 相等。再以 `gasUsed` 同时算实付费及销毁、小费两部分。`burnWei` 和 `tipWei` 是由这三份证据推得的金额，不是回执里两个同名字段。
+4. `split` 先把回执当费用收据：将本笔的 `gasUsed` 乘 `effectiveGasPrice` 得实付费。要分清这笔钱的去向，回执本身不够；再从**回执指向的块**取 `baseFeePerGas`，从同一笔交易取总价与小费上限。按前面的公式复算的每 gas 实价必须等于回执单价。将实付费减去 `gasUsed × baseFeePerGas`，余款才是出块方的小费。`burnWei` 和 `tipWei` 都是复算结果，不是回执字段。
 5. `after` 在回执指向的块号重读双方余额和 nonce。检查 `Alice 扣款 = Bob 收到的 value + 执行费`，发送者 nonce 递增 1，仅收款的 Bob 的 nonce 不变。只有这些条件及执行状态都正确才报 `PASS`。同一高度若还有别的付款、合约内部转账或费用接收者刚好是 Bob，余额差就不再仅代表这张单。
 
 下面是**默认运行应得到的关键数值**；不是预录日志。单价均为 wei/gas，金额均为 wei；区块号和状态保留 RPC 的十六进制表示，费用与余额按十进制打印：

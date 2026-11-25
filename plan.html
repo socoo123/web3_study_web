@@ -6,10 +6,10 @@
 <a class="brand" href="index.html"><span class="mark" aria-hidden="true"></span>链上开发手册</a>
 <nav aria-label="全站导航"><a href="plan.html">课程计划</a><a href="index.html#labs">实验台</a><button type="button" id="theme" hidden>切换主题</button></nav>
 </div></header><main id="main" class="reading"><div class="crumb"><a href="index.html">手册首页</a> / 课程计划</div>
-<header class="lesson-opening"><h1 id="page-title">链上开发手册 · 课程计划</h1><figure class="specimen"><figcaption>前四课怎么读</figcaption><dl>
+<header class="lesson-opening"><h1 id="page-title">链上开发手册 · 课程计划</h1><figure class="specimen"><figcaption>这 40 课怎么读</figcaption><dl>
 <div><dt>第一遍</dt><dd>看例子</dd></div>
 <div><dt>想动手时</dt><dd>做实验</dd></div></dl>
-<span class="specimen-relation" aria-hidden="true">→</span><p>先用纸笔查一笔账，不用安装软件</p></figure><p>第一次听说区块链，可以先不装软件。<a href="labs/ledger.html">从第 1 课查一张付款凭条</a>：店里有两张券，顾客给的凭条上却只写了一张。这笔订单到底收了多少？</p></header><div class="reading-grid"><article aria-labelledby="page-title"><details class="mobile-toc"><summary>本页目录</summary><ol><li><a href="#怎样判断已经出师">怎样判断已经出师</a></li><li><a href="#学习路线与时间预算">学习路线与时间预算</a></li><li><a href="#m01">M01 · 账本、钱包与密码学</a></li><li><a href="#m02">M02 · 比特币：从 UTXO 到收款凭证</a></li><li><a href="#m03">M03 · 以太坊：账户、Gas 与回执</a></li><li><a href="#m04">M04 · Solidity：写得出，更要证明做对了</a></li><li><a href="#m05">M05 · Java：把链上事实变成业务流水</a></li><li><a href="#m06">M06 · 钱包接入、代币与 DeFi</a></li><li><a href="#m07">M07 · L2、智能账户与跨层状态〔选修〕</a></li><li><a href="#m08">M08 · Solana：换一种状态模型〔选修〕</a></li><li><a href="#m09">M09 · 专项实验室〔按需选修〕</a></li><li><a href="#m10">M10 · 从可运行的代码到可接手的项目</a></li><li><a href="#实验设计与安全边界">实验设计与安全边界</a></li><li><a href="#每课写到什么深度">每课写到什么深度</a></li><li><a href="#查证入口与审阅重点">查证入口与审阅重点</a></li></ol></details><p><strong>只想先看懂：</strong> 读<a href="#m01">前四课的纸上例子</a>。每课先请你做一个判断，再解释为什么。读到「选做」就可以停，也可以直接去下一课。</p>
+<span class="specimen-relation" aria-hidden="true">→</span><p>先判断这张记录能说明什么，不用安装软件</p></figure><p>第一次听说区块链，可以先不装软件。<a href="labs/ledger.html">从第 1 课查一张付款凭条</a>：店里有两张券，顾客给的凭条上却只写了一张。这笔订单到底收了多少？</p></header><div class="reading-grid"><article aria-labelledby="page-title"><details class="mobile-toc"><summary>本页目录</summary><ol><li><a href="#怎样判断已经出师">怎样判断已经出师</a></li><li><a href="#学习路线与时间预算">学习路线与时间预算</a></li><li><a href="#m01">M01 · 账本、钱包与密码学</a></li><li><a href="#m02">M02 · 比特币：从 UTXO 到收款凭证</a></li><li><a href="#m03">M03 · 以太坊：账户、Gas 与回执</a></li><li><a href="#m04">M04 · Solidity：写得出，更要证明做对了</a></li><li><a href="#m05">M05 · Java：把链上事实变成业务流水</a></li><li><a href="#m06">M06 · 钱包接入、代币与 DeFi</a></li><li><a href="#m07">M07 · L2、智能账户与跨层状态〔选修〕</a></li><li><a href="#m08">M08 · Solana：换一种状态模型〔选修〕</a></li><li><a href="#m09">M09 · 专项实验室〔按需选修〕</a></li><li><a href="#m10">M10 · 从可运行的代码到可接手的项目</a></li><li><a href="#实验设计与安全边界">实验设计与安全边界</a></li><li><a href="#每课写到什么深度">每课写到什么深度</a></li><li><a href="#查证入口与审阅重点">查证入口与审阅重点</a></li></ol></details><p><strong>只想先看懂：</strong> 从<a href="#m01">入门四课</a>开始，也可以按下面每卷的问题挑一课。看到订单、回执或工单时先猜一次，再看答案；读完换条件的小题，就可以翻到下一课。主线从第 24 课直接去第 37 课，三卷选修可以跳过。</p>
 <p><strong>想学开发：</strong> 回到每课的实验，用自己的电脑核对刚才的判断。主线面向会 Java 的读者，最后做出<a href="#m10">能查订单是否收到款的小工具</a>。全书 40 课，其中 12 课是选修，不必从头学到尾。</p>
 <h2 id="怎样判断已经出师">怎样判断已经出师</h2>
 <p>不是背完协议，也不是独立为真实资金合约签安全意见。目标是<strong>能独立交付有明确边界的链上集成项目</strong>。一个没读过本书的同事应该能按你的交接说明完成以下验收：</p>
@@ -46,7 +46,7 @@
 </table>
 <p>不要把「我可以维护索引器」误当成「我可以代管客户资产」。托管、资产发行、支付清结算、面向公众运营涉及额外风险与当地法律；课程结业不构成这些业务的资质或审计背书。</p>
 <h2 id="学习路线与时间预算">学习路线与时间预算</h2>
-<p><strong>建议从主线开始，不同时学三种语言。</strong> Java 负责 RPC、事件归档和服务；Solidity 只解决链上必须强制执行的规则。M06 直接用浏览器 JavaScript 请求 EIP-1193 钱包，不需前端构建；接入 TypeScript 项目时，钱包方法和事件不变。想参加 Solana 赛道再学 Rust。HTTP、SQL、事务和 JUnit 不从头教。</p>
+<p><strong>只读例子，不用先学一门编程语言。</strong> 下表的先修和时间是给动手开发的人用的，不是阅读门票。动手也不必同时学三种语言：用 Java 读取账本、整理业务流水；规则必须由链上程序执行时才写 Solidity；想做 Solana 程序再学 Rust。开发路线不从头教 HTTP、SQL、事务和 JUnit。</p>
 <table class="stackable">
 <thead>
 <tr>
@@ -156,69 +156,69 @@
 </table>
 <p>做完实验，再试<a href="labs/networks.html#卷末验收接手一张异常付款工单">卷末验收：接手一张异常付款工单</a>。先自己判断能不能发货，再和解法对照。</p>
 <h2 id="m02">M02 · 比特币：从 UTXO 到收款凭证</h2>
-<p>Java 里的「扣余额」不是 Bitcoin 的数据模型。输入引用上笔交易的输出，花费时整枚消耗；剩下的钱通常回到新找零输出，而不是在旧输出上改数字。</p>
+<p>店里看到一笔转账，要过几关才能发货？先看它是否记进账本，再查这笔钱给了谁、找回多少，最后换到付款方的位置，审核一张还没签字的单。用得上<a href="labs/ledger.html">第 01 课的区别：余额不是这笔订单的收款</a>。</p>
 <table class="stackable">
 <thead>
 <tr>
-<th>课次（进入正文）</th>
-<th>要讲透的问题</th>
-<th>动手与过关标准</th>
+<th>从这里读</th>
+<th>不用电脑，先作判断</th>
+<th>想动手时怎样过关</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td data-label="课次（进入正文）"><a href="labs/confirmations.html">05 链、工作量与确认</a></td>
-<td data-label="要讲透的问题">工作量证明、累计工作、区块补贴与手续费；coinbase 成熟期；节点验证规则与矿工选择交易的区别</td>
-<td data-label="动手与过关标准">在 regtest 自行出块。比较可花与未成熟金额；把「进内存池」「进一个块」「达到业务阈值」分成不同状态</td>
+<td data-label="从这里读"><a href="labs/confirmations.html">05 链、工作量与确认</a></td>
+<td data-label="不用电脑，先作判断">顾客发来了交易编号；过了一会儿账本也记上了。店里要求两次确认，现在能发货吗？</td>
+<td data-label="想动手时怎样过关">在 regtest 自行出块。比较可花与未成熟金额；把「进内存池」「进一个块」「达到业务阈值」分成不同状态</td>
 </tr>
 <tr>
-<td data-label="课次（进入正文）"><a href="labs/bitcoin.html">06 亲手核对一笔付款</a></td>
-<td data-label="要讲透的问题"><code>txid:vout</code>、输入见证、收款、找零、费率 sat/vB；手续费不作为显式输出存在</td>
-<td data-label="动手与过关标准">做双钱包实验。沿每个输入找到前序金额，用整数 sat 核对输入总额减去所有输出等于手续费，且付款方确认数与收款方流水一致</td>
+<td data-label="从这里读"><a href="labs/bitcoin.html">06 亲手核对一笔付款</a></td>
+<td data-label="不用电脑，先作判断">同一张付款单列了两笔钱。哪笔进了店里，哪笔是找回去的？手续费在哪里？</td>
+<td data-label="想动手时怎样过关">做双钱包实验。沿每个输入找到前序金额，用整数 sat 核对输入总额减去所有输出等于手续费，且付款方确认数与收款方流水一致</td>
 </tr>
 <tr>
-<td data-label="课次（进入正文）"><a href="labs/scripts.html">07 地址与花费条件</a></td>
-<td data-label="要讲透的问题">Script 锁定条件、见证与 SegWit；区分 P2WPKH 与 Taproot 的输出类型、地址编码和签名方案。txid 与 wtxid 各描述什么</td>
-<td data-label="动手与过关标准">解码两种本地地址的 <code>scriptPubKey</code>。从输出类型判断未来需要哪类解锁数据，而不是从地址猜持有人；解释 weight 与 vsize 的关系</td>
+<td data-label="从这里读"><a href="labs/scripts.html">07 地址与花费条件</a></td>
+<td data-label="不用电脑，先作判断">两笔钱都是 50 个比特币，来自同一钱包。为什么花掉它们时要交的证明不一样？</td>
+<td data-label="想动手时怎样过关">解码两种本地地址的 <code>scriptPubKey</code>。从输出类型判断未来需要哪类解锁数据，而不是从地址猜持有人；解释 weight 与 vsize 的关系</td>
 </tr>
 <tr>
-<td data-label="课次（进入正文）"><a href="labs/psbt.html">08 PSBT 与钱包分工</a></td>
-<td data-label="要讲透的问题">BIP-174 的构造、补全、签名、合并、最终化和广播；描述符只读收款、变更地址与费用预览</td>
-<td data-label="动手与过关标准">在两端角色分离的 regtest 流程里传递 PSBT。签名前列出收款/找零/费率；只读端不能独立完成签名；提交最终交易与原支付意图的比对单</td>
+<td data-label="从这里读"><a href="labs/psbt.html">08 PSBT 与钱包分工</a></td>
+<td data-label="不用电脑，先作判断">商家要收 60,000，草案只写 59,999，手续费却没变。还要签字吗？</td>
+<td data-label="想动手时怎样过关">在两端角色分离的 regtest 流程里传递 PSBT。签名前列出收款/找零/费率；只读端不能独立完成签名；提交最终交易与原支付意图的比对单</td>
 </tr>
 </tbody>
 </table>
 <p>完成四课后做<a href="labs/psbt.html#m02-checkout">卷末验收：复核一笔新的付款工单</a>。阶段口试：同事看到一笔交易有两个输出，就断言金额较大的一项是找零。请说明缺少什么证据；比较钱包自身地址归属信息与纯链上启发式的可信度。</p>
 <h2 id="m03">M03 · 以太坊：账户、Gas 与回执</h2>
-<p>把同一张付款单换到账户模型。此时不用选 UTXO，却多了链 ID、账户 nonce 和执行失败仍付费的问题。先过 M01 的网络核验；建议做过 M02 的双钱包对账。四课只用自己的临时 Anvil，不需要持有 ETH。</p>
+<p>如果账本直接记每个人的余额，该怎么查小店收了多少、付款人又为什么扣得更多？先会<a href="labs/networks.html">辨认自己看的网络</a>就能开始。想动手再开本地练习网络，不需要买 ETH。</p>
 <table class="stackable">
 <thead>
 <tr>
-<th>课次（进入正文）</th>
-<th>要讲透的问题</th>
-<th>动手与过关标准</th>
+<th>从这里读</th>
+<th>不用电脑，先作判断</th>
+<th>想动手时怎样过关</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td data-label="课次（进入正文）"><a href="labs/accounts.html">09 账户与执行</a></td>
-<td data-label="要讲透的问题">余额、nonce、code、storage；交易与消息调用；确定性状态转换；执行客户端与共识客户端分工，PoS 的确认与最终化</td>
-<td data-label="动手与过关标准">对照同一个区块高度读取两个账户；解释 <code>latest</code>、<code>safe</code>、<code>finalized</code> 的适用场景和本地节点与公开网络的差异</td>
+<td data-label="从这里读"><a href="labs/accounts.html">09 账户与执行</a></td>
+<td data-label="不用电脑，先作判断">小店明明收到了钱，为什么「发出过几笔」还是零？</td>
+<td data-label="想动手时怎样过关">对照同一个区块高度读取两个账户；解释 <code>latest</code>、<code>safe</code>、<code>finalized</code> 的适用场景和本地节点与公开网络的差异</td>
 </tr>
 <tr>
-<td data-label="课次（进入正文）"><a href="labs/nonce.html">10 签名与序号</a></td>
-<td data-label="要讲透的问题">Type 2 交易字段、链 ID、发送者恢复、pending/latest nonce；相同业务请求和相同签名原始交易不是一回事</td>
-<td data-label="动手与过关标准">两个本地请求争用同一发送账户，设计串行分配与持久化策略；RPC 超时后不靠生成新 nonce 来猜前一笔是否成功</td>
+<td data-label="从这里读"><a href="labs/nonce.html">10 签名与序号</a></td>
+<td data-label="不用电脑，先作判断">退款请求没等到答复。重新填一份付款单，可能把钱付两次吗？</td>
+<td data-label="想动手时怎样过关">两个本地请求争用同一发送账户，设计串行分配与持久化策略；RPC 超时后不靠生成新 nonce 来猜前一笔是否成功</td>
 </tr>
 <tr>
-<td data-label="课次（进入正文）"><a href="labs/evm.html">11 Gas 与收支平衡</a></td>
-<td data-label="要讲透的问题">wei、gwei、ETH；上下限、base fee、priority fee、实际单价；执行费不等于 <code>gasLimit × maxFeePerGas</code></td>
-<td data-label="动手与过关标准">跑 Java 回执实验。固定区块端点后对账：接收方增加支付额，发送方减少支付额及实付费用。说明公式在 L2 不一定完整</td>
+<td data-label="从这里读"><a href="labs/evm.html">11 Gas 与收支平衡</a></td>
+<td data-label="不用电脑，先作判断">钱包为手续费预留了 90,000，账上却只扣 42,000（单位都是 gwei）。剩下的去哪了？</td>
+<td data-label="想动手时怎样过关">跑 Java 回执实验。固定区块端点后对账：接收方增加支付额，发送方减少支付额及实付费用。说明公式在 L2 不一定完整</td>
 </tr>
 <tr>
-<td data-label="课次（进入正文）"><a href="labs/receipts.html">12 从提交到最终化</a></td>
-<td data-label="要讲透的问题">哈希不是收据；状态从未知、待打包、已入块到确认；<code>status=0</code>、回执暂缺与链重组；浏览器是证据入口而非裁判</td>
-<td data-label="动手与过关标准">对照 <code>eth_getTransactionReceipt</code>、区块哈希和高度；为成功、回滚、RPC 不可用各给出用户能理解的状态，不把 <code>null</code> 翻译成「失败」</td>
+<td data-label="从这里读"><a href="labs/receipts.html">12 从提交到最终化</a></td>
+<td data-label="不用电脑，先作判断">系统给了交易编号，却还查不到回执。这时该让买家重付，还是继续查原单？</td>
+<td data-label="想动手时怎样过关">对照 <code>eth_getTransactionReceipt</code>、区块哈希和高度；为成功、回滚、RPC 不可用各给出用户能理解的状态，不把 <code>null</code> 翻译成「失败」</td>
 </tr>
 </tbody>
 </table>
@@ -228,133 +228,133 @@
 <table class="stackable">
 <thead>
 <tr>
-<th>课次（进入正文）</th>
-<th>要讲透的问题</th>
-<th>动手与过关标准</th>
+<th>从这里读</th>
+<th>不用电脑，先作判断</th>
+<th>想动手时怎样过关</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td data-label="课次（进入正文）"><a href="labs/abi.html">13 从 JVM 切到 EVM</a></td>
-<td data-label="要讲透的问题">ABI、selector、calldata、memory、storage；映射没有天然遍历；整数精度和显式转换；外部调用不同于 Java 方法调用</td>
-<td data-label="动手与过关标准">用 Solidity 写金额登记，分别经 Cast 与 Java 编解码同一次调用；给出输入字节、读取结果与单位</td>
+<td data-label="从这里读"><a href="labs/abi.html">13 从 JVM 切到 EVM</a></td>
+<td data-label="不用电脑，先作判断">表格里登记了一个金额，但随指令转来的钱是零。哪个数字算实收？</td>
+<td data-label="想动手时怎样过关">用 Solidity 写金额登记，分别经 Cast 与 Java 编解码同一次调用；给出输入字节、读取结果与单位</td>
 </tr>
 <tr>
-<td data-label="课次（进入正文）"><a href="labs/escrow.html">14 托管状态机</a></td>
-<td data-label="要讲透的问题"><code>payable</code>、调用者、角色、截止时间、关键事件；链上不能自行到点执行，需外部交易触发</td>
-<td data-label="动手与过关标准">写「待付款→已锁定→已结算或已退款」转移表。锁款为零、错误角色、过期边界和第二次结算都有确定结果</td>
+<td data-label="从这里读"><a href="labs/escrow.html">14 托管状态机</a></td>
+<td data-label="不用电脑，先作判断">钱已经结算给乙，但乙还没领取。钱现在在哪？该不该再付一次？</td>
+<td data-label="想动手时怎样过关">写「待付款→已锁定→已结算或已退款」转移表。锁款为零、错误角色、过期边界和第二次结算都有确定结果</td>
 </tr>
 <tr>
-<td data-label="课次（进入正文）"><a href="labs/invariants.html">15 Foundry 测试与安全边界</a></td>
-<td data-label="要讲透的问题">Forge 单测、模糊输入、跨操作不变量；最小权限、检查与状态更新先于外部交互、拉取式付款；库依赖的版本边界</td>
-<td data-label="动手与过关标准">对自己合约测试：累计支出不超过入金、单笔款不重复领取；保存失败输入并修复测试针对的逻辑，不把覆盖率当安全证明</td>
+<td data-label="从这里读"><a href="labs/invariants.html">15 Foundry 测试与安全边界</a></td>
+<td data-label="不用电脑，先作判断">第一次领取后累计收到 41，重试后仍显示 41。一共付出多少？</td>
+<td data-label="想动手时怎样过关">对自己合约测试：累计支出不超过入金、单笔款不重复领取；保存失败输入并修复测试针对的逻辑，不把覆盖率当安全证明</td>
 </tr>
 <tr>
-<td data-label="课次（进入正文）"><a href="labs/deployment.html">16 发布与可维护性</a></td>
-<td data-label="要讲透的问题">构建配置、固定编译器与库、部署交易、源码验证、ABI 与地址清单；不可升级与代理升级各让谁承担迁移风险</td>
-<td data-label="动手与过关标准">从空链重部署并让同事只凭清单完成调用；清单含 chainId、块号、部署哈希与构建参数。写出停用旧入口的办法，不声称能回滚确认交易</td>
+<td data-label="从这里读"><a href="labs/deployment.html">16 发布与可维护性</a></td>
+<td data-label="不用电脑，先作判断">旧清单写着程序部署在第 1 块，新账本只到第 0 块。两边网络编号相同，够用吗？</td>
+<td data-label="想动手时怎样过关">从空链重部署并让同事只凭清单完成调用；清单含 chainId、块号、部署哈希与构建参数。写出停用旧入口的办法，不声称能回滚确认交易</td>
 </tr>
 </tbody>
 </table>
 <p>完成四课后做<a href="labs/deployment.html#m04-checkout">卷末验收：接手一份托管部署清单</a>。换一条空链后，先找出旧凭证为什么失效，再让同事只凭新清单核对实例。</p>
 <h2 id="m05">M05 · Java：把链上事实变成业务流水</h2>
-<p>先修是 <a href="labs/receipts.html">M03 的回执与确认</a>和 <a href="labs/deployment.html">M04 的托管部署清单</a>。给 Java 服务的不是「已付款」消息，而是一份仍需核对的证据：同一交易可能等不到回执，落库的事件也可能随旧区块退出规范链。四课用同一个本地托管合约，把节点观察、可撤销的索引和商户账本分开。</p>
+<p>客户问「这笔钱能不能记账」，程序不能只回一句「查询成功」。先看<a href="labs/receipts.html">是哪张回执</a>、<a href="labs/deployment.html">是哪份合约</a>，再看数额是否精确、有没有漏记或记重。如果账本换掉了昨天那一页，你留下的记录还要能说明为什么改账。</p>
 <table class="stackable">
 <thead>
 <tr>
-<th>课次（进入正文）</th>
-<th>要讲透的问题</th>
-<th>动手与过关标准</th>
+<th>从这里读</th>
+<th>不用电脑，先作判断</th>
+<th>想动手时怎样过关</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td data-label="课次（进入正文）"><a href="labs/rpc.html">17 RPC 适配层</a></td>
-<td data-label="要讲透的问题">Java HttpClient 看原始 JSON-RPC，再用 web3j 做类型与 ABI 封装；超时、限流、分段查询、幂等读取；<code>BigInteger</code> 与最小单位</td>
-<td data-label="动手与过关标准">写只读 <code>/receipts/{hash}</code>，区分无回执、执行回滚、RPC 错误；数据库和 JSON 边界都不经过浮点数</td>
+<td data-label="从这里读"><a href="labs/rpc.html">17 RPC 适配层</a></td>
+<td data-label="不用电脑，先作判断">同一张回执里的整数为什么交给程序读一遍就少了 1？查询超时又能不能算零？</td>
+<td data-label="想动手时怎样过关">写只读 <code>/receipts/{hash}</code>，区分无回执、执行回滚、RPC 错误；数据库和 JSON 边界都不经过浮点数</td>
 </tr>
 <tr>
-<td data-label="课次（进入正文）"><a href="labs/indexing.html">18 从日志建索引</a></td>
-<td data-label="要讲透的问题">topic、indexed 参数、ABI、<code>eth_getLogs</code> 范围扫描；WebSocket 只做低延迟提示；PostgreSQL 保存扫描位置和块哈希</td>
-<td data-label="动手与过关标准">停掉订阅仍可从游标补扫。重复喂入同一批日志后结果不变；识别事件的链、区块哈希、交易哈希、logIndex，检索时限定合约地址</td>
+<td data-label="从这里读"><a href="labs/indexing.html">18 从日志建索引</a></td>
+<td data-label="不用电脑，先作判断">服务关着时错过了三个块。重开后怎么补齐，又不把已读的收款记两遍？</td>
+<td data-label="想动手时怎样过关">停掉订阅仍可从游标补扫。重复喂入同一批日志后结果不变；识别事件的链、区块哈希、交易哈希、logIndex，检索时限定合约地址</td>
 </tr>
 <tr>
-<td data-label="课次（进入正文）"><a href="labs/reorg.html">19 重组与事务边界</a></td>
-<td data-label="要讲透的问题">校验父块、寻找共同祖先、旧记录失效、可逆派生状态；扫描游标与写库在同一事务提交。退款流水不能靠删除历史伪造</td>
-<td data-label="动手与过关标准">在自有开发链快照分叉出两段不同历史；重启索引器后旧分支不计入余额，新分支只算一次，保留修正记录</td>
+<td data-label="从这里读"><a href="labs/reorg.html">19 重组与事务边界</a></td>
+<td data-label="不用电脑，先作判断">昨天看见的结算不在今天的账本里。怎样改应领余额，又不抹掉昨天做过的判断？</td>
+<td data-label="想动手时怎样过关">在自有开发链快照分叉出两段不同历史；重启索引器后旧分支不计入余额，新分支只算一次，保留修正记录</td>
 </tr>
 <tr>
-<td data-label="课次（进入正文）"><a href="labs/reconciliation.html">20 订单对账与运维</a></td>
-<td data-label="要讲透的问题">支付意图、整数金额、资产白名单、确认策略；链上观察、业务入账、通知 outbox 拆开；观测扫描滞后和差异</td>
-<td data-label="动手与过关标准">写一个 Spring Boot 查款服务。重复回调、漏块补扫、少付和错币种各跑一次；交一张差异表和从备份恢复的操作单</td>
+<td data-label="从这里读"><a href="labs/reconciliation.html">20 订单对账与运维</a></td>
+<td data-label="不用电脑，先作判断">订单要 126，实际只结算了 125。哪怕反复收到成功通知，可不可以记为付清？</td>
+<td data-label="想动手时怎样过关">写一个 Spring Boot 查款服务。重复回调、漏块补扫、少付和错币种各跑一次；交一张差异表和从备份恢复的操作单</td>
 </tr>
 </tbody>
 </table>
 <p>完成四课后做<a href="labs/reconciliation.html#m05-checkout">卷末验收：对账与备份恢复</a>。验收对象是托管受益人的应领款，不是钱包已经收到的转账。</p>
 <h2 id="m06">M06 · 钱包接入、代币与 DeFi</h2>
-<p>先修：<a href="labs/deployment.html">M04 的合约调用与部署</a>、<a href="labs/reconciliation.html">M05 的订单与资产核对</a>。用户签了登录消息，能不能替他扣款？沿着登录会话、代币额度、池子报价和价格时间戳，逐步找出每个决定需要的凭证。所有写操作限本地；签名页单独启动，课程站本身不请求连接权限。</p>
+<p>用户刚用钱包登录，店家就能从他名下扣钱吗？先把「我是谁」「允许扣多少」「实际收多少」三件事分开，再看一个用过期价格算出来的数还能不能报。动手前要会<a href="labs/deployment.html">找对合约</a>和<a href="labs/reconciliation.html">核对订单与资产</a>。课程站不会要求连接钱包。</p>
 <table class="stackable">
 <thead>
 <tr>
-<th>课次（进入正文）</th>
-<th>要讲透的问题</th>
-<th>动手与过关标准</th>
+<th>从这里读</th>
+<th>不用电脑，先作判断</th>
+<th>想动手时怎样过关</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td data-label="课次（进入正文）"><a href="labs/siwe.html">21 钱包与登录</a></td>
-<td data-label="要讲透的问题">EIP-1193 Provider、账户/网络切换、拒签；SIWE 的域、nonce、时效和会话；登录签名不是转账授权</td>
-<td data-label="动手与过关标准">浏览器端请求签名，Java 后端验证并一次性消费挑战。拒签不建会话，换账户后旧界面不能冒充新账户</td>
+<td data-label="从这里读"><a href="labs/siwe.html">21 钱包与登录</a></td>
+<td data-label="不用电脑，先作判断">用甲申请登录，签字前换成乙。该用谁的名字登录？网站因此有权扣钱吗？</td>
+<td data-label="想动手时怎样过关">浏览器端请求签名，Java 后端验证并一次性消费挑战。拒签不建会话，换账户后旧界面不能冒充新账户</td>
 </tr>
 <tr>
-<td data-label="课次（进入正文）"><a href="labs/allowance.html">22 资产接口与授权</a></td>
-<td data-label="要讲透的问题">ERC-20 的余额、allowance、decimals；ERC-721 的所有者与授权；ERC-1155 的多资产模型。签名授权与链上交易是两步</td>
-<td data-label="动手与过关标准">本地 6 位与 18 位资产都显示与结算正确；有限额度 <code>approve</code> 后分别跑额度内与超额操作；页面列出 spender、资产和上限</td>
+<td data-label="从这里读"><a href="labs/allowance.html">22 资产接口与授权</a></td>
+<td data-label="不用电脑，先作判断">甲允许乙最多扣 2.5 枚代币。乙的钱包里现在就多了 2.5 枚吗？</td>
+<td data-label="想动手时怎样过关">本地 6 位与 18 位资产都显示与结算正确；有限额度 <code>approve</code> 后分别跑额度内与超额操作；页面列出 spender、资产和上限</td>
 </tr>
 <tr>
-<td data-label="课次（进入正文）"><a href="labs/swap.html">23 AMM 与滑点</a></td>
-<td data-label="要讲透的问题">用恒定乘积池解释储备、价格影响、费用与最小输出；区分报价、成交量与证据。再读 Uniswap 集中流动性中的价格区间，不套用同一公式</td>
-<td data-label="动手与过关标准">两个自建测试币构成教学池，给同样方向的两种输入量报价，比较单价；设置不可满足的最小输出，核对交易未交换资产</td>
+<td data-label="从这里读"><a href="labs/swap.html">23 AMM 与滑点</a></td>
+<td data-label="不用电脑，先作判断">买十份和一百份，为什么每份价格不同？点了询价就算成交了吗？</td>
+<td data-label="想动手时怎样过关">两个自建测试币构成教学池，给同样方向的两种输入量报价，比较单价；设置不可满足的最小输出，核对交易未交换资产</td>
 </tr>
 <tr>
-<td data-label="课次（进入正文）"><a href="labs/health.html">24 借贷与价格输入</a></td>
-<td data-label="要讲透的问题">抵押率、清算阈值、健康度、估值单位；价格源精度、最后更新时间与降级；只读展示不等于给出投资建议</td>
-<td data-label="动手与过关标准">对本地仓位做健康度计算，与合约读数对照；给过期价格或缺价时拒绝给出可执行报价，不把缺值当零</td>
+<td data-label="从这里读"><a href="labs/health.html">24 借贷与价格输入</a></td>
+<td data-label="不用电脑，先作判断">价格最多能用 300 秒，现在已经过去 301 秒。页面应该显示旧数、零，还是暂不报价？</td>
+<td data-label="想动手时怎样过关">对本地仓位做健康度计算，与合约读数对照；给过期价格或缺价时拒绝给出可执行报价，不把缺值当零</td>
 </tr>
 </tbody>
 </table>
 <p>完成后做<a href="labs/health.html#m06-checkout">卷末工单 D-624：核对登录、授权、成交与估值四联凭证</a>。继续主线请转 <a href="#m10">M10 交付计划</a>；M07–M09 是选修，不是门槛。</p>
 <h2 id="m07">M07 · L2、智能账户与跨层状态〔选修〕</h2>
-<p>先修：<a href="labs/receipts.html">M03 的回执与最终性</a>、<a href="labs/deployment.html">M04 的部署清单</a>、<a href="labs/siwe.html">M06 的签名与授权</a>。沿 Base / OP Stack 分清谁执行、谁付费、哪一层能证明到账；对照 Arbitrum 时只迁移概念，不假定相同的费用和提现时间。</p>
+<p>顾客在第二层网络看到了回执，收款员却在第一层查不到到账。两个人看的是什么？四课分别查执行记录、费用、代付和跨层领取。动手时会用到<a href="labs/receipts.html">回执与最终性</a>、<a href="labs/deployment.html">部署清单</a>和<a href="labs/siwe.html">签名与授权</a>。这里用 Base / OP Stack 举例，各网络的费率和等待期并不通用。</p>
 <table class="stackable">
 <thead>
 <tr>
-<th>课次（进入正文）</th>
-<th>要讲透的问题</th>
-<th>动手与过关标准</th>
+<th>从这里读</th>
+<th>不用电脑，先作判断</th>
+<th>想动手时怎样过关</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td data-label="课次（进入正文）"><a href="labs/rollup.html">25 Rollup 信任边界</a></td>
-<td data-label="要讲透的问题">排序器、批次、数据可用性、L1 结算；optimistic 与 validity rollup 的验证区别</td>
-<td data-label="动手与过关标准">标出一次 L2 转账的执行、数据发布、最终化分别在哪里；说明排序器返回回执为何不等于 L1 已终结</td>
+<td data-label="从这里读"><a href="labs/rollup.html">25 Rollup 信任边界</a></td>
+<td data-label="不用电脑，先作判断">第二层已经记了账，为什么不等于这笔账已经最终定下？</td>
+<td data-label="想动手时怎样过关">标出一次 L2 转账的执行、数据发布、最终化分别在哪里；说明排序器返回回执为何不等于 L1 已终结</td>
 </tr>
 <tr>
-<td data-label="课次（进入正文）"><a href="labs/l2-fees.html">26 L2 费用与部署</a></td>
-<td data-label="要讲透的问题">EVM 兼容不等于在费用估算、最终性和 RPC 能力上一致；分别记录执行与数据相关费用</td>
-<td data-label="动手与过关标准">同一份合约在本地与可选 Base Sepolia 使用独立网络清单；从回执及链专用字段解释差额，未知字段不能默认为零</td>
+<td data-label="从这里读"><a href="labs/l2-fees.html">26 L2 费用与部署</a></td>
+<td data-label="不用电脑，先作判断">明细只列了执行费；还缺一项数据费。能不能先拿已知数当作总费？</td>
+<td data-label="想动手时怎样过关">同一份合约在本地与可选 Base Sepolia 使用独立网络清单；从回执及链专用字段解释差额，未知字段不能默认为零</td>
 </tr>
 <tr>
-<td data-label="课次（进入正文）"><a href="labs/userop.html">27 智能账户与代付</a></td>
-<td data-label="要讲透的问题">ERC-4337 的 UserOperation、EntryPoint、bundler、paymaster；与 Safe 的多签阈值、EIP-7702 的委托机制分别作何取舍</td>
-<td data-label="动手与过关标准">从一次受控操作分别查用户操作哈希和外层交易哈希；限定代付对象与预算，预算耗尽不显示为免费成功</td>
+<td data-label="从这里读"><a href="labs/userop.html">27 智能账户与代付</a></td>
+<td data-label="不用电脑，先作判断">有人替用户付了手续费，但工单没有盖章。谁花了钱，事情到底办成了吗？</td>
+<td data-label="想动手时怎样过关">从一次受控操作分别查用户操作哈希和外层交易哈希；限定代付对象与预算，预算耗尽不显示为免费成功</td>
 </tr>
 <tr>
-<td data-label="课次（进入正文）"><a href="labs/withdrawal.html">28 跨层消息跟踪</a></td>
-<td data-label="要讲透的问题">官方桥的发起、证明/验证、领取是不同阶段；源链哈希不等于目标链到账，等待期依网络而异</td>
-<td data-label="动手与过关标准">用公开测试网既有记录做双端只读跟踪；给「已发起、可领取、已完成」各列证据。没有目标侧证据只报处理中，不建议第三方桥</td>
+<td data-label="从这里读"><a href="labs/withdrawal.html">28 跨层消息跟踪</a></td>
+<td data-label="不用电脑，先作判断">页面说「现在可以领取」。要再看到什么记录才能给收款人写「已到账」？</td>
+<td data-label="想动手时怎样过关">用公开测试网既有记录做双端只读跟踪；给「已发起、可领取、已完成」各列证据。没有目标侧证据只报处理中，不建议第三方桥</td>
 </tr>
 </tbody>
 </table>
@@ -509,9 +509,9 @@
 <p>私有实验节点只绑定回环，不开放解锁账户的 RPC。不得复用主网钱包、连接陌生签名站、触碰他人资金或系统；不教授攻击复现、抢跑、绕过授权或密钥获取。生产接单先确认所在地区规则、合同授权范围和责任分工；涉及真实资产的合约部署与密钥管理需要独立审查，主网写入不设为毕业要求。</p>
 <h2 id="每课写到什么深度">每课写到什么深度</h2>
 <ol>
-<li><strong>从需求开始。</strong> 写出决策问题和先修，然后用一个具体输入解释机制。Java 对照只在能迁移经验或容易误判时出现。</li>
+<li><strong>先让人做一个判断。</strong> 给一件要决定的事，以及足够判断的凭条或记录。让读者知道该看哪一行、哪件事还不知道，再介绍这里的正式名称。用到先修时，链接到要借用的那个判断。</li>
 <li><strong>展示证据。</strong> 给出固定的环境前提、完整命令、变量来源、输出字段解释与不固定值。至少一个算得出的例子，随后用节点实际输出复算；示意数据必须标明。</li>
-<li><strong>让学生做一个改变。</strong> 修改金额、签名者、网络或区块状态中的一项，先预测结果，再运行；提供解释与定位步骤，而不只是成功截图。</li>
+<li><strong>换一个条件。</strong> 只换金额、签名者、网络或观察位置中的一项。让读者先预测，再对答案；不装软件也能读懂差别。动手者继续用原实验复查，不拿读懂例子代替实操过关。</li>
 <li><strong>交出可检查的结果。</strong> 每课末尾给独立作业、答案判据、必要的协议/工具原文；阶段项目用上表做验收。工具、网络和费用规则会变，正式章节固定实验版本，并写清命令所在发行版。</li>
 </ol>
 <p><strong>图用来回答具体问题。</strong> 资金流用账页对金额，钱包、RPC 和节点用泳道时序图看谁在等谁；状态回退、Java 与协议的差异适合前后对照。M01 还要看清「往哪一支走」：所以把 Merkle 证明和钱包路径画成树，把节点换链画成分叉。复杂过程拆开，一张图只讲一个判断。</p>
@@ -525,6 +525,6 @@
 <li>协议与多链：<a href="https://docs.uniswap.org/">Uniswap</a>、<a href="https://docs.base.org/base-chain/quickstart/connecting-to-base">Base 网络说明</a>、<a href="https://solana.com/docs/core/accounts">Solana 账户</a>、<a href="https://www.anchor-lang.com/docs">Anchor</a>、<a href="https://docs.sui.io/concepts/sui-move-concepts">Sui Move</a>、<a href="https://github.com/lightning/bolts">Lightning 规范</a>、<a href="https://thegraph.com/docs/">The Graph</a>、<a href="https://docs.circom.io/">Circom</a>。</li>
 <li>参赛选题：<a href="https://ethglobal.com/events">ETHGlobal 活动</a>、<a href="https://solana.com/hackathon">Solana 黑客松</a>。按当届规则确认赛道、资格、截止时间和既有代码披露要求，不预设奖项或主网部署要求。</li>
 </ul>
-<p><strong>建议你先审三个决定：</strong> 以 Java 查款与非托管应用作为首个兼职方向是否合适；毕业作品是否愿意做收款对账台；第一条选修更想做 L2 智能账户，还是 Solana 程序。选修答案不影响前六卷，建议先用<a href="labs/bitcoin.html">第 06 课双钱包实验</a>判断讲解深度是否够用。</p>
+<p>不知道从哪儿开始，就从<a href="labs/ledger.html">第 01 课的一张付款凭条</a>读起。有项目在手则按眼前的问题选：想查一笔钱，去<a href="labs/bitcoin.html">核对付款</a>；客户让后台「接个钱包」，先去<a href="labs/scope.html">分清两份报价的责任</a>。</p>
 <nav class="end-links" aria-label="阅读导航"><a href="index.html#labs">返回实验台</a><a href="plan.html">完整课程计划</a></nav></article>
 <aside class="rail"><nav aria-label="本页目录"><b>本页目录</b><ol><li><a href="#怎样判断已经出师">怎样判断已经出师</a></li><li><a href="#学习路线与时间预算">学习路线与时间预算</a></li><li><a href="#m01">M01 · 账本、钱包与密码学</a></li><li><a href="#m02">M02 · 比特币：从 UTXO 到收款凭证</a></li><li><a href="#m03">M03 · 以太坊：账户、Gas 与回执</a></li><li><a href="#m04">M04 · Solidity：写得出，更要证明做对了</a></li><li><a href="#m05">M05 · Java：把链上事实变成业务流水</a></li><li><a href="#m06">M06 · 钱包接入、代币与 DeFi</a></li><li><a href="#m07">M07 · L2、智能账户与跨层状态〔选修〕</a></li><li><a href="#m08">M08 · Solana：换一种状态模型〔选修〕</a></li><li><a href="#m09">M09 · 专项实验室〔按需选修〕</a></li><li><a href="#m10">M10 · 从可运行的代码到可接手的项目</a></li><li><a href="#实验设计与安全边界">实验设计与安全边界</a></li><li><a href="#每课写到什么深度">每课写到什么深度</a></li><li><a href="#查证入口与审阅重点">查证入口与审阅重点</a></li></ol></nav></aside></div></main><footer><span>链上开发手册</span><a href="index.html">课程首页</a><a href="PLAN.md">Markdown 原稿</a></footer></body></html>
