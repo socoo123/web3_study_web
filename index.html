@@ -9,27 +9,35 @@
   <div class="intro-grid">
     <section class="intro">
       <h1>链上开发手册</h1>
-      <p class="premise">拿到交易哈希，<br>这笔订单就算付了吗？</p>
-      <p class="lead">写给第一次做链上收款的后端工程师。从一笔找零开始，用 Java 核对回执，做出自己的收款对账台。</p>
-      <div class="intro-actions"><a class="primary" href="labs/ledger.html">从第 01 课开始</a><a class="under" href="plan.html#m01">查看 M01 目录</a></div>
+      <p class="premise">店里有两张券，就能说明小陈付了两张吗？</p>
+      <p class="lead">你在店里帮忙发货。这单要收两张券，小陈说付清了，可他的付款凭条上只写着一张。我们从这笔账说起。前四课不用写代码，也不用开钱包。</p>
+      <div class="intro-actions"><a class="primary" href="labs/ledger.html">从第 1 课开始查这笔账</a><a class="under" href="plan.html#m01">看入门四课</a></div>
     </section>
     <section class="plate" aria-labelledby="plate-title">
-      <div class="plate-head"><h2 id="plate-title">比特币付款凭证</h2><span>REGTEST / 06</span></div>
+      <div class="plate-head"><h2 id="plate-title">顾客给小店的付款凭条</h2><span>第 18 号</span></div>
       <div class="receipt">
-        <div class="receipt-head"><span>Alice 的输入</span><span>1 个 UTXO</span></div>
-        <div class="principal"><b data-sat="5000000000">5,000,000,000</b> <span data-unit>sat</span></div>
-        <dl class="outputs"><div><dt>输出 0 <i>Bob 收款</i></dt><dd data-sat="125000000">125,000,000</dd></div><div><dt>输出 1 <i>Alice 找零</i></dt><dd data-sat="4874999000">4,874,999,000</dd></div><div class="fee"><dt>差额 <i>矿工费</i></dt><dd data-sat="1000">1,000</dd></div></dl>
+        <div class="receipt-head">这笔实际付了</div>
+        <div class="principal"><b>1</b><span>张券</span></div>
+        <dl class="outputs"><div><dt>谁付的</dt><dd>小陈</dd></div><div><dt>谁收的</dt><dd>B 店</dd></div></dl>
       </div>
-      <div class="plate-foot"><a href="labs/bitcoin.html">去节点核对这笔账</a><button type="button" id="unit" hidden>换算为 BTC</button></div>
+      <div class="plate-foot">第 1 课的练习凭条，不是真实付款。</div>
     </section>
   </div>
   <section class="lab-section" id="labs" aria-labelledby="lab-title">
-    <div class="section-head"><h2 id="lab-title">本地实验台</h2><p>运行第 02、06、11 课的实验，分别核对签名、比特币输出和 ETH 付款回执。无需真币或现有钱包。</p></div>
+    <div class="section-head"><h2 id="lab-title">想动手时，再来做实验</h2><p>下面三个实验在自己电脑上做，不用真币。只想先读懂前四课，可以跳过这里。</p></div>
     <div class="lab-list">
       <a class="lab" href="labs/crypto.html"><span class="lab-type">JDK · 离线实验</span><h3>签名不等于加密</h3><p>把订单金额改动一位，比较验签与解密的结果。</p><span class="lab-link">打开实验 02</span></a>
       <a class="lab" href="labs/bitcoin.html"><span class="lab-type">Bitcoin Core · regtest</span><h3>追一笔比特币找零</h3><p>建两个交易钱包，从旧输出追到 Bob 的第一笔收款。</p><span class="lab-link">打开实验 06</span></a>
       <a class="lab" href="labs/evm.html"><span class="lab-type">Java · Anvil</span><h3>用回执核对 ETH</h3><p>从 Java 发出付款，按 wei 算清付款人多付的那部分。</p><span class="lab-link">打开实验 11</span></a>
     </div>
+    <details><summary>看第 6 课的比特币付款凭证</summary>
+      <div class="receipt">
+        <div class="receipt-head">Alice 这次拿来付款的总额</div>
+        <div class="principal"><b data-sat="5000000000">5,000,000,000</b> <span data-unit>sat</span></div>
+        <dl class="outputs"><div><dt>付给 Bob</dt><dd data-sat="125000000">125,000,000</dd></div><div><dt>找回给 Alice</dt><dd data-sat="4874999000">4,874,999,000</dd></div><div class="fee"><dt>手续费</dt><dd data-sat="1000">1,000</dd></div></dl>
+        <div class="plate-foot"><a href="labs/bitcoin.html">去第 6 课核对</a><button type="button" id="unit" hidden>换算为 BTC</button></div>
+      </div>
+    </details>
   </section>
   <section class="atlas" id="atlas" aria-labelledby="atlas-title"><div class="section-head"><h2 id="atlas-title">课程地图</h2><p>主线 01–24 课与选修 25–28 课已开放。L2 有回执，L1 就到账了吗？从<a href="labs/rollup.html">第 25 课的排序器回执</a>读起，再用<a href="labs/withdrawal.html#m07-checkout">卷末工单</a>交出跨层状态报告和代付预算。只走主线可直接看<a href="plan.html#m10">M10 交付计划</a>。</p></div>
     <div class="atlas-grid"><div><h3>主线 <small>28 课 · 约 200 小时</small></h3><ul class="volumes"><li><a href="plan.html#m01"><span class="volume-no">M01</span><span>账本、钱包与密码学</span></a></li><li><a href="plan.html#m02"><span class="volume-no">M02</span><span>比特币：从 UTXO 到收款凭证</span></a></li><li><a href="plan.html#m03"><span class="volume-no">M03</span><span>以太坊：账户、Gas 与回执</span></a></li><li><a href="plan.html#m04"><span class="volume-no">M04</span><span>Solidity：写得出，更要证明做对了</span></a></li><li><a href="plan.html#m05"><span class="volume-no">M05</span><span>Java：把链上事实变成业务流水</span></a></li><li><a href="plan.html#m06"><span class="volume-no">M06</span><span>钱包接入、代币与 DeFi</span></a></li><li><a href="plan.html#m10"><span class="volume-no">M10</span><span>从可运行的代码到可接手的项目</span></a></li></ul></div><div><h3>选修 <small>12 课 · 约 90 小时</small></h3><ul class="volumes"><li><a href="plan.html#m07"><span class="volume-no">M07</span><span>L2、智能账户与跨层状态</span></a></li><li><a href="plan.html#m08"><span class="volume-no">M08</span><span>Solana：换一种状态模型</span></a></li><li><a href="plan.html#m09"><span class="volume-no">M09</span><span>专项实验室</span></a></li></ul><p class="atlas-note">先交付一个完整的 Java 项目，再按实际兼职需求或比赛赛道选一条链深入。</p><a class="under" href="plan.html#怎样判断已经出师">查看出师验收</a></div></div>

@@ -4,6 +4,13 @@
 
 主线 M01–M06 及本次指定的选修 M07 已完成。可从[第 25 课的 Rollup 回执](labs/rollup.html)开始，或直接接手[卷末工单 X-728](labs/withdrawal.html#m07-checkout)。当前无进行中批次；下一批回到主线 M10（37–40 课），不以 M08、M09 为先修。
 
+## 零基础入口返修（已完成）
+
+[首页](index.html)和[入门四课目录](plan.html#m01)从同一张「应收 2 张券、凭条只有 1 张」的订单起步。四位作者分别修订 `labs/ledger.md`、`labs/crypto.md`、`labs/wallet.md`、`labs/networks.md`。每课在第一个代码块前给出可以独立判断的例子、改变条件后的答案和下一课入口；原理、实验与卷末工单保留。只调整入门卷，不增课。
+
+- **阅读路径。** `python3 tools/build.py` 构建静态页。离线 Chrome 在 1280 和 375 px 从首页进入计划的 M01 目录，也从首页顺读 01→04，再从纸上例子的末尾进入 05，不必穿过代码块。首页、计划、前四课没有页面横向溢出；四课共八幅图均能离线放大、收起并返回原图链接焦点。第 06 课的比特币凭证仍在首页实验区，可展开切换单位。
+- **核对例子。** `cd labs` 后执行 `java MerkleLab.java` 得 `matches.trusted=true`；`java IntentLab.java` 验得原件 `true`、改金额 `false`。用 `embit==0.8.0` 运行 `python wallet.py second` 与 `wrong-branch`，第二单完整地址匹配，找零地址不匹配。回到根目录，`bash labs/networks.sh` 读到 31337 并放行；加参数 `31338` 则在签名前停止、退出 3。未使用真实钱包或资金。
+
 ## 批次表
 
 默认先完成主线（M01–M06、M10），再进入选修（M07–M09）；课号始终与 `PLAN.md` 一致。用户可调整选修顺序。

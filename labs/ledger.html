@@ -1,74 +1,59 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="color-scheme" content="light dark"><title>第 01 课 · 两本账如何对齐 · 链上开发手册</title>
+<meta name="color-scheme" content="light dark"><title>第 01 课 · 店里有两张券，这一单付清了吗？ · 链上开发手册</title>
 <link rel="stylesheet" href="../assets/site.css?v=2786ad38e29d"><script src="../assets/site.js?v=6dc390471c89" defer></script></head>
 <body><a class="skip" href="#main">跳至正文</a><header class="mast"><div class="mast-inner">
 <a class="brand" href="../index.html"><span class="mark" aria-hidden="true"></span>链上开发手册</a>
 <nav aria-label="全站导航"><a href="../plan.html">课程计划</a><a href="../index.html#labs">实验台</a><button type="button" id="theme" hidden>切换主题</button></nav>
 </div></header><main id="main" class="reading"><div class="crumb"><a href="../index.html">手册首页</a> / <a href="../plan.html#m01">M01 · 账本、钱包与密码学</a> / 第 01 课</div>
-<header class="lesson-opening"><h1 id="page-title">第 01 课 · 两本账如何对齐</h1><figure class="specimen"><figcaption>凭条 18</figcaption><dl>
-<div><dt>付款方</dt><dd>C</dd></div>
-<div><dt>收款方</dt><dd>B</dd></div></dl>
-<span class="specimen-relation" aria-hidden="true">→</span><p>票面金额：1 张券</p></figure><p>「B 账户上正好有 2 张券。这张应收 2 张的订单，能发货了吗？」假设你接手商户 B 的对账程序。客服发来两样东西：一张页末余额截图，还有结算方指给他的凭条 18。先看凭条，上面写的是 <strong>C 给 B 1 张</strong>。如果订单只关联了这张凭条，即使它是真的，也还差 1 张。那截图上的 2 是哪儿来的？</p></header><div class="reading-grid"><article aria-labelledby="page-title"><details class="mobile-toc"><summary>本页目录</summary><ol><li><a href="#给-b-单独算一遍3-1-2">给 B 单独算一遍：3 + 1 − 2</a></li><li><a href="#想核对一笔不想对方发来整页">想核对一笔，不想对方发来整页</a></li><li><a href="#java-究竟要喂哪几个字节">Java 究竟要喂哪几个字节？</a></li><li><a href="#自己算一遍四片叶两个父节点一个根">自己算一遍：四片叶、两个父节点、一个根</a></li><li><a href="#合上整页只收凭条-18再算一次">合上整页，只收凭条 18，再算一次</a></li><li><a href="#对上了根如果节点换了一页呢">对上了根，如果节点换了一页呢？</a></li><li><a href="#独立作业复核另一张凭条">独立作业：复核另一张凭条</a></li><li><a href="#规范对照">规范对照</a></li></ol></details><p>咱们先算账，再拿 <a href="MerkleLab.java">MerkleLab.java</a> 核对凭条有没有被改过。只需会跑 Java 和终端命令。券、账户和账页都是教学数据，不连链，也不用钱包。</p>
-<h2 id="给-b-单独算一遍3-1-2">给 B 单独算一遍：3 + 1 − 2</h2>
-<p>这一页有四笔，位置从 0 数，凭条号则从 16 起。A、B、C 的账号分别是 <code>01</code>、<code>02</code>、<code>03</code>。开账时 A 有 10 张，B、C 都没有。没有手续费，谁付券谁就扣，付不起就不能记这笔。跟着箭头看 B 是收还是付：</p>
-<table class="stackable">
+<header class="lesson-opening"><h1 id="page-title">第 01 课 · 店里有两张券，这一单付清了吗？</h1><figure class="specimen"><figcaption>这张订单的付款凭条 · 18 号</figcaption><dl>
+<div><dt>谁付的</dt><dd>小陈</dd></div>
+<div><dt>谁收的</dt><dd>B 店</dd></div></dl>
+<span class="specimen-relation" aria-hidden="true">→</span><p>这笔付了 1 张券，订单要收 2 张</p></figure><p>你在 B 店帮忙发货。顾客小陈的订单要收 2 张券，订单上只有一张付款凭条：18 号，小陈给店里 1 张。收银员指着余额说：「这不是有 2 张吗？」你会在小陈的订单上勾「已付清」吗？</p></header><div class="reading-grid"><article aria-labelledby="page-title"><details class="mobile-toc"><summary>本页目录</summary><ol><li><a href="#给-b-单独算一遍3-1-2">给 B 单独算一遍：3 + 1 − 2</a></li><li><a href="#为什么不只抄下最后的余额">为什么不只抄下最后的余额？</a></li><li><a href="#选做不用收整页怎么核对一张凭条">选做：不用收整页，怎么核对一张凭条？</a></li><li><a href="#java-究竟要喂哪几个字节">Java 究竟要喂哪几个字节？</a></li><li><a href="#自己算一遍四片叶两个父节点一个根">自己算一遍：四片叶、两个父节点、一个根</a></li><li><a href="#合上整页只收凭条-18再算一次">合上整页，只收凭条 18，再算一次</a></li><li><a href="#对上了根如果节点换了一页呢">对上了根，如果节点换了一页呢？</a></li><li><a href="#独立作业复核另一张凭条">独立作业：复核另一张凭条</a></li><li><a href="#规范对照">规范对照</a></li></ol></details><h2 id="给-b-单独算一遍3-1-2">给 B 单独算一遍：3 + 1 − 2</h2>
+<p>假定凭条都是真的。早上开门时，小安有 10 张券，店里和小陈都是 0 张。当天只有下面四笔，不扣手续费。顺着读一遍：哪一笔是小陈付给店里的？店里的券后来又花到哪儿去了？</p>
+<table>
 <thead>
 <tr>
-<th>页内位置（从 0 起）</th>
-<th>凭条号（十进制）</th>
-<th>付款方 → 收款方</th>
-<th style="text-align: right;">张数</th>
-<th>执行后余额（A, B, C；张）</th>
+<th>当天的四笔记录</th>
+<th style="text-align: right;">店里还剩几张券</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td data-label="页内位置（从 0 起）">页首</td>
-<td data-label="凭条号（十进制）">—</td>
-<td data-label="付款方 → 收款方">—</td>
-<td data-label="张数" style="text-align: right;">—</td>
-<td data-label="执行后余额（A, B, C；张）">(10, 0, 0)</td>
+<td>16 号：小安给 B 店 3 张</td>
+<td style="text-align: right;">3</td>
 </tr>
 <tr>
-<td data-label="页内位置（从 0 起）">0</td>
-<td data-label="凭条号（十进制）">16</td>
-<td data-label="付款方 → 收款方">A → B</td>
-<td data-label="张数" style="text-align: right;">3</td>
-<td data-label="执行后余额（A, B, C；张）">(7, 3, 0)</td>
+<td>17 号：小安给小陈 2 张</td>
+<td style="text-align: right;">3</td>
 </tr>
 <tr>
-<td data-label="页内位置（从 0 起）">1</td>
-<td data-label="凭条号（十进制）">17</td>
-<td data-label="付款方 → 收款方">A → C</td>
-<td data-label="张数" style="text-align: right;">2</td>
-<td data-label="执行后余额（A, B, C；张）">(5, 3, 2)</td>
+<td>18 号：小陈给 B 店 1 张</td>
+<td style="text-align: right;">4</td>
 </tr>
 <tr>
-<td data-label="页内位置（从 0 起）">2</td>
-<td data-label="凭条号（十进制）">18</td>
-<td data-label="付款方 → 收款方">C → B</td>
-<td data-label="张数" style="text-align: right;">1</td>
-<td data-label="执行后余额（A, B, C；张）">(5, 4, 1)</td>
-</tr>
-<tr>
-<td data-label="页内位置（从 0 起）">3</td>
-<td data-label="凭条号（十进制）">19</td>
-<td data-label="付款方 → 收款方">B → A</td>
-<td data-label="张数" style="text-align: right;">2</td>
-<td data-label="执行后余额（A, B, C；张）">(7, 2, 1)</td>
+<td>19 号：B 店给小安 2 张</td>
+<td style="text-align: right;">2</td>
 </tr>
 </tbody>
 </table>
-<p>对 B 来说，凭条 16 是收入 3 张，17 跟它无关，18 又收入 1 张，到这里手里有 4 张。凭条 19 虽然写着 <strong>2 张</strong>，但箭头从 <strong>B 指向 A</strong>，是支出。算下来 <code>0 + 3 + 1 − 2 = 2</code>。<strong>余额是把多笔账算完后的结果，不是一笔付款的金额。</strong> 这就能给客服回话了：保留凭条 18，别拿余额补那缺的 1 张。</p>
-<p>再看一个对账差异。你的程序先记 16 再记 17，另一台机器先记 17 再记 16。两笔都是 A 付；不论先付 3 还是先付 2，A 都付得起。两步之后双方都是 <code>(5, 3, 2)</code>，再记后两笔，页末还是 <code>(7, 2, 1)</code>。只比三户余额会报「一致」，可两台机器对「第一笔付给谁」的回答不同。余额这样的快照叫<strong>状态</strong>；要核对<strong>历史</strong>，得连顺序一起对。这套券账不是 Bitcoin 的账户模型。</p>
-<h2 id="想核对一笔不想对方发来整页">想核对一笔，不想对方发来整页</h2>
-<p>把四张凭条按位置摆好。每张先算一个固定长度的摘要，叫一片「叶子」；相邻两片算出一个父节点，最后整页只剩一个摘要，叫「根」。这就是 <strong>Merkle 树</strong>。如果你手里已经留有这页可信的根，可以倒过来问：只给你凭条 18，还缺哪两样东西才能算到同一个根？</p>
-<figure class="lesson-figure"><a href="../assets/figures/m01/ledger-proof.svg"><img src="../assets/figures/m01/ledger-proof.svg" alt="四叶树中，凭条 18 位于位置 2；本地从 L2 出发，先接上右边的 L3，再接上左边的 P01，得到候选根。"></a><figcaption>手指按住 L2 往上走。遇到岔口，只拿另一边线头上的那个摘要，不必拆开整条支路。</figcaption></figure>
+<p><strong>先别发货。</strong> 小陈的订单只对应凭条 18，所以这单收了 1 张，还差 1 张。收银员也没算错：店里先收了小安的 3 张，再收小陈的 1 张，后来付出去 2 张，的确还剩 2 张。余额回答的是「店里现在有多少」，小陈问的却是「我这单付了多少」。</p>
+<p>换个条件试试：翻出订单原件，发现小陈这单其实只需付 <strong>1 张</strong>。凭条和余额都没变，现在还要他补券吗？不用。凭条 18 上的收款方是这家店，1 张刚好够付这单。两次判断看的都是同一笔收款，不是店里的余额。</p>
+<h2 id="为什么不只抄下最后的余额">为什么不只抄下最后的余额？</h2>
+<p>假设收银员和会计各留一本账。收银员先记凭条 16，再记 17；会计把这两行抄反了。不管先给谁，小安手里的券都够付。等四笔都记完，两个人算的余额一模一样，可你问「今天小安先付给谁」，一个答「店里」，另一个答「小陈」。最后剩多少，是账的<strong>状态</strong>；哪笔在前、哪笔在后，是账的<strong>历史</strong>。</p>
+<p>区块链像这样由多台电脑各留一本账，不必等某个收银员替大家改同一张表。以比特币为例，自己按规则核对账本的电脑叫<strong>全节点</strong>。一批交易按顺序放在一起，像写成一页，叫一个<strong>区块</strong>。</p>
+<p>怎么知道新的一页接在哪一页后面？不能光看页码。每个新区块都会记下上一个区块的「指纹」——一个由内容算出来的记号。要是有人把旧页上的「1 张」改成「2 张」，重算的指纹就对不上下一页留下的那个了。区块这样一页接一页，才有了「链」。</p>
+<p>各留一本，不等于谁的都算数。比如同一份钱已经花了，又被拿来付第二次。就算账页一页页都接得上，比特币节点也会拒绝这样的账。要是两本都符合规则，还有专门的规则来选用哪一本，不是谁的本子多就听谁的。店里的券只用来练习读账，不是比特币。</p>
+<p>你已经能分清「账上有这一笔」和「这单付够了」；<a href="crypto.html">下一课换你当财务：审批人签的是 125，收到的单子写着 126，还能照付吗？</a></p>
+<p><a id="想核对一笔不想对方发来整页"></a></p>
+<h2 id="选做不用收整页怎么核对一张凭条">选做：不用收整页，怎么核对一张凭条？</h2>
+<p>刚才我们假定凭条是真的。现在换个任务：店里事先保存了这一页的核对值，结算方只肯发凭条 18，不肯寄整页。你要用 <a href="MerkleLab.java">MerkleLab.java</a> 查它寄来的凭条和当初那页是否一致。以下是离线实验，不用钱包。</p>
+<p>把四张凭条依次摆好，先给每张算出一个固定长度的摘要，叫一片「叶子」。把相邻的两个摘要合起来再算，最后整页只剩一个摘要，叫「根」。这就是 <strong>Merkle 树</strong>；店里留的核对值就是这个根。</p>
+<figure class="lesson-figure"><a href="../assets/figures/m01/ledger-proof.svg"><img src="../assets/figures/m01/ledger-proof.svg" alt="四叶树中，凭条 18 位于位置 2；本地从 L2 出发，先接上右边的 L3，再接上左边的 P01，得到候选根。"></a><figcaption>从凭条 18 沿线往上走。每遇到一个岔口，就取另一边已经算好的摘要，不用再拆那条支路。</figcaption></figure>
 
-<p>位置 2 在第三格。往上一层，左边是你算的 <code>L2</code>，缺右边的 <code>L3</code>；再往上一层，你算出的 <code>P23</code> 在右边，缺左半页的 <code>P01</code>。这些跟当前节点配成一对的摘要叫<strong>兄弟摘要</strong>。对方只需发一张凭条和这两个摘要；你不必看凭条 16、17、19 的原文。这条路径帮你证明的是「凭条在指定页的这个位置」，所以叫<strong>包含证明</strong>。</p>
+<p>从这里开始，位置按程序的写法从 0 数。凭条 18 在第三格，位置是 2，它的叶子就是 <code>L2</code>。往上一层，缺右邻 <code>L3</code>；把这两个合成 <code>P23</code> 后，再往上缺左半页的 <code>P01</code>。这些跟当前节点配成一对的摘要叫<strong>兄弟摘要</strong>。结算方给你凭条和这两个摘要，你就能算出根，和店里保留的比一比。这叫<strong>包含证明</strong>：它核对的是「这页的这个位置记着这张凭条」。</p>
 <h2 id="java-究竟要喂哪几个字节">Java 究竟要喂哪几个字节？</h2>
-<p>先拆一张：<code>12 03 02 01</code>。每两位十六进制是一个字节。<code>12</code> 是十进制凭条号 18，<code>03</code> 是付款方 C，<code>02</code> 是收款方 B，<code>01</code> 是 1 张。实验把每个字段固定成一个无符号字节。传给程序的是去掉空格的 <code>12030201</code>；<strong>不是</strong>把字符 <code>'1'</code>、<code>'2'</code> 分别当作一个字节。</p>
+<p>先拆凭条 18 的写法：<code>12 03 02 01</code>。实验给小安、B 店、小陈分配的账号分别是 <code>01</code>、<code>02</code>、<code>03</code>。凭条上每两位十六进制是一个字节：<code>12</code> 是十进制凭条号 18，<code>03</code> 是付款方小陈，<code>02</code> 是收款方 B 店，<code>01</code> 是 1 张。每个字段占一个无符号字节。传给程序时去掉空格，写作 <code>12030201</code>；<strong>不是</strong>把字符 <code>'1'</code>、<code>'2'</code> 分别当作一个字节。</p>
 <table class="stackable">
 <thead>
 <tr>
@@ -104,7 +89,7 @@
 <pre><code class="language-text">叶：Lᵢ = H(0x00 || rᵢ)
 父：P(左, 右) = H(0x01 || 32 字节左摘要 || 32 字节右摘要)
 </code></pre>
-<p>所以算 <code>P23</code> 时，输入必须是 <code>01</code>、32 字节 <code>L2</code>、32 字节 <code>L3</code>，共 <strong>65 字节</strong>；不能把左右排序。前面两台机器哪怕余额一样，交换凭条 16、17 也会改变左半页的摘要和最终的根。根不是压缩包，既不能解压出凭条，也不会替你保密。它的用处是先固定一个值，让人事后很难换一份内容还对得上它（依赖哈希函数的安全性）。这叫对内容作出<strong>承诺</strong>。</p>
+<p>算 <code>P23</code> 时，输入依次是 <code>01</code>、32 字节的 <code>L2</code>、32 字节的 <code>L3</code>，共 <strong>65 字节</strong>。左右不能换：如果像会计那样把凭条 16、17 抄反，即使余额一样，左半页的摘要和最终的根也会变。根不是压缩包，不能解压出凭条，也不能替你保密。它的用处是先固定一个值，让人事后很难换一份内容还对得上它（依赖哈希函数的安全性）。这叫对内容作出<strong>承诺</strong>。</p>
 <h2 id="自己算一遍四片叶两个父节点一个根">自己算一遍：四片叶、两个父节点、一个根</h2>
 <p>用 JDK 17 或更新版自带的 <code>java</code>、<code>jshell</code> 即可，不用 Maven。从仓库根目录开始；若只下载了 Java 文件，就在它所在目录打开终端，跳过 <code>cd labs</code>。后面的终端命令都在这个目录运行。</p>
 <pre><code class="language-bash">cd labs
@@ -148,7 +133,7 @@ java MerkleLab.java verify 2 12030201 &quot;$S0&quot; &quot;$S1&quot;
 </code></pre>
 <p>预期先看到 <code>step1.sibling=RIGHT</code>，<code>step1.parent</code> 是刚才的 <code>P23</code>，再看到 <code>step2.sibling=LEFT</code>，最后 <code>matches.trusted=true</code>，退出码为 0。<code>verify</code> 没有调用读整页的 <code>tree</code>。四张凭条只用读一张，另外传两个 32 字节摘要。对这样的满二叉树，叶数翻一倍，证明才多一层。</p>
 <p><strong>要是客服收到了两封成功通知呢？</strong> 两封邮件都指向同一页、位置 2、凭条 18。把命令执行两遍，核对的是同一张 <code>C → B 1 张</code>，不会因为第二次也得到 <code>true</code> 就再长出一笔。就算其他到账条件都满足，这张应收 2 张的订单最多也只能认 <strong>1 张</strong>。记下已入账的付款，再来的同笔通知只回「已处理」。这四字节里并没有订单号；付款归哪张订单，还得另查商户的订单记录。</p>
-<p><strong>反过来，余额只有 2 张，能不能核销一张应收 3 张的订单？</strong> 这次是 A 的订单，商户记录关联的是凭条 <strong>16</strong>，之前没入过账。原文 <code>10 01 02 03</code> 是 A 给 B <strong>3 张</strong>。它在位置 0：往上两层，自己都是左孩子，所以两次都把兄弟接在右边，分别用整页输出的 <code>L1</code>、<code>P23</code>：</p>
+<p><strong>试着改查小安的订单。</strong> 这单应收 3 张券，商户记录关联的是凭条 <strong>16</strong>，之前没入过账。原文 <code>10 01 02 03</code> 是 A 给 B <strong>3 张</strong>。它在位置 0：往上两层，自己都是左孩子，所以两次都把兄弟接在右边，分别用整页输出的 <code>L1</code>、<code>P23</code>：</p>
 <pre><code class="language-bash">java MerkleLab.java verify 0 10010203 \
   cb41c03967ebff5f015aa9fbb9924e7a3926559859e4d2fb9a77f4def84b0cd4 \
   08c161f2b7790b64afe299e76c2f8e6e767f4e1d2f753ac19cc5a47c56b550e9
@@ -163,7 +148,7 @@ echo &quot;exit=$?&quot;
 <p>第一次从叶就开始与原页不同；第二次叶没变，变的是第一步 <code>step1.sibling=LEFT</code>，连 <code>P23</code> 都对不上。两次预期都是 <code>matches.trusted=false</code>、<code>exit=1</code>。这只说明<strong>这组材料对不上你保存的这页</strong>，不能断言别的页也没有这笔付款。若是退出码 2，先看参数个数、位置范围、hex 和字节长度；程序拒绝了输入，还没走到比较根那一步。</p>
 <p>对方又寄来一封：「数量就是 2，不信你用我附件里的新根来验。」想想刚才的改金额实验：只要用 <code>12030202</code> 和同样的兄弟重算，对方也能得到一个根。你算出的值当然会与它寄来的新值相等；可你先前留的根没有变。客服应退回这份材料，不能拿发件人临时换的尺子量它自己。</p>
 <h2 id="对上了根如果节点换了一页呢">对上了根，如果节点换了一页呢？</h2>
-<p>到这里我们只对了一页。现在借 Bitcoin 的选链规则讲一个分叉，用上面的券作示意，不是在比特币网络上转券。假设你自己的节点先收到块 X，其中有凭条 18。过一分钟收到同一高度的块 Y，没有它。<strong>只看高度，分不清 X 和 Y。</strong> 两个块头各有一个父哈希，都指向前一个块 F 的头：</p>
+<p>证明对得上某一页，不代表节点现在还采用那一页。继续拿券作示意，只借用比特币的选链规则，不是说比特币也按每个顾客的券余额记账。假设节点先收到区块 X，其中有凭条 18；过一分钟，又收到同一高度的区块 Y，没有这张凭条。高度相同，只说明它们排在同一层，不是说它们是同一块。看两个块头里记的上一块的「指纹」（父哈希）：它们都接在区块 F 后面。</p>
 <figure class="lesson-figure"><a href="../assets/figures/m01/ledger-fork.svg"><img src="../assets/figures/m01/ledger-fork.svg" alt="X 和 Y 都指向父块 F；09:02 节点验证 Y 的子块 Z 后，这支累计工作量 120 超过 X 的 110，原证明仍只对到 X。"></a><figcaption>先沿实线从 Z 找回 F，再沿左边虚线看旧凭条到底核对的是哪一个块。</figcaption></figure>
 
 <p>看节点的时钟。<strong>09:00</strong>，X 有效，节点先走 <code>F → X</code>。<strong>09:01</strong>，Y 也有效，两支累计工作量都是 110；本例中节点保持原路。<strong>09:02</strong>，节点验证了 Y 的子块 Z。这支累计工作量到了 120，比 X 的 110 多，节点才改走 <code>F → Y → Z</code>。数字和时间是教学示意；Bitcoin 比的是<strong>已知有效链的累计工作量</strong>，不是看谁报的高度大，也不是数有几台机器举手。把原先采用的一段换成另一段，就叫<strong>重组</strong>。</p>
@@ -182,6 +167,6 @@ echo &quot;exit=$?&quot;
 <li><a href="https://developer.bitcoin.org/devguide/block_chain.html#block-height-and-forking">Bitcoin Developer Guide：Block Height and Forking</a>：为什么同一高度可有多个块、节点如何在有效分支之间作出选择。</li>
 </ul>
 <nav class="end-links" aria-label="阅读导航"><a href="../plan.html#m01">本卷目录</a><a rel="next" href="crypto.html">下一课 · 02</a></nav></article>
-<aside class="rail"><nav aria-label="本页目录"><b>本页目录</b><ol><li><a href="#给-b-单独算一遍3-1-2">给 B 单独算一遍：3 + 1 − 2</a></li><li><a href="#想核对一笔不想对方发来整页">想核对一笔，不想对方发来整页</a></li><li><a href="#java-究竟要喂哪几个字节">Java 究竟要喂哪几个字节？</a></li><li><a href="#自己算一遍四片叶两个父节点一个根">自己算一遍：四片叶、两个父节点、一个根</a></li><li><a href="#合上整页只收凭条-18再算一次">合上整页，只收凭条 18，再算一次</a></li><li><a href="#对上了根如果节点换了一页呢">对上了根，如果节点换了一页呢？</a></li><li><a href="#独立作业复核另一张凭条">独立作业：复核另一张凭条</a></li><li><a href="#规范对照">规范对照</a></li></ol></nav></aside></div><dialog class="figure-zoom" aria-label="配图放大视图">
+<aside class="rail"><nav aria-label="本页目录"><b>本页目录</b><ol><li><a href="#给-b-单独算一遍3-1-2">给 B 单独算一遍：3 + 1 − 2</a></li><li><a href="#为什么不只抄下最后的余额">为什么不只抄下最后的余额？</a></li><li><a href="#选做不用收整页怎么核对一张凭条">选做：不用收整页，怎么核对一张凭条？</a></li><li><a href="#java-究竟要喂哪几个字节">Java 究竟要喂哪几个字节？</a></li><li><a href="#自己算一遍四片叶两个父节点一个根">自己算一遍：四片叶、两个父节点、一个根</a></li><li><a href="#合上整页只收凭条-18再算一次">合上整页，只收凭条 18，再算一次</a></li><li><a href="#对上了根如果节点换了一页呢">对上了根，如果节点换了一页呢？</a></li><li><a href="#独立作业复核另一张凭条">独立作业：复核另一张凭条</a></li><li><a href="#规范对照">规范对照</a></li></ol></nav></aside></div><dialog class="figure-zoom" aria-label="配图放大视图">
 <form method="dialog"><a>打开 SVG 原图</a><button autofocus>收起大图</button></form>
 <div class="zoom-scroll" tabindex="0" role="region" aria-label="放大的配图，可滚动"><img alt=""></div></dialog></main><footer><span>链上开发手册</span><a href="../index.html">课程首页</a><a href="ledger.md">Markdown 原稿</a></footer></body></html>

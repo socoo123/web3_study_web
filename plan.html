@@ -6,10 +6,11 @@
 <a class="brand" href="index.html"><span class="mark" aria-hidden="true"></span>链上开发手册</a>
 <nav aria-label="全站导航"><a href="plan.html">课程计划</a><a href="index.html#labs">实验台</a><button type="button" id="theme" hidden>切换主题</button></nav>
 </div></header><main id="main" class="reading"><div class="crumb"><a href="index.html">手册首页</a> / 课程计划</div>
-<header class="lesson-opening"><h1 id="page-title">链上开发手册 · 课程计划</h1><figure class="specimen"><figcaption>课程路线</figcaption><dl>
-<div><dt>主线</dt><dd>28 课</dd></div>
-<div><dt>选修</dt><dd>12 课</dd></div></dl>
-<span class="specimen-relation" aria-hidden="true">+</span><p>共 10 卷、40 课；选修不是主线的先修条件</p></figure><p><strong>给有 Java 工程经验、第一次做链上开发的人。</strong> 整门课从一个委托出发：客户给你一笔交易的哈希，请你判断「能不能把这个订单标成已付款？」先在比特币上弄清钱从哪里来，再在以太坊上弄清代码如何改变余额，最后把答案交成别人能复跑、能维护的服务。</p></header><div class="reading-grid"><article aria-labelledby="page-title"><details class="mobile-toc"><summary>本页目录</summary><ol><li><a href="#怎样判断已经出师">怎样判断已经出师</a></li><li><a href="#学习路线与时间预算">学习路线与时间预算</a></li><li><a href="#m01">M01 · 账本、钱包与密码学</a></li><li><a href="#m02">M02 · 比特币：从 UTXO 到收款凭证</a></li><li><a href="#m03">M03 · 以太坊：账户、Gas 与回执</a></li><li><a href="#m04">M04 · Solidity：写得出，更要证明做对了</a></li><li><a href="#m05">M05 · Java：把链上事实变成业务流水</a></li><li><a href="#m06">M06 · 钱包接入、代币与 DeFi</a></li><li><a href="#m07">M07 · L2、智能账户与跨层状态〔选修〕</a></li><li><a href="#m08">M08 · Solana：换一种状态模型〔选修〕</a></li><li><a href="#m09">M09 · 专项实验室〔按需选修〕</a></li><li><a href="#m10">M10 · 从可运行的代码到可接手的项目</a></li><li><a href="#实验设计与安全边界">实验设计与安全边界</a></li><li><a href="#每课写到什么深度">每课写到什么深度</a></li><li><a href="#查证入口与审阅重点">查证入口与审阅重点</a></li></ol></details><p>全书规划 10 卷、40 课：01–24 和 37–40 是主线，25–36 是选修。<strong>M01–M06 主线与 M07 选修已开放（01–28 课）</strong>。可<a href="labs/ledger.html">从第 01 课开始</a>，或直接进入<a href="labs/confirmations.html">比特币确认</a>、<a href="labs/accounts.html">以太坊账户</a>、<a href="labs/abi.html">Solidity 金额登记</a>、<a href="labs/rpc.html">Java 查回执</a>、<a href="labs/siwe.html">钱包登录</a>、<a href="labs/rollup.html">L2 回执与最终性</a>。</p>
+<header class="lesson-opening"><h1 id="page-title">链上开发手册 · 课程计划</h1><figure class="specimen"><figcaption>前四课怎么读</figcaption><dl>
+<div><dt>第一遍</dt><dd>看例子</dd></div>
+<div><dt>想动手时</dt><dd>做实验</dd></div></dl>
+<span class="specimen-relation" aria-hidden="true">→</span><p>先用纸笔查一笔账，不用安装软件</p></figure><p>第一次听说区块链，可以先不装软件。<a href="labs/ledger.html">从第 1 课查一张付款凭条</a>：店里有两张券，顾客给的凭条上却只写了一张。这笔订单到底收了多少？</p></header><div class="reading-grid"><article aria-labelledby="page-title"><details class="mobile-toc"><summary>本页目录</summary><ol><li><a href="#怎样判断已经出师">怎样判断已经出师</a></li><li><a href="#学习路线与时间预算">学习路线与时间预算</a></li><li><a href="#m01">M01 · 账本、钱包与密码学</a></li><li><a href="#m02">M02 · 比特币：从 UTXO 到收款凭证</a></li><li><a href="#m03">M03 · 以太坊：账户、Gas 与回执</a></li><li><a href="#m04">M04 · Solidity：写得出，更要证明做对了</a></li><li><a href="#m05">M05 · Java：把链上事实变成业务流水</a></li><li><a href="#m06">M06 · 钱包接入、代币与 DeFi</a></li><li><a href="#m07">M07 · L2、智能账户与跨层状态〔选修〕</a></li><li><a href="#m08">M08 · Solana：换一种状态模型〔选修〕</a></li><li><a href="#m09">M09 · 专项实验室〔按需选修〕</a></li><li><a href="#m10">M10 · 从可运行的代码到可接手的项目</a></li><li><a href="#实验设计与安全边界">实验设计与安全边界</a></li><li><a href="#每课写到什么深度">每课写到什么深度</a></li><li><a href="#查证入口与审阅重点">查证入口与审阅重点</a></li></ol></details><p><strong>只想先看懂：</strong> 读<a href="#m01">前四课的纸上例子</a>。每课先请你做一个判断，再解释为什么。读到「选做」就可以停，也可以直接去下一课。</p>
+<p><strong>想学开发：</strong> 回到每课的实验，用自己的电脑核对刚才的判断。主线面向会 Java 的读者，最后做出<a href="#m10">能查订单是否收到款的小工具</a>。全书 40 课，其中 12 课是选修，不必从头学到尾。</p>
 <h2 id="怎样判断已经出师">怎样判断已经出师</h2>
 <p>不是背完协议，也不是独立为真实资金合约签安全意见。目标是<strong>能独立交付有明确边界的链上集成项目</strong>。一个没读过本书的同事应该能按你的交接说明完成以下验收：</p>
 <table class="stackable">
@@ -58,9 +59,9 @@
 <tbody>
 <tr>
 <td data-label="卷">M01 账本与密码学</td>
-<td data-label="先修">熟悉 Java、终端</td>
-<td data-label="学习预算">16 小时</td>
-<td data-label="交付物">一份可验证、不可误当成加密的签名记录</td>
+<td data-label="先修">纸上例子无需基础；实验用 Java 和终端</td>
+<td data-label="学习预算">16 小时（含实验）</td>
+<td data-label="交付物">一份别人也能检查的签名记录</td>
 </tr>
 <tr>
 <td data-label="卷">M02 比特币与 UTXO</td>
@@ -121,39 +122,39 @@
 <p>主线约 <strong>200 小时</strong>：每周 8 小时约 25 周，每周 12 小时约 17 周；全修约 290 小时。这是排期假设，不是能力承诺。以每周 8 小时为例：第 1–5 周完成钱包和 BTC 对账；第 6–12 周完成 EVM 和合约；第 13–20 周完成索引与钱包接入；第 21–25 周专做交付。每周把至少一半时间留给自己敲命令、解释差额、重跑失败路径。验收没过就留在本卷，不靠打卡推进。</p>
 <p><strong>两条出口。</strong> 想兼职：优先 M05，先接只读数据、报表和测试网集成，M10 用实际验收单报价。想参赛：完成主线基础后选 M07 或 M08，不要把跨链、ZK、AI 和 DeFi 硬塞进同一个作品；用 M10 的演示标准倒推功能。</p>
 <h2 id="m01">M01 · 账本、钱包与密码学</h2>
-<p>客服说：「账页里有这笔，审批人也签了，为什么还不能标成已付？」从一张应收 2 张券的订单开始，顺着四课看：账页究竟记了谁付给谁，签名究竟签了哪几个字节，钱包派生出来的是收款地址还是找零地址，最后，你的程序连的是哪条链。</p>
+<p>第一次读，只看每课开头的例子。你不用记住那些数字；试着用自己的话回答中间这一栏。</p>
 <table class="stackable">
 <thead>
 <tr>
-<th>课次（进入正文）</th>
-<th>要讲透的问题</th>
-<th>动手与过关标准</th>
+<th>从这里读</th>
+<th>不用电脑，先想一想</th>
+<th>想动手时再做</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td data-label="课次（进入正文）"><a href="labs/ledger.html">01 两本账如何对齐</a></td>
-<td data-label="要讲透的问题">状态与历史；块头、父哈希、Merkle 承诺；节点验证与共识分工。哈希链接能暴露改动，不能独自决定哪条链有效</td>
-<td data-label="动手与过关标准">手工重算一个四叶树的根。解释一份包含证明为什么不能证明交易业务合法，也不能证明该块是当前主链</td>
+<td data-label="从这里读"><a href="labs/ledger.html">01 查一笔收款</a></td>
+<td data-label="不用电脑，先想一想">店里一共有两张券，怎么知道这位顾客付了几张？</td>
+<td data-label="想动手时再做">给四张凭条算一个用来比对的数；改一张，看还能不能对上。</td>
 </tr>
 <tr>
-<td data-label="课次（进入正文）"><a href="labs/crypto.html">02 哈希、签名与加密</a></td>
-<td data-label="要讲透的问题">摘要不保密；签名绑定精确字节；认证加密保护机密性与完整性。区分 secp256k1、Ed25519 和 AES 的用途</td>
-<td data-label="动手与过关标准">用 Java 改一位金额，原签名失效；改密文，认证解密失败。能指出公钥能做什么、不能做什么</td>
+<td data-label="从这里读"><a href="labs/crypto.html">02 看一张签过字的单</a></td>
+<td data-label="不用电脑，先想一想">签字时写的是 125，后来收到的单上写着 126。原来的签字还算数吗？</td>
+<td data-label="想动手时再做">用 Java 检查原签名，再把金额改一位。</td>
 </tr>
 <tr>
-<td data-label="课次（进入正文）"><a href="labs/wallet.html">03 钱包到底保存什么</a></td>
-<td data-label="要讲透的问题">私钥、公钥、地址、助记词、可选口令、HD 派生路径；观察钱包与签名器的权限差别；BTC 描述符与 EVM 地址不是同一种备份</td>
-<td data-label="动手与过关标准">用公开的 BIP 测试向量离线核对派生结果，更改路径比较地址。不把公开样本当私人钱包；给出仅凭地址无法恢复签名能力的原因</td>
+<td data-label="从这里读"><a href="labs/wallet.html">03 换手机，找收款地址</a></td>
+<td data-label="不用电脑，先想一想">店里给两个订单各留了一个地址。换机器后出现了不同的地址，该改旧订单吗？</td>
+<td data-label="想动手时再做">只用课程的公开样本，找回第二张订单上的完整地址。</td>
 </tr>
 <tr>
-<td data-label="课次（进入正文）"><a href="labs/networks.html">04 运行自己的第一条链</a></td>
-<td data-label="要讲透的问题">节点、钱包、浏览器、RPC 分别是谁；regtest、Anvil、公共测试网和主网不能混用；记录版本与网络身份</td>
-<td data-label="动手与过关标准">分别读到 Bitcoin 的 <code>chain=regtest</code> 与 EVM 的 <code>eth_chainId=0x7a69</code>。提交一份不含密钥的环境记录，故意选错链时客户端在发交易前停止</td>
+<td data-label="从这里读"><a href="labs/networks.html">04 找对练习账本</a></td>
+<td data-label="不用电脑，先想一想">两本练习账用的是同一套软件。软件能打开，怎么知道自己看的是约好的那本？</td>
+<td data-label="想动手时再做">启动本地节点（管理练习账本的程序），读出网络编号。故意连错一次，看程序会不会停下来。</td>
 </tr>
 </tbody>
 </table>
-<p>完成四课后做<a href="labs/networks.html#卷末验收接手一张异常付款工单">卷末验收：接手一张异常付款工单</a>。不看范例输出，由另一位同事换输入，检查你是否会把“已签”“已包含”或“已连上节点”误报为“已付款”。</p>
+<p>做完实验，再试<a href="labs/networks.html#卷末验收接手一张异常付款工单">卷末验收：接手一张异常付款工单</a>。先自己判断能不能发货，再和解法对照。</p>
 <h2 id="m02">M02 · 比特币：从 UTXO 到收款凭证</h2>
 <p>Java 里的「扣余额」不是 Bitcoin 的数据模型。输入引用上笔交易的输出，花费时整枚消耗；剩下的钱通常回到新找零输出，而不是在旧输出上改数字。</p>
 <table class="stackable">

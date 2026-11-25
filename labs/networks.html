@@ -1,17 +1,28 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="color-scheme" content="light dark"><title>第 04 课 · 运行自己的第一条链：签名前先问连的是谁 · 链上开发手册</title>
+<meta name="color-scheme" content="light dark"><title>第 04 课 · 连上了，怎么知道看的是哪本账？ · 链上开发手册</title>
 <link rel="stylesheet" href="../assets/site.css?v=2786ad38e29d"><script src="../assets/site.js?v=6dc390471c89" defer></script></head>
 <body><a class="skip" href="#main">跳至正文</a><header class="mast"><div class="mast-inner">
 <a class="brand" href="../index.html"><span class="mark" aria-hidden="true"></span>链上开发手册</a>
 <nav aria-label="全站导航"><a href="../plan.html">课程计划</a><a href="../index.html#labs">实验台</a><button type="button" id="theme" hidden>切换主题</button></nav>
 </div></header><main id="main" class="reading"><div class="crumb"><a href="../index.html">手册首页</a> / <a href="../plan.html#m01">M01 · 账本、钱包与密码学</a> / 第 04 课</div>
-<header class="lesson-opening"><h1 id="page-title">第 04 课 · 运行自己的第一条链：签名前先问连的是谁</h1><figure class="specimen"><figcaption>本地联调单</figcaption><dl>
-<div><dt>预期链号</dt><dd>31337</dd></div>
-<div><dt>错链示例</dt><dd>31338</dd></div></dl>
-<span class="specimen-relation" aria-hidden="true">≠</span><p>同一端点：127.0.0.1:18546</p></figure><p>联调单写着：「Bitcoin 用 <code>regtest</code>；EVM 用本地链 <code>31337</code>。」同事在 <code>127.0.0.1:18546</code> 拿到了 <code>anvil/v1.7.1</code>，问你：「服务已经连通，可以让收银员签名了吧？」先别弹签名框。这行字回答的是「你是什么软件」，工单问的是「你跑的是哪条链」。把同一个 Anvil 改成链 <code>31338</code> 再启动，它照样会报这个版本。</p></header><div class="reading-grid"><article aria-labelledby="page-title"><details class="mobile-toc"><summary>本页目录</summary><ol><li><a href="#把一次调用拆开看">把一次调用拆开看</a></li><li><a href="#跑一次看三行">跑一次，看三行</a></li><li><a href="#故障一刚才还-pass怎么连不上了">故障一：刚才还 PASS，怎么连不上了？</a></li><li><a href="#故障二请求成功服务器也没说谎为什么停">故障二：请求成功，服务器也没说谎，为什么停？</a></li><li><a href="#故障三链号没变昨晚的订单怎么不见了">故障三：链号没变，昨晚的订单怎么不见了？</a></li><li><a href="#独立作业交班时留下两次读数">独立作业：交班时留下两次读数</a></li><li><a href="#安装只取这次用的三个程序">安装：只取这次用的三个程序</a></li><li><a href="#查证原文">查证原文</a></li><li><a href="#卷末验收接手一张异常付款工单">卷末验收：接手一张异常付款工单</a></li></ol></details><p>我们就在这台机器上复现一次。不装钱包，不领币，不发交易。能开终端、读 JSON 就够了；第 01 课讲的区块哈希，会在最后一次排障用到。<a href="networks.sh">完整实验脚本：networks.sh</a>。</p>
-<h2 id="把一次调用拆开看">把一次调用拆开看</h2>
-<p>你写 Java 时可以调用 <code>client.getChainId()</code>。但答案不在 <code>client</code> 对象里：客户端要把方法名送给另一个进程，等它回话。这就是这里的 <strong>RPC</strong>（远程过程调用）；这次「远程」只有从本机一个进程到另一个进程那么远。</p>
+<header class="lesson-opening"><h1 id="page-title">第 04 课 · 连上了，怎么知道看的是哪本账？</h1><figure class="specimen"><figcaption>这次该用哪本练习账？</figcaption><dl>
+<div><dt>约好用的编号</dt><dd>31337</dd></div>
+<div><dt>另一本的编号</dt><dd>31338</dd></div></dl>
+<span class="specimen-relation" aria-hidden="true">≠</span><p>两个都是练习用的网络</p></figure><p>新同事练习收银，抄来一行「A 付给 B 店 2 张券」。店里正好有张应收 2 张券的订单，能划成已付吗？今天指定的练习账编号是 31337，隔壁班用的是 31338。两本练习账用的是同一套软件，都不是店里的正式账。</p></header><div class="reading-grid"><article aria-labelledby="page-title"><details class="mobile-toc"><summary>本页目录</summary><ol><li><a href="#给查账记录补一行">给查账记录补一行</a></li><li><a href="#选做实验让程序读出链号">选做实验：让程序读出链号</a></li><li><a href="#跑一次看三行">跑一次，看三行</a></li><li><a href="#故障一刚才还-pass怎么连不上了">故障一：刚才还 PASS，怎么连不上了？</a></li><li><a href="#故障二请求成功服务器也没说谎为什么停">故障二：请求成功，服务器也没说谎，为什么停？</a></li><li><a href="#故障三链号没变昨晚的订单怎么不见了">故障三：链号没变，昨晚的订单怎么不见了？</a></li><li><a href="#独立作业交班时留下两次读数">独立作业：交班时留下两次读数</a></li><li><a href="#安装只取这次用的三个程序">安装：只取这次用的三个程序</a></li><li><a href="#查证原文">查证原文</a></li><li><a href="#卷末验收接手一张异常付款工单">卷末验收：接手一张异常付款工单</a></li></ol></details><h2 id="给查账记录补一行">给查账记录补一行</h2>
+<p>这张练习单要你在 <strong>31337</strong> 上核对收款。同事只记了「已连接，软件叫 Anvil，版本 1.7.1」。他漏记了一行：<strong>实际查到的账本编号：（待填）</strong>。这个空不能照着练习单填。一边是你本来要查哪本账，另一边是你实际查了哪本。</p>
+<p>那该问谁？收银屏幕背后有个程序，负责按规则检查和保存账页，也回答查账的问题；这种程序叫<strong>节点</strong>。屏幕能连上它，说明有人答话。问「你用的是什么软件」，两个班的节点都会答 Anvil。得换个问题：「你现在管的这本账，编号是多少？」这里的账本编号就叫<strong>链号</strong>。</p>
+<p>用同一张练习单试两次。第一次，节点答 <strong>31337</strong>；第二次，入口和软件都没换，节点却答 <strong>31338</strong>。先想一想：哪一次可以接着核对练习记录？哪一次应该停下来？</p>
+<ul>
+<li><strong>第一次可以继续查练习账。</strong> 31337 和练习单上的数相同。你核对了一个编号，还没有核对那一笔付款。</li>
+<li><strong>第二次要停。</strong> 你拿到了回答，不是没连上；只是 31338 不符合要求。告诉同事「连到了另一班的练习账」，换回指定的账再查，不要先签一笔试试。</li>
+</ul>
+<p>回到真订单：两次都不能划成已付。就算练习账上收款人和张数都对，店里也没因此收到真的券。要销账，得在店里认可的正式账上找到属于这张订单的付款。</p>
+<p>想接着往下读，<a href="confirmations.html">第 05 课</a>再问一步：找对了账，也看见了顾客提交的付款，店家现在就能交货吗？</p>
+<p><a id="把一次调用拆开看"></a></p>
+<h2 id="选做实验让程序读出链号">选做实验：让程序读出链号</h2>
+<p>纸上判断到这里就够了。下面用<a href="networks.sh">本地脚本</a>做同一项核对：不装钱包，不领币，不发交易。想连同前三课一起检验，请做另一项<a href="#卷末验收接手一张异常付款工单">卷末验收：接手一张异常付款工单</a>。</p>
+<p>脚本是<strong>客户端</strong>，也就是发问的一方；Anvil 节点是回答的一方。即使用 Java 写成 <code>client.getChainId()</code>，链号也不是从 Java 对象里翻出来的。客户端把问题送给节点，再读回它的回答。这种问答叫 <strong>RPC</strong>（远程过程调用）；本课的双方都在你自己的电脑上。</p>
 <figure class="lesson-figure"><a href="../assets/figures/m01/networks-rpc.svg"><img src="../assets/figures/m01/networks-rpc.svg" alt="脚本先问 Anvil 版本，再问链号；节点把版本与链号分别送回调用方。"></a><figcaption>从左边的脚本出发，沿虚线回到左边；第二次回来的值才是工单要核对的数。</figcaption></figure>
 
 <p>拆开图里的第二个来回。下面是<strong>正常时的报文示意</strong>，实验脚本不会逐包打印它们。</p>
@@ -19,9 +30,9 @@
 </code></pre>
 <pre><code class="language-json">{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;id&quot;:2,&quot;result&quot;:&quot;0x7a69&quot;}
 </code></pre>
-<p><code>id:2</code> 像叫号单，表示「这是给第 2 个请求的答复」，不是链号。脚本里的 <code>evm_read</code> 先检查 HTTP 状态和 JSON-RPC 应答：请求号要对得上，有 <code>error</code> 或没有 <code>result</code> 都不行。<strong>就算 HTTP 是 200，也得打开信封看。</strong> 第二封应答里的 <code>result</code> 才拿来比。</p>
-<p>这条线上谁做了什么？Anvil 是<strong>节点</strong>，它按自己的配置维护账本、回答查询。脚本是调用方。Bitcoin 那边多一层：脚本启动 <code>bitcoin-cli</code>，由它向本机的节点进程 <code>bitcoind</code> 提问。把 <code>bitcoin-cli</code> 关掉，不等于关掉了节点。</p>
-<p>那<strong>钱包</strong>和<strong>区块浏览器</strong>呢？如果收银员要授权一笔支出，钱包会准备交易，有签名能力的钱包可以自己签或找签名器；观察钱包只能看。浏览器则把后端查到的区块、交易做成可搜索的网页。比如浏览器里搜得到某个收款地址，这既没证明你的程序连接着那个后端，也没证明那张订单已付。本次实验连这两样都不用。</p>
+<p><code>id:2</code> 像叫号单，表示「这是给第 2 个请求的答复」，不是链号。脚本里的 <code>evm_read</code> 先看 HTTP 状态，再核对请求号，确认答复里有结果、没有错误。即使 HTTP 状态码是 200，也不能跳过这些检查。最后才取 <code>result</code> 里的数与练习单比较。</p>
+<p>在比特币这一边，脚本借 <code>bitcoin-cli</code> 向本机节点 <code>bitcoind</code> 提问。关掉提问的程序，负责保存账页的节点并不会跟着关掉。</p>
+<p>还有两样容易混在一起的工具。<strong>钱包</strong>能帮你准备付款；有签名能力的钱包可以自己签或请签名器签，观察钱包只能看。<strong>区块浏览器</strong>则把查到的账页整理成可搜索的网页。你能在网页上搜到某个地址，不代表你自己的程序也在查那本账，更不代表那张订单已付。本次实验两样都不用。</p>
 <h2 id="跑一次看三行">跑一次，看三行</h2>
 <p>从项目根目录执行 <code>cd labs</code>。只有网页的话，先把<a href="networks.sh">脚本</a>下载到空目录，再进入那个目录。需要 Bitcoin Core <strong>30.5</strong> 的 <code>bitcoind</code>、<code>bitcoin-cli</code> 和 Anvil <strong>1.7.1</strong>；还需要 Bash 3.2+、Python 3.8+ 和 <code>lsof</code>。没装齐先看<a href="#network-tools">本课安装命令</a>。都就位后运行：</p>
 <pre><code class="language-bash">bash ./networks.sh
@@ -43,7 +54,7 @@ PASS chain=regtest eth_chainId=0x7a69 read_only=true
 <p>反过来，如果这个命令查到另一个进程正占着 <code>18546</code> 呢？<a href="networks.sh">脚本</a>的 <code>owned_node</code> 要求 <code>lsof</code> 同时匹配<strong>本次子进程 PID、指定回环地址和端口</strong>。旧服务占着端口，新 Anvil 若因此启动退出，你可能会看到 <code>BTC</code> 行，接着是 <code>ERROR anvil 启动退出…</code>，不会有带 <code>actual</code> 的错链判定。查明监听者是谁，协调释放端口后再跑，不要 <code>killall</code>。Core 的 <code>19443</code> 也可以用同一条命令换端口排查；缺工具则先看 <code>command -v bitcoind bitcoin-cli anvil lsof</code>。</p>
 <p>Core 的 CLI 只用这次目录里的认证 cookie；EVM 客户端直连回环，不走系统代理。脚本正常、报错或按 Ctrl+C 时只清理自己启动的进程。回环只是「留在本机」，不是链身份证、更不是访问权限；不要改为 <code>0.0.0.0</code> 或转发到公网。</p>
 <h2 id="故障二请求成功服务器也没说谎为什么停">故障二：请求成功，服务器也没说谎，为什么停？</h2>
-<p>保持交付单 <code>31337</code> 不动，把<strong>服务端</strong>改成 <code>31338</code>。参数只传给新 Anvil 的 <code>--chain-id</code>，不是改客户端的答案。脚本只接受 <code>31337</code> 到 <code>31399</code>。端口不变，版本不变；如果只看图里的第一次应答，你会猜两次都通过。</p>
+<p>现在把纸上的第二种情况交给程序判断。参数 <code>31338</code> 只传给新 Anvil 的 <code>--chain-id</code>，改变的是服务端使用的链号；客户端仍按练习单要求 <code>31337</code>。脚本允许的实验参数是 <code>31337</code> 到 <code>31399</code>。</p>
 <pre><code class="language-bash">if bash ./networks.sh 31338; then rc=0; else rc=$?; fi
 printf 'exit=%s\n' &quot;$rc&quot;
 </code></pre>
@@ -129,6 +140,6 @@ export PATH=&quot;$KIT/bitcoin-30.5/bin:$KIT/package/bin:$PATH&quot;
 <p><strong>交班判据。</strong> 复核人按你记下的版本、命令和输入能重做：凭条位置是 <code>3</code>（从 <code>0</code> 数），两个兄弟都放在当前摘要左边；原凭条能对上根，换方向后不能。原文审批验签通过，改收款方后不通过，密文改动被拒绝。只有 <code>/0/1</code> 匹配第二张收款单；错链是在读出链号后、签名和发送前退出 <code>3</code>。</p>
 <p>最后看最容易漏的一步：凭条 <code>24 02 01 01</code> 写的是 <strong>B 付 A 一张券</strong>，不是 <strong>B 收一张券</strong>。所以拒绝用这张凭条核销，订单继续待核对；这不等于断言没有别的付款。请结算方补一条指向 R-36 的实际结算流水，标明是哪份账、哪条记录，能核对收款方 B、方向和单位「1 张券」。不索取钱包秘密，也不要让客户再付一次。</p>
 <nav class="end-links" aria-label="阅读导航"><a rel="prev" href="wallet.html">上一课 · 03</a><a rel="next" href="confirmations.html">下一课 · 05</a></nav></article>
-<aside class="rail"><nav aria-label="本页目录"><b>本页目录</b><ol><li><a href="#把一次调用拆开看">把一次调用拆开看</a></li><li><a href="#跑一次看三行">跑一次，看三行</a></li><li><a href="#故障一刚才还-pass怎么连不上了">故障一：刚才还 PASS，怎么连不上了？</a></li><li><a href="#故障二请求成功服务器也没说谎为什么停">故障二：请求成功，服务器也没说谎，为什么停？</a></li><li><a href="#故障三链号没变昨晚的订单怎么不见了">故障三：链号没变，昨晚的订单怎么不见了？</a></li><li><a href="#独立作业交班时留下两次读数">独立作业：交班时留下两次读数</a></li><li><a href="#安装只取这次用的三个程序">安装：只取这次用的三个程序</a></li><li><a href="#查证原文">查证原文</a></li><li><a href="#卷末验收接手一张异常付款工单">卷末验收：接手一张异常付款工单</a></li></ol></nav></aside></div><dialog class="figure-zoom" aria-label="配图放大视图">
+<aside class="rail"><nav aria-label="本页目录"><b>本页目录</b><ol><li><a href="#给查账记录补一行">给查账记录补一行</a></li><li><a href="#选做实验让程序读出链号">选做实验：让程序读出链号</a></li><li><a href="#跑一次看三行">跑一次，看三行</a></li><li><a href="#故障一刚才还-pass怎么连不上了">故障一：刚才还 PASS，怎么连不上了？</a></li><li><a href="#故障二请求成功服务器也没说谎为什么停">故障二：请求成功，服务器也没说谎，为什么停？</a></li><li><a href="#故障三链号没变昨晚的订单怎么不见了">故障三：链号没变，昨晚的订单怎么不见了？</a></li><li><a href="#独立作业交班时留下两次读数">独立作业：交班时留下两次读数</a></li><li><a href="#安装只取这次用的三个程序">安装：只取这次用的三个程序</a></li><li><a href="#查证原文">查证原文</a></li><li><a href="#卷末验收接手一张异常付款工单">卷末验收：接手一张异常付款工单</a></li></ol></nav></aside></div><dialog class="figure-zoom" aria-label="配图放大视图">
 <form method="dialog"><a>打开 SVG 原图</a><button autofocus>收起大图</button></form>
 <div class="zoom-scroll" tabindex="0" role="region" aria-label="放大的配图，可滚动"><img alt=""></div></dialog></main><footer><span>链上开发手册</span><a href="../index.html">课程首页</a><a href="networks.md">Markdown 原稿</a></footer></body></html>
